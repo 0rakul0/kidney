@@ -1,0 +1,74 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Test and tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Environment and local config
+.env
+.env.*
+*.local
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Machine learning artifacts
+*.ckpt
+*.h5
+*.joblib
+*.keras
+*.npy
+*.npz
+*.onnx
+*.pb
+*.pickle
+*.pkl
+*.pt
+*.pth
+*.safetensors
+
+# Generated outputs
+out/
+results/
+
+# Local image datasets
+dataset/
+dataset_loader/
+identificada/
+nao_identificada/
+reference_masks/
+kidneyUS_images_25_june_2025/

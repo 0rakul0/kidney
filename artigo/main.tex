@@ -1,0 +1,200 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{graphicx,url}
+\usepackage{tabularx}
+\usepackage{float}
+
+\sloppy
+
+\title{Identificação de Fibrose Renal por Visão Computacional em Imagens de Ultrassonografia}
+
+\author{
+  Jefferson Silva dos Anjos\inst{1},
+  Felipe da Rocha Henriques\inst{1}
+}
+
+\address{
+  PPCIC -- Centro Federal de Educação Tecnológica Celso Suckow da Fonseca (CEFET/RJ)\\
+  CEP 20271-110 -- Rio de Janeiro -- RJ -- Brasil
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper presents an ongoing research project focused on identifying signs compatible with renal fibrosis in ultrasound images using computer vision and deep learning. The current project stage already performs kidney segmentation with semantic segmentation models, allowing the anatomical region of interest to be isolated. Based on recent literature, the proposed methodology now advances toward a region-of-interest pipeline centered on intrarenal texture, echogenicity, bright spot concentration, and comparison between the kidney and nearby reference organs such as the liver. The project therefore repositions kidney segmentation as an intermediate step in a broader framework intended to support the computational characterization of diseased kidneys.
+\end{abstract}
+
+\begin{resumo}
+Este artigo apresenta um projeto de pesquisa em andamento voltado à identificação de sinais compatíveis com fibrose renal em imagens de ultrassonografia por meio de visão computacional e aprendizado profundo. O estágio atual do projeto já realiza a segmentação do rim com modelos de segmentação semântica, permitindo isolar a região anatômica de interesse. Com base em estudos recentes, a metodologia proposta passa a avançar para um pipeline centrado na análise da região de interesse renal, considerando textura intrarrenal, ecogenicidade, concentração de pontos brilhantes e comparação entre o rim e órgãos de referência, como o fígado. Dessa forma, a segmentação do rim deixa de ser o objetivo final e passa a ser uma etapa intermediária de um sistema mais amplo voltado à caracterização computacional de rins doentes.
+\end{resumo}
+
+\section{Introdução}
+
+A ultrassonografia renal é um exame amplamente utilizado por ser não invasivo, acessível e capaz de fornecer indícios relevantes sobre alterações estruturais do rim. Na prática clínica, um dos aspectos mais observados é a ecogenicidade do parênquima renal, especialmente quando comparada à de órgãos próximos, como o fígado. Em geral, o aumento relativo do brilho cortical renal pode indicar comprometimento parenquimatoso e doença renal crônica \cite{Manley2001,Araujo2020}.
+
+Neste trabalho, o problema de pesquisa foi redefinido para a identificação de sinais compatíveis com fibrose renal em imagens de ultrassonografia. O projeto já dispõe de modelos capazes de segmentar o rim automaticamente, mas o desafio científico atual está em avançar da simples delimitação anatômica para a análise interna do órgão. A hipótese central é que a combinação de ecogenicidade aumentada, heterogeneidade intrarrenal, presença de pontos hiperecogênicos e alterações nas pirâmides renais pode apoiar a identificação computacional de rins potencialmente doentes.
+
+\section{Referencial Teórico}
+
+\subsection{Ecogenicidade Renal e Comparação com Órgãos de Referência}
+
+A avaliação da ecogenicidade renal é um dos elementos clássicos da ultrassonografia em nefrologia. Manley e O'Neill \cite{Manley2001} propuseram uma quantificação objetiva da ecogenicidade cortical renal com base na razão entre a intensidade do córtex renal e a do fígado. Nesse estudo, os autores mostraram que a ecogenicidade pode ser expressa como uma razão quantitativa entre regiões de interesse, reduzindo a dependência exclusiva da inspeção visual.
+
+Trabalhos posteriores reforçaram a relevância clínica dessa comparação. Araújo et al. \cite{Araujo2020} mostraram que parâmetros ultrassonográficos ponderados pela ecogenicidade cortical apresentaram melhor capacidade de predizer alterações histológicas crônicas e pior função renal do que medidas brutas isoladas. Em particular, o estudo sugere que a ecogenicidade cortical relativa ao fígado pode acrescentar valor à interpretação clínica da imagem.
+
+\subsection{Textura, Radiomics e Fibrose Renal}
+
+A literatura recente passou a explorar radiomics e aprendizado de máquina para quantificar padrões intrarrenais em ultrassom. Chen et al. \cite{Chen2023} desenvolveram um modelo de radiomics com imagens ultrassonográficas e características clínicas para avaliar a gravidade da fibrose renal em pacientes com doença renal crônica. Já Ge et al. \cite{Ge2022} propuseram um modelo multimodal baseado em ultrassom e radiomics para detecção de fibrose, mostrando que a combinação de informações quantitativas pode superar abordagens baseadas em indicadores clínicos isolados.
+
+Esses trabalhos reforçam que a análise da imagem não precisa se limitar ao contorno do rim. Em vez disso, atributos como intensidade média, heterogeneidade local, distribuição de brilho e padrões de textura podem fornecer informação diagnóstica relevante sobre o estado do parênquima renal.
+
+\subsection{Pirâmides Renais como Alvo Anatômico}
+
+Além da análise global do parênquima, a literatura também indica que alterações nas pirâmides renais merecem atenção. Chavhan et al. \cite{Chavhan2008} relataram correlação entre mudanças de ecogenicidade das pirâmides renais e pior função renal diferencial em um contexto pediátrico. Embora o cenário clínico seja específico, o trabalho ajuda a justificar o uso das pirâmides como alvo anatômico de interesse em sistemas computacionais de apoio à decisão.
+
+\subsection{Arquiteturas de Segmentação Utilizadas}
+
+Como etapa inicial do projeto, foram avaliadas arquiteturas consolidadas de segmentação semântica aplicadas à imagem médica. A U-Net \cite{Ronneberger2015} tornou-se uma referência por combinar caminho de contração e expansão com conexões de atalho, preservando detalhes espaciais importantes em tarefas biomédicas. A UNet++ \cite{Zhou2018UNetPP} estende essa ideia com conexões aninhadas entre blocos intermediários, buscando reduzir a lacuna semântica entre codificador e decodificador.
+
+Também foi considerada a arquitetura DeepLabV3, em sua variante encoder-decoder com convoluções separáveis atrous \cite{Chen2018DeepLab}, por sua capacidade de capturar contexto multi-escala. Por fim, foi incluído o SegFormer \cite{Xie2021SegFormer}, uma arquitetura baseada em transformers para segmentação semântica, com codificador hierárquico e decodificador leve. A escolha desses modelos se justifica por representarem estratégias complementares: arquiteturas convolucionais clássicas, refinamentos específicos para imagem médica e uma abordagem recente baseada em transformers.
+
+\section{Trabalhos Relacionados}
+
+Uma linha importante de pesquisa é a segmentação automática do rim em imagens de ultrassonografia. Chen et al. \cite{Chen2022Segmentation} apresentaram uma arquitetura convolucional multiescala com supervisão profunda para segmentação renal, obtendo desempenho elevado em métricas como Dice, Jaccard, precisão e recall. Esse tipo de estudo sustenta a etapa já alcançada neste projeto, na qual o rim é segmentado automaticamente para definição da região de interesse.
+
+Outra referência central é o trabalho de Athavale et al. \cite{Athavale2021}, que propôs um pipeline composto por pré-processamento, segmentação do rim com U-Net, extração de atributos com VGG19 e classificação com extreme gradient boosting para quantificar intersticial fibrosis and tubular atrophy (IFTA) a partir de imagens de ultrassonografia. Esse estudo é especialmente importante para o presente projeto porque demonstra que a segmentação do rim pode ser tratada como uma etapa intermediária de um sistema mais amplo orientado à caracterização patológica.
+
+No conjunto, esses trabalhos indicam um caminho metodológico consistente:
+
+\begin{enumerate}
+\item segmentar o rim;
+\item isolar a região renal como ROI;
+\item extrair medidas quantitativas de textura e ecogenicidade;
+\item combinar essas informações em um modelo de decisão.
+\end{enumerate}
+
+\section{Metodologia Proposta}
+
+Com base no estado atual do projeto e nas evidências da literatura, propõe-se o seguinte pipeline metodológico:
+
+\begin{enumerate}
+\item pré-processamento da imagem, incluindo normalização, redução de ruído e melhoria de contraste;
+\item segmentação automática do rim com arquiteturas já avaliadas no projeto;
+\item recorte da ROI renal a partir da máscara segmentada;
+\item extração de atributos intrarrenais, como intensidade média, desvio padrão, percentis, textura por matrizes de coocorrência e proporção de pontos brilhantes;
+\item obtenção de uma máscara interna candidata das pirâmides renais por heurísticas baseadas em intensidade e morfologia;
+\item comparação entre a intensidade média do rim e a intensidade média de uma ROI manual do fígado, quando essa estrutura estiver visível no exame;
+\item classificação futura do rim em categorias como saudável, suspeito ou doente.
+\end{enumerate}
+
+Esse desenho segue a lógica dos trabalhos de Athavale et al. \cite{Athavale2021}, Chen et al. \cite{Chen2023} e Ge et al. \cite{Ge2022}, ao mesmo tempo em que incorpora a comparação rim-fígado inspirada por Manley e O'Neill \cite{Manley2001} e pelo uso clínico de ecogenicidade relativa discutido por Araújo et al. \cite{Araujo2020}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/example_reference_high_ratio_1.png}
+\caption{Exemplo qualitativo de comparação entre o rim segmentado e uma ROI manual de referência. O painel mostra a imagem original, a máscara renal, a região interna analisada e a região de referência usada para comparação de ecogenicidade.}
+\label{fig:reference_example}
+\end{figure}
+
+Na Figura~\ref{fig:reference_example}, observa-se um caso em que a comparação rim-referência se torna particularmente útil para apoiar a análise visual. Esse tipo de exemplo é coerente com a motivação clínica adotada neste projeto: quando o rim apresenta brilho relativamente aumentado em comparação com o órgão adjacente, a medida quantitativa da razão de intensidades pode funcionar como um forte indício computacional de alteração.
+
+\section{Estado Atual do Projeto}
+
+Atualmente, o projeto já conta com:
+
+\begin{itemize}
+\item modelos de segmentação do rim com U-Net, U-Net++, DeepLabV3 e SegFormer;
+\item avaliação quantitativa da segmentação renal;
+\item geração automática de máscaras do rim para expansão do conjunto de dados;
+\item um módulo de extração de features intrarrenais a partir da máscara renal;
+\item um mecanismo para cálculo de razões entre o rim e uma ROI de referência, como o fígado, quando essa ROI é anotada manualmente.
+\end{itemize}
+
+Do ponto de vista metodológico, isso significa que o projeto já implementa a fase inicial recomendada pela literatura: transformar a máscara do rim em uma ROI para análise quantitativa. O que ainda falta é validar essas features com rótulos clínicos apropriados e avançar na segmentação interna das pirâmides renais.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/example_predicted_diseased_1.png}
+\caption{Exemplo de imagem do conjunto de teste com rótulo heurístico de alteração e predição positiva do classificador experimental.}
+\label{fig:diseased_example}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/example_predicted_healthy_1.png}
+\caption{Exemplo de imagem do conjunto de teste com rótulo heurístico saudável e predição negativa do classificador experimental.}
+\label{fig:healthy_example}
+\end{figure}
+
+As Figuras~\ref{fig:diseased_example} e~\ref{fig:healthy_example} ilustram dois casos qualitativos extraídos diretamente da pipeline implementada. Embora os rótulos atualmente disponíveis ainda sejam parciais e, em alguns casos, heurísticos, esses exemplos já permitem demonstrar que o projeto produz saídas visuais e quantitativas compatíveis com a nova proposta metodológica.
+
+\section{Resultados Experimentais}
+
+Antes da etapa de classificação baseada em ecogenicidade e textura, foi necessário avaliar a qualidade da segmentação renal, já que toda a pipeline subsequente depende da delimitação correta da ROI do rim. Para isso, foram comparados quatro modelos: U-Net, UNet++, DeepLabV3 e SegFormer.
+
+As métricas adotadas nesta etapa têm papéis complementares. O coeficiente Dice mede a sobreposição entre a máscara predita e a máscara de referência, sendo amplamente usado em segmentação médica. A IoU (\textit{Intersection over Union}) também quantifica sobreposição, mas de forma mais rígida. A precisão (\textit{Precision}) indica a proporção de pixels preditos como rim que realmente pertencem ao rim, enquanto o recall mede a capacidade do modelo de recuperar todos os pixels da estrutura-alvo. O F1-score sintetiza precisão e recall em uma média harmônica. A distância de Hausdorff avalia discrepâncias geométricas mais severas entre contornos, sendo útil para detectar erros localizados de borda. Por fim, FPS (\textit{frames per second}) expressa o custo computacional da inferência e indica a velocidade de processamento do modelo.
+
+\begin{table}[H]
+\centering
+\caption{Resultados do benchmark de segmentação renal no conjunto de teste.}
+\label{tab:benchmark_segmentacao}
+\begin{tabular}{lccccccc}
+\hline
+\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{Hausdorff} & \textbf{FPS} \\
+\hline
+SegFormer & 0.8504 & 0.7802 & 0.8579 & 0.8638 & 0.8504 & 18.82 & 51.81 \\
+U-Net & 0.8309 & 0.7578 & 0.8609 & 0.8278 & 0.8309 & 20.11 & 23.53 \\
+DeepLabV3 & 0.8297 & 0.7670 & 0.8415 & 0.8497 & 0.8297 & 17.83 & 26.53 \\
+UNet++ & 0.8133 & 0.7258 & 0.8194 & 0.8387 & 0.8133 & 31.22 & 19.39 \\
+\hline
+\end{tabular}
+\end{table}
+
+Os resultados da Tabela~\ref{tab:benchmark_segmentacao} mostram que o SegFormer apresentou o melhor desempenho global, com Dice de 0.8504, IoU de 0.7802, recall de 0.8638 e a maior taxa de processamento. A U-Net e o DeepLabV3 também apresentaram desempenho competitivo, com diferenças pequenas em Dice e IoU. Já a UNet++ obteve os menores valores de sobreposição e a maior distância de Hausdorff, indicando maior variabilidade geométrica. Esses resultados indicam que a segmentação renal já se encontra em um patamar suficientemente robusto para servir de base à extração de features intrarrenais e à comparação de ecogenicidade.
+
+Além do benchmark de segmentação, foi executado um classificador experimental sobre as features intrarrenais extraídas da ROI renal. No estado atual do projeto, esse classificador foi treinado com um conjunto ainda pequeno e parcialmente heurístico de rótulos, servindo principalmente como prova de conceito da pipeline. Mesmo assim, o experimento produziu acurácia de 0.8333, precisão de 1.0, recall de 0.5 e F1 de 0.6667 no subconjunto de teste rotulado, indicando que as features de intensidade e textura já capturam parte da diferença entre rins com e sem suspeita de alteração.
+
+\begin{table}[H]
+\centering
+\caption{Resultados do classificador experimental no subconjunto de teste rotulado.}
+\label{tab:benchmark_classificacao}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC-AUC} \\
+\hline
+Random Forest & 0.8333 & 1.0000 & 0.5000 & 0.6667 & 1.0000 \\
+\hline
+\end{tabular}
+\end{table}
+
+Na Tabela~\ref{tab:benchmark_classificacao}, a acurácia representa a proporção total de imagens corretamente classificadas. A precisão indica, entre os casos preditos como doentes, quantos realmente pertencem a essa classe. O recall mede a capacidade do modelo de recuperar os casos alterados presentes no conjunto avaliado. O F1-score sintetiza o equilíbrio entre precisão e recall, enquanto a ROC-AUC mede a capacidade do classificador de separar as classes ao longo de diferentes limiares de decisão. Como o conjunto atual ainda é pequeno e parcialmente construído com rótulos heurísticos, esses valores devem ser interpretados como resultado preliminar e não como validação clínica definitiva.
+
+\section{Limitações e Próximos Passos}
+
+A principal limitação atual está na ausência de anotações específicas das pirâmides renais e de rótulos clínicos de fibrose para cada imagem. Sem essa referência, a máscara interna atualmente gerada deve ser tratada como heurística exploratória, e não como verdade anatômica definitiva.
+
+Como próximos passos, destacam-se:
+
+\begin{itemize}
+\item construção de um subconjunto anotado manualmente com ROIs do fígado e das pirâmides renais;
+\item treinamento de uma segunda etapa de segmentação interna;
+\item avaliação de classificadores supervisionados com as features de ecogenicidade e textura já extraídas;
+\item comparação entre abordagens baseadas em regras clínicas e modelos aprendidos.
+\end{itemize}
+
+\section{Conclusão}
+
+Este trabalho reposiciona o projeto para um objetivo mais aderente ao material e às evidências encontradas na literatura: a identificação de sinais compatíveis com fibrose renal em imagens de ultrassonografia. A segmentação automática do rim, já atingida pelas arquiteturas implementadas, passa a funcionar como base para um pipeline mais amplo de análise intrarrenal.
+
+Os estudos revisados mostram que a combinação entre ROI renal, radiomics, textura e ecogenicidade relativa é uma estratégia viável para aproximar a ultrassonografia de uma avaliação quantitativa da fibrose. Com isso, o projeto passa a convergir para uma proposta metodológica consistente com o estado da arte: segmentar o rim, analisar seu interior, comparar seu brilho com órgãos de referência e usar essas informações para apoiar a caracterização de rins potencialmente doentes.
+
+\bibliographystyle{sbc}
+\bibliography{sbc-template}
+
+\end{document}

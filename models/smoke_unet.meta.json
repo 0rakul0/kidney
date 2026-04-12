@@ -1,0 +1,53 @@
+{
+  "model_name": "UNet",
+  "checkpoint_name": "smoke_unet.pth",
+  "experiment_name": "smoke_unet",
+  "best_epoch": 1,
+  "best_val_dice": 0.33898,
+  "best_threshold": 0.5,
+  "img_size": 128,
+  "model_kwargs": {
+    "base_channels": 32
+  },
+  "hyperparameters": {
+    "model_name": "UNet",
+    "experiment_name": "smoke_unet",
+    "checkpoint_name": "smoke_unet.pth",
+    "dataset_path": "D:\\kidney\\dataset",
+    "model_kind": "plain",
+    "img_size": 128,
+    "batch_size": 8,
+    "epochs": 1,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0,
+    "optimizer_name": "adam",
+    "scheduler_name": "plateau",
+    "scheduler_patience": 4,
+    "scheduler_factor": 0.5,
+    "min_lr": 1e-06,
+    "early_stopping_patience": 0,
+    "bce_weight": 1.0,
+    "dice_weight": 1.0,
+    "threshold": 0.5,
+    "threshold_search": false,
+    "threshold_candidates": [
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "pos_weight": null,
+    "auto_pos_weight": false,
+    "augment": false,
+    "clahe": false,
+    "seed": 42,
+    "num_workers": 0,
+    "model_kwargs": {
+      "base_channels": 32
+    }
+  },
+  "resolved_pos_weight": null
+}

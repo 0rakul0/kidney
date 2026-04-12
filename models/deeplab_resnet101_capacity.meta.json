@@ -1,0 +1,55 @@
+{
+  "model_name": "DeepLab",
+  "checkpoint_name": "deeplab_resnet101_capacity.pth",
+  "experiment_name": "deeplab_resnet101_capacity",
+  "best_epoch": 12,
+  "best_val_dice": 0.918373,
+  "best_threshold": 0.65,
+  "img_size": 256,
+  "model_kwargs": {
+    "backbone": "resnet101",
+    "pretrained": true
+  },
+  "hyperparameters": {
+    "model_name": "DeepLab",
+    "experiment_name": "deeplab_resnet101_capacity",
+    "checkpoint_name": "deeplab_resnet101_capacity.pth",
+    "dataset_path": "D:\\kidney\\dataset",
+    "model_kind": "deeplab",
+    "img_size": 256,
+    "batch_size": 8,
+    "epochs": 12,
+    "learning_rate": 8e-05,
+    "weight_decay": 0.0001,
+    "optimizer_name": "adamw",
+    "scheduler_name": "plateau",
+    "scheduler_patience": 4,
+    "scheduler_factor": 0.5,
+    "min_lr": 1e-06,
+    "early_stopping_patience": 10,
+    "bce_weight": 1.0,
+    "dice_weight": 1.0,
+    "threshold": 0.5,
+    "threshold_search": true,
+    "threshold_candidates": [
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "pos_weight": null,
+    "auto_pos_weight": true,
+    "augment": false,
+    "clahe": false,
+    "seed": 42,
+    "num_workers": 0,
+    "model_kwargs": {
+      "backbone": "resnet101",
+      "pretrained": true
+    }
+  },
+  "resolved_pos_weight": 9.832655
+}

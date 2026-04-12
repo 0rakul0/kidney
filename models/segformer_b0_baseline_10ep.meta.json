@@ -1,0 +1,53 @@
+{
+  "model_name": "SegFormer",
+  "checkpoint_name": "segformer_b0_baseline_10ep.pth",
+  "experiment_name": "segformer_b0_baseline_10ep",
+  "best_epoch": 9,
+  "best_val_dice": 0.903492,
+  "best_threshold": 0.6,
+  "img_size": 256,
+  "model_kwargs": {
+    "backbone_name": "nvidia/segformer-b0-finetuned-ade-512-512"
+  },
+  "hyperparameters": {
+    "model_name": "SegFormer",
+    "experiment_name": "segformer_b0_baseline_10ep",
+    "checkpoint_name": "segformer_b0_baseline_10ep.pth",
+    "dataset_path": "D:\\kidney\\dataset",
+    "model_kind": "segformer",
+    "img_size": 256,
+    "batch_size": 8,
+    "epochs": 10,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0,
+    "optimizer_name": "adam",
+    "scheduler_name": "plateau",
+    "scheduler_patience": 4,
+    "scheduler_factor": 0.5,
+    "min_lr": 1e-06,
+    "early_stopping_patience": 10,
+    "bce_weight": 1.0,
+    "dice_weight": 1.0,
+    "threshold": 0.5,
+    "threshold_search": true,
+    "threshold_candidates": [
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "pos_weight": null,
+    "auto_pos_weight": false,
+    "augment": false,
+    "clahe": false,
+    "seed": 42,
+    "num_workers": 0,
+    "model_kwargs": {
+      "backbone_name": "nvidia/segformer-b0-finetuned-ade-512-512"
+    }
+  },
+  "resolved_pos_weight": null
+}
