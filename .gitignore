@@ -72,3 +72,9 @@ identificada/
 nao_identificada/
 reference_masks/
 kidneyUS_images_25_june_2025/
+pseudo_labels/
+dataset_augmented/
+external_data/
+.kaggle/
+dataset_geral/
+dataset_geral_cv/

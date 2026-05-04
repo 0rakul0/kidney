@@ -1,0 +1,145 @@
+\begin{thebibliography}{}
+
+\bibitem[Araújo et~al. 2020]{Araujo2020}
+Araújo, N.~C., Riella, C., Martins, L.~S., et~al. (2020).
+\newblock Sonographically determined kidney measurements are better able to
+  predict histological changes and a low ckd-epi egfr when weighted towards
+  cortical echogenicity.
+\newblock {\em BMC Nephrology}, 21(123).
+
+\bibitem[Athavale et~al. 2021]{Athavale2021}
+Athavale, A., Hartman, N., Sonavane, R., et~al. (2021).
+\newblock Development and validation of a deep learning model to quantify
+  interstitial fibrosis and tubular atrophy from kidney ultrasonography images.
+\newblock {\em JAMA Network Open}, 4(5):e2110856.
+
+\bibitem[Bnouiri 2026]{BnouiriKaggleRenalData}
+Bnouiri, Z. (2026).
+\newblock Renal data.
+\newblock Kaggle Dataset.
+\newblock Accessed May 2026.
+
+\bibitem[Breiman 2001]{Breiman2001}
+Breiman, L. (2001).
+\newblock Random forests.
+\newblock {\em Machine Learning}, 45(1):5--32.
+
+\bibitem[{CGPxy} 2026]{CGPxyUltrasoundDataset}
+{CGPxy} (2026).
+\newblock Ultrasound-dataset.
+\newblock GitHub Repository.
+\newblock Accessed May 2026.
+
+\bibitem[Chavhan et~al. 2008]{Chavhan2008}
+Chavhan, G.~B., Parra, D.~A., Oudjhane, K., et~al. (2008).
+\newblock Renal pyramid echogenicity in ureteropelvic junction obstruction:
+  correlation between altered echogenicity and differential renal function.
+\newblock {\em Pediatric Radiology}, 38(10):1063--1069.
+
+\bibitem[Chen et~al. 2018]{Chen2018DeepLab}
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018).
+\newblock Encoder-decoder with atrous separable convolution for semantic image
+  segmentation.
+\newblock {\em European Conference on Computer Vision (ECCV)}, pages 801--818.
+
+\bibitem[Chen et~al. 2022]{Chen2022Segmentation}
+Chen, X., Wang, X., Zhang, G., et~al. (2022).
+\newblock A novel convolutional neural network for kidney ultrasound images
+  segmentation.
+\newblock {\em Computers in Biology and Medicine}, 145:105530.
+
+\bibitem[Chen et~al. 2023]{Chen2023}
+Chen, Z., Guo, J., Chen, C., and Zheng, J. (2023).
+\newblock Ultrasound-based radiomics analysis in the assessment of renal
+  fibrosis in patients with chronic kidney disease.
+\newblock {\em Journal of Ultrasound in Medicine}, 42(12):3025--3038.
+
+\bibitem[Ge et~al. 2023]{Ge2022}
+Ge, X.-Y., Miao, H., Wang, J., et~al. (2023).
+\newblock Diagnostic accuracy of ultrasound-based multimodal radiomics modeling
+  for fibrosis detection in chronic kidney disease.
+\newblock {\em Abdominal Radiology}, 48(3):977--987.
+
+\bibitem[Haralick et~al. 1973]{Haralick1973}
+Haralick, R.~M., Shanmugam, K., and Dinstein, I. (1973).
+\newblock Textural features for image classification.
+\newblock {\em IEEE Transactions on Systems, Man, and Cybernetics},
+  SMC-3(6):610--621.
+
+\bibitem[Karim 2025]{Karim2025AbdominalUS}
+Karim, S.~Z. (2025).
+\newblock Abdominal ultrasound image dataset for organ classification and
+  disease detection.
+\newblock Research Data, Mississippi State University Scholars Junction.
+
+\bibitem[Kaur and Oberoi 2024]{KaurKaggleKidneyStone}
+Kaur, G. and Oberoi, S.~S. (2024).
+\newblock Kidney ultrasound images stone and no stone.
+\newblock Kaggle Dataset.
+\newblock CC0 Public Domain; accessed May 2026.
+
+\bibitem[Lee 2013]{Lee2013PseudoLabel}
+Lee, D.-H. (2013).
+\newblock Pseudo-label: The simple and efficient semi-supervised learning
+  method for deep neural networks.
+\newblock In {\em Workshop on Challenges in Representation Learning, ICML},
+  volume~3.
+
+\bibitem[Manley and O'Neill 2001]{Manley2001}
+Manley, J.~A. and O'Neill, W.~C. (2001).
+\newblock How echogenic is echogenic? quantitative acoustics of the renal
+  cortex.
+\newblock {\em American Journal of Kidney Diseases}, 37(4):706--711.
+
+\bibitem[{MONAI Development Team} 2026]{MONAIClinicalUltrasound}
+{MONAI Development Team} (2026).
+\newblock Clinical ultrasound image repository.
+\newblock AWS Open Data Registry.
+\newblock Accessed May 2026.
+
+\bibitem[Ndzimbong et~al. 2025]{Ndzimbong2025TRUSTED}
+Ndzimbong, W., Fourniol, C., Themyr, L., Thome, N., Keeza, Y., Sauer, B.,
+  Piechaud, P.-T., Mejean, A., Marescaux, J., George, D., Mutter, D.,
+  Hostettler, A., and Collins, T. (2025).
+\newblock Trusted: The paired 3d transabdominal ultrasound and ct human data
+  for kidney segmentation and registration research.
+\newblock {\em Scientific Data}, 12(615).
+
+\bibitem[{NIDUS Lab RadOSS} 2026]{NIDUS2026}
+{NIDUS Lab RadOSS} (2026).
+\newblock Ultrasound open access datasets.
+\newblock Accessed May 2026.
+
+\bibitem[Ronneberger et~al. 2015]{Ronneberger2015}
+Ronneberger, O., Fischer, P., and Brox, T. (2015).
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In {\em Medical Image Computing and Computer-Assisted Intervention
+  (MICCAI)}, pages 234--241.
+
+\bibitem[Singla et~al. 2023]{Singla2023KidneyUS}
+Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and
+  Rohling, R. (2023).
+\newblock The open kidney ultrasound data set.
+\newblock In {\em Simplifying Medical Ultrasound}, volume 14337 of {\em Lecture
+  Notes in Computer Science}, pages 155--164. Springer Nature Switzerland.
+
+\bibitem[Taha and Hanbury 2015]{Taha2015Metrics}
+Taha, A.~A. and Hanbury, A. (2015).
+\newblock Metrics for evaluating 3d medical image segmentation: Analysis,
+  selection, and tool.
+\newblock {\em BMC Medical Imaging}, 15(29).
+
+\bibitem[Xie et~al. 2021]{Xie2021SegFormer}
+Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.~M., and Luo, P. (2021).
+\newblock Segformer: Simple and efficient design for semantic segmentation with
+  transformers.
+\newblock {\em Advances in Neural Information Processing Systems},
+  34:12077--12090.
+
+\bibitem[Zhou et~al. 2018]{Zhou2018UNetPP}
+Zhou, Z., Siddiquee, M. M.~R., Tajbakhsh, N., and Liang, J. (2018).
+\newblock Unet++: A nested u-net architecture for medical image segmentation.
+\newblock {\em Deep Learning in Medical Image Analysis and Multimodal Learning
+  for Clinical Decision Support}, pages 3--11.
+
+\end{thebibliography}

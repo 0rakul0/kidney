@@ -1,0 +1,9 @@
+priority,slug,modality,label_type,intended_use,include_by_default
+1,gurjeetkaurmangat/kidney-ultrasound-images-stone-and-no-stone,renal_ultrasound,class_normal_stone,segmentation_pseudolabel_and_robustness,true
+2,zaynebnouiri/renal-data,renal_ultrasound,kidney_failure_metadata,parenchyma_or_failure_classification,true
+3,siatsyx/ct2usforkidneyseg,synthetic_ultrasound,kidney_segmentation,segmentation_pretraining,true
+4,ignaciorlando/ussimandsegm,abdominal_ultrasound,organ_segmentation,segmentation_pretraining,true
+5,safurahajiheidari/kidney-stone-images,ct_or_mixed,bounding_boxes,stone_detection_reference,false
+6,murillobouzon/kssd2025-kidney-stone-segmentation-dataset,ct,stone_segmentation,ct_only_reference,false
+7,nazmul0087/ct-kidney-dataset-normal-cyst-tumor-and-stone,ct,class_normal_cyst_tumor_stone,ct_only_reference,false
+

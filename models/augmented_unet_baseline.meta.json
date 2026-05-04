@@ -1,0 +1,53 @@
+{
+  "model_name": "UNet",
+  "checkpoint_name": "augmented_unet_baseline.pth",
+  "experiment_name": "augmented_unet_baseline",
+  "best_epoch": 10,
+  "best_val_dice": 0.899485,
+  "best_threshold": 0.65,
+  "img_size": 256,
+  "model_kwargs": {
+    "base_channels": 64
+  },
+  "hyperparameters": {
+    "model_name": "UNet",
+    "experiment_name": "augmented_unet_baseline",
+    "checkpoint_name": "augmented_unet_baseline.pth",
+    "dataset_path": "dataset_augmented",
+    "model_kind": "plain",
+    "img_size": 256,
+    "batch_size": 8,
+    "epochs": 12,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0,
+    "optimizer_name": "adam",
+    "scheduler_name": "plateau",
+    "scheduler_patience": 4,
+    "scheduler_factor": 0.5,
+    "min_lr": 1e-06,
+    "early_stopping_patience": 8,
+    "bce_weight": 1.0,
+    "dice_weight": 1.0,
+    "threshold": 0.5,
+    "threshold_search": true,
+    "threshold_candidates": [
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "pos_weight": null,
+    "auto_pos_weight": false,
+    "augment": false,
+    "clahe": false,
+    "seed": 42,
+    "num_workers": 0,
+    "model_kwargs": {
+      "base_channels": 64
+    }
+  },
+  "resolved_pos_weight": null
+}
