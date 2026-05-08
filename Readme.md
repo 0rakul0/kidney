@@ -1,8 +1,8 @@
-﻿# Identificacao de Fibrose Renal por Visao Computacional
+# Analise de Achados Hiperecogenicos em Ultrassonografia Renal
 
-Este projeto investiga a identificacao de sinais de fibrose renal em imagens de ultrassonografia usando visao computacional e aprendizado profundo.
+Este projeto investiga o uso de visao computacional e aprendizado profundo em imagens de ultrassonografia renal. A versao atual da pesquisa foca em segmentar o rim e analisar regioes hiperecogenicas suspeitas proximas as piramides renais.
 
-O estado atual do projeto ja resolve uma etapa importante: a segmentacao automatica do rim. A nova proposta transforma essa segmentacao em uma etapa intermediaria de um pipeline maior, cujo objetivo final e analisar a regiao interna do rim, especialmente as piramides renais, para detectar padroes de opacidade e hiperecogenicidade associados a doenca.
+O estado atual do projeto ja resolve uma etapa importante: a segmentacao automatica do rim. A proposta transforma essa segmentacao em uma etapa intermediaria de um *pipeline* maior, no qual a mascara renal delimita a regiao de analise antes da extracao de medidas internas. A classificacao de suspeita de fibrose ainda e tratada como prova de conceito, pois faltam exemplos reais, rotulados e balanceados.
 
 ## Objetivo Atual
 
@@ -12,10 +12,46 @@ O objetivo passou a ser:
 
 1. segmentar o rim com boa precisao;
 2. usar essa mascara para isolar o orgao;
-3. segmentar internamente as piramides renais;
-4. medir opacidade, brilho e concentracao de pontos brancos dentro do rim;
+3. localizar regioes internas candidatas proximas as piramides renais;
+4. medir intensidade, textura e concentracao de pontos claros dentro do rim;
 5. comparar, quando possivel, a ecogenicidade do rim com a de orgaos proximos, como figado ou pancreas;
-6. apoiar a identificacao de rins com sinais compativeis com fibrose ou alteracao patologica.
+6. preparar atributos para uma etapa exploratoria de suspeita de fibrose ou alteracao patologica.
+
+Na versao do artigo, a etapa 6 ainda nao e apresentada como classificador final.
+Ela e uma prova de conceito sobre um subconjunto pequeno, enquanto a contribuicao
+principal consolidada esta na segmentacao renal e na preparacao de medidas
+intrarrenais.
+
+## Artigo SBBD
+
+A versao final do artigo esta em:
+
+```text
+artigo/SBBD_2026___Jefferson/
+```
+
+Arquivos principais:
+
+```text
+main.tex
+main.pdf
+sbc-template.bib
+sbc-template.sty
+sbc.bst
+caption2.sty
+figures/
+```
+
+Figuras usadas no artigo:
+
+```text
+figures/example_reference_high_ratio_1.png
+figures/quality_good_comparison.png
+figures/example_predicted_diseased_1.png
+```
+
+O PDF final possui 7 paginas. As 6 primeiras contem o texto do artigo, tabelas e
+figuras; a pagina 7 contem apenas as referencias.
 
 ## Motivacao Clinica
 
@@ -340,7 +376,7 @@ O gargalo e:
 3. medir quantitativamente o quanto a regiao esta clara, heterogenea ou pontilhada;
 4. transformar essa observacao visual em criterio computacional robusto.
 
-Em termos prÃ¡ticos, a mascara do rim resolve a pergunta:
+Em termos praticos, a mascara do rim resolve a pergunta:
 
 ```text
 onde esta o rim?
@@ -675,7 +711,8 @@ Resultados consolidados gerados em `12/04/2026`:
 - versao JSON: `results/segmentation_experiments/dataset_variant_comparison.json`
 - versao Markdown: `results/segmentation_experiments/dataset_variant_comparison.md`
 
-Melhores resultados por familia no `dataset_augmented/`:
+Melhores resultados por familia no `dataset_augmented/`, etapa anterior usada
+como referencia antes da expansao para o `dataset_geral`:
 
 | Familia | Melhor experimento | Dice | IoU | F1 | Hausdorff | FPS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -684,11 +721,23 @@ Melhores resultados por familia no `dataset_augmented/`:
 | UNet | `augmented_unet_baseline` | `0.8119` | `0.7309` | `0.8119` | `23.60` | `26.43` |
 | UNet++ | `augmented_unetplusplus_baseline` | `0.7924` | `0.6958` | `0.7924` | `31.90` | `20.88` |
 
-Melhor modelo geral ate o momento:
+Melhor modelo da etapa anterior:
 
 - checkpoint recomendado: `models/augmented_deeplab_resnet50_baseline.pth`
 - metrica principal no teste: `Dice 0.8472`
 - metricas associadas: `IoU 0.7732`, `F1 0.8472`, `Hausdorff 18.02`
+
+No artigo SBBD, apos a geracao de pseudomascaras pelo modelo de segmentacao 1,
+filtragem com confianca operacional minima de 90% e treinamento no
+`dataset_geral`, o modelo final destacado passou a ser o DeepLabV3 ResNet50
+treinado sobre a base consolidada. Os resultados no teste fixo foram:
+
+| Modelo | Dataset | Dice | IoU | Precisao | Recall | FPS |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| DeepLabV3 R50 | `dataset_geral` | `0.9235` | `0.8741` | `0.9301` | `0.9248` | `27.61` |
+
+Assim, os resultados do `dataset_augmented` permanecem documentados como etapa
+anterior, mas o resultado consolidado do artigo e o do `dataset_geral`.
 
 Ganhos observados ao expandir a base principal de `dataset` para `dataset_augmented`:
 
@@ -1010,7 +1059,9 @@ Proxima etapa recomendada:
 
 ## Resumo da Situacao Atual
 
-Hoje o projeto ja faz bem a segmentacao externa do rim.
+Hoje o projeto ja faz bem a segmentacao externa do rim. No artigo SBBD, o
+segundo modelo treinado sobre o `dataset_geral` atingiu Dice `0.9235`, IoU
+`0.8741`, precisao `0.9301` e recall `0.9248`.
 
 O problema cientifico principal, a partir de agora, e avancar da pergunta:
 
@@ -1021,21 +1072,24 @@ onde esta o rim?
 para a pergunta:
 
 ```text
-o interior desse rim apresenta sinais visuais compativeis com fibrose?
+o interior desse rim apresenta achados hiperecogenicos suspeitos proximos as
+piramides renais?
 ```
 
-Essa transicao define a nova fase do projeto.
+Essa transicao define a nova fase do projeto. A decisao de fibrose em sim ou nao
+ainda depende de mais exemplos reais e balanceados.
 
 ## Referencias e Inspiracao
 
 Os seguintes trabalhos inspiram diretamente a formulacao atual do projeto:
 
 - Development and Validation of a Deep Learning Model to Quantify Interstitial Fibrosis and Tubular Atrophy From Kidney Ultrasonography Images. Mostra um pipeline de `segmentacao do rim -> extracao de features -> classificacao`. Fonte: [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC8144924/)
-- Ultrasound-based radiomics analysis in the assessment of renal fibrosis in patients with chronic kidney disease. Inspira o uso de radiomics e variaveis quantitativas da ROI renal. Fonte: [PubMed](https://pubmed.ncbi.nlm.nih.gov/37256330/)
+- Ultrasound-based radiomics analysis in the assessment of renal fibrosis in patients with chronic kidney disease. Inspira a extracao de medidas quantitativas de intensidade e textura da ROI renal. Fonte: [PubMed](https://pubmed.ncbi.nlm.nih.gov/37256330/)
 - Diagnostic accuracy of ultrasound-based multimodal radiomics modeling for fibrosis detection in chronic kidney disease. Reforca o uso de ultrassom quantitativo e modelos multimodais para fibrose. Fonte: [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC10017610/)
-- How echogenic is echogenic? Quantitative acoustics of the renal cortex. Sustenta a comparacao quantitativa entre ecogenicidade renal e hepÃ¡tica. Fonte: [PubMed](https://pubmed.ncbi.nlm.nih.gov/11273869/)
+- How echogenic is echogenic? Quantitative acoustics of the renal cortex. Sustenta a comparacao quantitativa entre ecogenicidade renal e hepatica. Fonte: [PubMed](https://pubmed.ncbi.nlm.nih.gov/11273869/)
 - Sonographically determined kidney measurements are better able to predict histological changes and a low CKD-EPI eGFR when weighted towards cortical echogenicity. Apoia a ecogenicidade cortical como indicador relevante em doenca renal. Fonte: [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC7137523/)
 - Renal pyramid echogenicity in ureteropelvic junction obstruction: correlation between altered echogenicity and differential renal function. Justifica a observacao das piramides renais como alvo anatomico importante. Fonte: [PubMed](https://pubmed.ncbi.nlm.nih.gov/18633607/)
 - A novel convolutional neural network for kidney ultrasound images segmentation. Da suporte ao uso de segmentacao profunda do rim como primeira etapa do pipeline. Fonte: [PubMed](https://pubmed.ncbi.nlm.nih.gov/35248816/)
+
 
 
