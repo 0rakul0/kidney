@@ -17,10 +17,10 @@ from utils.renal_features import (
 )
 
 
-DATASET_DIR = "dataset"
+DATASET_DIR = "dataset_inicial"
 OUTPUT_DIR = os.path.join("results", "renal_feature_analysis")
 MASK_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "candidate_masks")
-REFERENCE_MASK_DIR = "reference_masks"
+REFERENCE_MASK_DIR = "dataset_aumentado/fontes/reference_masks"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(MASK_OUTPUT_DIR, exist_ok=True)

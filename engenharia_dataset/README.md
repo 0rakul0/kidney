@@ -4,6 +4,12 @@ Esta pasta agrupa os scripts de engenharia, tratamento, manipulacao e extracao
 de dados usados no projeto. A ideia e separar a construcao da base dos scripts de
 treino, avaliacao e escrita do artigo.
 
+Os dados foram reorganizados em `dataset_inicial/` e `dataset_aumentado/`.
+Fontes externas e MONAI agora ficam sob
+`dataset_aumentado/fontes/external_data/`, e a base consolidada fica em
+`dataset_aumentado/dataset_geral/`. Veja
+`docs/organizacao_datasets_curadoria.md`.
+
 A narrativa completa da busca de datasets externos, da estrategia incremental
 para MONAI/NVIDIA e da montagem do `dataset_geral` esta em:
 
@@ -74,6 +80,11 @@ external_data/processed/monai_renal_png/summary.json
 | `extract_renal_features.py` | Extrai atributos quantitativos do rim, regiao interna, cortex, referencia e candidatos a piramides. |
 | `prepare_renal_labels_template.py` | Prepara template CSV para rotulos da etapa de classificacao renal. |
 | `suggest_renal_labels.py` | Sugere rotulos heuristicos iniciais a partir das features extraidas. |
+| `build_intrarenal_kidneyus_dataset.py` | Converte os poligonos multiclasse do kidneyUS em mascaras e ROIs supervisionadas para o modelo 3. |
+| `create_medulla_splits.py` | Cria `train`, `val` e `test` com ROIs e mascaras de `Medulla` para treinar o segmentador do modelo 3. |
+| `build_medulla_consensus_expanded_dataset.py` | Materializa expansao pseudo-rotulada de `Medulla`, mantendo validacao/teste manuais e gerando folhas de auditoria. |
+| `../src/segmentation/tools/evaluate_medulla_stability.py` | Mede a estabilidade da cascata rim-medula e das medidas iniciais de opacidade. |
+| `../src/segmentation/tools/select_medulla_consensus_candidates.py` | Prioriza pseudo-mascaras de medula para revisao por consenso entre modelos. |
 
 ## Comandos principais
 
@@ -111,6 +122,125 @@ Extrair features renais:
 
 ```powershell
 .\.venv\Scripts\python.exe engenharia_dataset\extract_renal_features.py
+```
+
+Construir a base supervisionada de medula/piramides do modelo 3:
+
+```powershell
+.\.venv\Scripts\python.exe engenharia_dataset\build_intrarenal_kidneyus_dataset.py --clear-output
+```
+
+Essa base rasteriza as anotacoes `Medulla`, `Capsule`, `Cortex` e
+`Central Echo Complex` dos dois revisores do kidneyUS. Os recortes iniciais
+usam a capsula manual para isolar a dificuldade da segmentacao interna; a
+avaliacao em cascata devera repetir o experimento usando a mascara produzida
+pelo modelo 2 como ROI. Para imagens que possuem `Medulla`, tambem sao salvas
+as imagens isoladas em `dataset_intrarrenal/kidneyus_regions/roi/<anotador>/medulla_image/`.
+
+Avaliar a heuristica atual de piramides contra o alvo supervisionado `Medulla`:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\evaluate_pyramid_heuristic.py
+```
+
+Criar os splits de treino da medula com o anotador 1:
+
+```powershell
+.\.venv\Scripts\python.exe engenharia_dataset\create_medulla_splits.py --clear-output
+```
+
+Treinar um primeiro DeepLab binario sobre esses recortes:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_deeplab.py `
+  --dataset-path dataset_intrarrenal\medulla_annotator_1 `
+  --experiment-name medulla_deeplab_resnet50_annotator1_baseline `
+  --checkpoint-name medulla_deeplab_resnet50_annotator1_baseline.pth `
+  --epochs 30 --batch-size 8 --augment --clahe `
+  --loss focal_tversky --early-stopping 8
+```
+
+Gerar pseudo-mascaras candidatas de medula dentro dos rins ja segmentados:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\generate_medulla_masks_from_kidney_roi.py
+```
+
+As predicoes sao restritas pela mascara renal e salvas em `results/` como
+candidatas para revisao; elas nao substituem automaticamente anotacoes manuais.
+
+Treinar a arquitetura dedicada condicionada pela mascara renal:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_medulla_roi_unet.py
+```
+
+Aplicar a arquitetura dedicada em uma saida separada:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\generate_medulla_masks_from_kidney_roi.py `
+  --architecture roi_unet `
+  --output-root results\intrarenal_model3\medulla_roi_unet_predictions_dataset_geral
+```
+
+Avaliar se a segmentacao e as medidas de opacidade permanecem estaveis quando
+a ROI manual e substituida pela mascara produzida pelo modelo do rim:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\evaluate_medulla_stability.py --architecture deeplab
+.\.venv\Scripts\python.exe src\segmentation\tools\evaluate_medulla_stability.py --architecture roi_unet
+```
+
+Selecionar a fila inicial de revisao por concordancia entre os dois modelos de
+medula, somente sobre mascaras renais existentes:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\select_medulla_consensus_candidates.py
+```
+
+O limiar padrao e `Dice >= 0.75` entre os modelos. A saida e salva em
+`results/intrarenal_model3/medulla_consensus_review/`; o resultado continua
+sendo pseudo-rotulo e requer revisao visual antes de qualquer retreinamento.
+
+Criar a expansao conservadora de treino e o pacote visual de auditoria:
+
+```powershell
+.\.venv\Scripts\python.exe engenharia_dataset\build_medulla_consensus_expanded_dataset.py --clear-output
+```
+
+O script mantem `val` e `test` manuais sem alteracao. Por padrao, somente
+pseudo-mascaras com `Dice >= 0.78`, area relativa minima, baixa fragmentacao e
+componente dominante entram no treino experimental; as demais permanecem na
+fila de auditoria.
+
+Treinar o modelo expandido v1:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_deeplab.py `
+  --dataset-path dataset_intrarrenal\medulla_expanded_consensus_v1 `
+  --experiment-name medulla_deeplab_resnet50_consensus_v1 `
+  --checkpoint-name medulla_deeplab_resnet50_consensus_v1.pth `
+  --epochs 30 --batch-size 8 --augment --clahe `
+  --loss focal_tversky --early-stopping 8 --num-workers 0
+```
+
+Gerar a nova rodada de candidatas e preparar a fila v2:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\generate_medulla_masks_from_kidney_roi.py `
+  --architecture deeplab `
+  --checkpoint models\medulla_deeplab_resnet50_consensus_v1.pth `
+  --output-root results\intrarenal_model3\medulla_predictions_consensus_v1_dataset_geral
+
+.\.venv\Scripts\python.exe src\segmentation\tools\select_medulla_consensus_candidates.py `
+  --deeplab-root results\intrarenal_model3\medulla_predictions_consensus_v1_dataset_geral `
+  --output-root results\intrarenal_model3\medulla_consensus_review_v2
+
+.\.venv\Scripts\python.exe engenharia_dataset\build_medulla_consensus_expanded_dataset.py `
+  --selected-manifest results\intrarenal_model3\medulla_consensus_review_v2\selected_for_review.csv `
+  --output-root dataset_intrarrenal\medulla_expanded_consensus_v2 `
+  --review-root results\intrarenal_model3\medulla_consensus_review_v2\audit_packet_v2 `
+  --clear-output
 ```
 
 ## Regras de proveniencia

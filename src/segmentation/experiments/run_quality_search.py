@@ -244,7 +244,7 @@ def parse_args():
         description="Busca quality-first para maximizacao de Dice e IoU."
     )
     parser.add_argument("--model", choices=["all", *QUALITY_MODEL_REGISTRY.keys()], default="all")
-    parser.add_argument("--dataset-path", type=str, default="dataset_augmented")
+    parser.add_argument("--dataset-path", type=str, default="dataset_aumentado/expansao_pseudorrotulada")
     parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--summary-prefix", type=str, default="quality_search")

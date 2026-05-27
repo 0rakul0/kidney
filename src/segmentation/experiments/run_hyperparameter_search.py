@@ -138,7 +138,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Busca simples de hiperparametros para segmentacao renal.")
     parser.add_argument("--model", choices=["all", *MODEL_REGISTRY.keys()], default="all")
     parser.add_argument("--epochs", type=int, default=40)
-    parser.add_argument("--dataset-path", type=str, default="dataset")
+    parser.add_argument("--dataset-path", type=str, default="dataset_inicial")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--summary-name", type=str, default="hyperparameter_search_summary.csv")
 

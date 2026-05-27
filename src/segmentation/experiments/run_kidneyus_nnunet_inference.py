@@ -22,7 +22,7 @@ from nnunet.inference import predict as nnunet_predict
 
 
 DEFAULT_WEIGHTS_ROOT = Path(r"E:\weights\weights")
-DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset"
+DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_inicial"
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "results" / "segmentation_experiments" / "kidneyus_nnunet_runs"
 
 

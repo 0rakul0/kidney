@@ -11,7 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_ENGINEERING_DIR = PROJECT_ROOT / "engenharia_dataset"
 FEATURES_PATH = os.path.join("results", "renal_feature_analysis", "renal_features.csv")
 LABELS_PATH = os.path.join("results", "renal_feature_analysis", "renal_labels.csv")
-REFERENCE_DIR = "reference_masks"
+REFERENCE_DIR = "dataset_aumentado/fontes/reference_masks"
 
 
 def run_python(script_name):

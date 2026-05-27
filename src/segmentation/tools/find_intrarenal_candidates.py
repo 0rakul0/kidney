@@ -13,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
-DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_geral"
+DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_geral"
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "results" / "reference_matching"
 
 

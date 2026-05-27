@@ -20,7 +20,10 @@ from src.segmentation.core.model_loader import load_model_bundle
 
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
-DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "dataset_geral"
+DATASET_INICIAL_ROOT = PROJECT_ROOT / "dataset_inicial"
+DATASET_AUMENTADO_ROOT = PROJECT_ROOT / "dataset_aumentado"
+FONTES_ROOT = DATASET_AUMENTADO_ROOT / "fontes"
+DEFAULT_OUTPUT_ROOT = DATASET_AUMENTADO_ROOT / "dataset_geral"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "augmented_deeplab_resnet50_baseline.pth"
 
 
@@ -59,7 +62,7 @@ def parse_args():
         "--include-monai",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Inclui PNGs curados de external_data/processed/*/images, incluindo MONAI e outros datasets externos.",
+        help="Inclui PNGs curados de dataset_aumentado/fontes/external_data/processed/*/images, incluindo MONAI e outros datasets externos.",
     )
     return parser.parse_args()
 
@@ -111,30 +114,36 @@ def collect_flat_pair(image_dir, mask_dir, source_name, label_source):
 
 def collect_all_candidates(include_monai):
     candidates = []
-    candidates.extend(collect_split_dataset(PROJECT_ROOT / "dataset", "dataset", "manual_or_primary"))
-    candidates.extend(collect_split_dataset(PROJECT_ROOT / "dataset_augmented", "dataset_augmented", "mixed_existing_or_pseudo"))
+    candidates.extend(collect_split_dataset(DATASET_INICIAL_ROOT, "dataset", "manual_or_primary"))
+    candidates.extend(
+        collect_split_dataset(
+            DATASET_AUMENTADO_ROOT / "expansao_pseudorrotulada",
+            "dataset_augmented",
+            "mixed_existing_or_pseudo",
+        )
+    )
     candidates.extend(
         collect_flat_pair(
-            PROJECT_ROOT / "identificada" / "image",
-            PROJECT_ROOT / "identificada" / "mask",
+            FONTES_ROOT / "identificada" / "image",
+            FONTES_ROOT / "identificada" / "mask",
             "identificada",
             "legacy_identificada",
         )
     )
     candidates.extend(
         collect_flat_pair(
-            PROJECT_ROOT / "pseudo_labels" / "accepted" / "image",
-            PROJECT_ROOT / "pseudo_labels" / "accepted" / "mask",
+            DATASET_AUMENTADO_ROOT / "pseudo_labels" / "accepted" / "image",
+            DATASET_AUMENTADO_ROOT / "pseudo_labels" / "accepted" / "mask",
             "pseudo_labels_accepted",
             "pseudo_existing",
         )
     )
-    for image_path in iter_images(PROJECT_ROOT / "dataset_loader"):
+    for image_path in iter_images(FONTES_ROOT / "dataset_loader"):
         candidates.append(ImageCandidate("dataset_loader", image_path, None, "unlabeled"))
-    for image_path in iter_images(PROJECT_ROOT / "kidneyUS_images_25_june_2025"):
+    for image_path in iter_images(FONTES_ROOT / "kidneyUS_images_25_june_2025"):
         candidates.append(ImageCandidate("kidneyus_external_png", image_path, None, "unlabeled"))
     if include_monai:
-        processed_root = PROJECT_ROOT / "external_data" / "processed"
+        processed_root = FONTES_ROOT / "external_data" / "processed"
         for image_dir in sorted(processed_root.glob("*/images")):
             source_name = image_dir.parent.name
             for image_path in iter_images(image_dir):

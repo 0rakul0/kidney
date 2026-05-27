@@ -4,10 +4,13 @@
 
 O modelo campeao atual, DeepLabV3 com backbone ResNet-50, resolve a etapa de
 segmentacao renal externa. Ele localiza o rim e produz uma mascara binaria da
-regiao renal. No entanto, a tarefa central da tese nao deve depender apenas da
-borda do rim. A identificacao de possiveis alteracoes associadas a fibrose exige
-olhar para dentro da regiao renal, especialmente para o parenquima e para a
-organizacao visual das estruturas internas.
+regiao renal. A tarefa central da tese nao deve depender apenas da borda do
+rim: a caracterizacao ultrassonografica exige analisar cortex, medula,
+parenquima e diferenciacao cortico-medular.
+
+Fibrose renal nao pode ser inferida diretamente desses compartimentos com os
+rotulos atuais. Na literatura, o alvo clinico usual e `IFTA`, medido em
+biopsia, frequentemente associado a medidas corticais/parenquimatosas.
 
 Por isso, o proximo passo metodologico sera usar a saida do segmentador como
 entrada para um terceiro modelo. Esse terceiro modelo sera responsavel por
@@ -32,6 +35,55 @@ O modelo 3 devera receber a imagem renal ja isolada ou mascarada. Assim, o
 aprendizado fica concentrado no parenquima renal e em sinais internos, em vez de
 apenas reconhecer o contorno do orgao.
 
+Na formulacao revista, o modelo 3 passa a ser dividido em:
+
+```text
+Modelo 3a: segmentacao anatomica de Cortex e Medulla dentro da ROI renal
+Modelo 3b: marcadores exploratorios de ecogenicidade/textura e contraste cortico-medular
+Modelo 3c: predicao de IFTA/fibrose somente quando houver rotulo clinico ou histologico
+```
+
+Visao consolidada do pipeline e das contagens:
+`docs/pipeline_rim_medula_opacidade.md`.
+
+## Primeira tarefa supervisionada: classe Medulla
+
+O acervo local `kidneyUS_images_25_june_2025/` contem anotacoes poligonais de
+`Capsule`, `Cortex`, `Medulla` e `Central Echo Complex` realizadas por dois
+revisores. A classe `Medulla` sera usada como alvo supervisionado anatomico,
+substituindo a mascara heuristica como referencia de treinamento. Ela nao deve
+ser chamada de mascara validada de piramides individuais sem revisao medica
+especifica.
+
+O script `engenharia_dataset/build_intrarenal_kidneyus_dataset.py` converte
+essas anotacoes em mascaras binarias, recortes de ROI renal e um relatorio de
+concordancia entre anotadores. No primeiro benchmark, a ROI recortada usa a
+capsula manual para avaliar isoladamente a segmentacao interna. Em seguida, a
+avaliacao em cascata deve usar a mascara prevista pelo modelo 2.
+
+O script `src/segmentation/tools/evaluate_pyramid_heuristic.py` mede a
+heuristica ja existente contra esse alvo supervisionado e estabelece o
+baseline numerico minimo antes dos novos modelos.
+
+Resultados iniciais desse baseline:
+`docs/resultados_modelo3_baseline_medulla.md`.
+
+Depois do treinamento de um segmentador binario de `Medulla`, o script
+`src/segmentation/tools/generate_medulla_masks_from_kidney_roi.py` aplica o
+checkpoint somente nas imagens que ja possuem mascara renal em `dataset_geral`.
+A predição e recortada pela mascara do rim e salva como pseudo-rotulo candidato
+em uma pasta separada, ate que haja revisao de qualidade. Predicoes feitas
+sobre mascaras renais geradas pelo modelo 2 recebem status distinto, pois uma
+ROI incorreta pode produzir uma falsa mascara de medula em outro orgao.
+
+Arquiteturas a comparar nessa tarefa:
+
+- heuristica atual de componentes escuros, como baseline minimo;
+- `nnUNet Task002_KidneyRegions`, como referencia externa;
+- uma rede convolucional pequena treinada na ROI;
+- uma rede neural sem pesos, como WiSARD, classificando pixels ou patches
+  binarizados dentro da ROI.
+
 ## Entrada proposta para o modelo 3
 
 A entrada do modelo 3 pode ser composta por tres canais:
@@ -46,8 +98,8 @@ mas reduzir informacao irrelevante fora da regiao renal.
 
 ## Saidas esperadas
 
-O modelo 3 deve ser inicialmente formulado como um classificador de qualidade
-anatomica e textura intrarrenal, evitando afirmar fibrose diretamente sem
+O modelo 3 deve ser inicialmente formulado como um segmentador anatomico e
+extrator de marcadores intrarrenais, evitando afirmar fibrose diretamente sem
 confirmacao clinica ou histologica.
 
 Classes iniciais sugeridas:
@@ -62,12 +114,14 @@ Classes iniciais sugeridas:
   alteracao parenquimatosa.
 - `sem_alteracao_textural_evidente`: textura sem suspeita visual evidente.
 
-Na redacao cientifica, a saida principal deve ser descrita como:
+Na redacao cientifica, a saida principal com os dados atuais deve ser descrita
+como:
 
-> padrao ultrassonografico sugestivo de alteracao parenquimatosa compativel com
-> fibrose renal
+> quantificacao exploratoria de marcadores ultrassonograficos parenquimatosos
+> em compartimentos renais segmentados
 
-Essa formulacao e mais defensavel do que afirmar diagnostico direto de fibrose.
+Uma saida associada a fibrose ou IFTA somente sera defensavel com referencia
+clinica ou histologica apropriada.
 
 ## Curadoria necessaria
 
@@ -164,6 +218,6 @@ Essa etapa fortalece a metodologia porque separa dois problemas diferentes:
 - analisar o conteudo interno do rim.
 
 O DeepLab campeao resolve a primeira etapa. O modelo intrarrenal passa a atacar
-o problema mais proximo da pergunta clinica da tese: identificar padroes
-ultrassonograficos internos que possam sugerir alteracao parenquimatosa
-compativel com fibrose.
+o problema demonstravel com os dados atuais: identificar e quantificar padroes
+ultrassonograficos internos de alteracao parenquimatosa. A associacao desses
+padroes a IFTA/fibrose dependera de referencia clinica ou histologica.

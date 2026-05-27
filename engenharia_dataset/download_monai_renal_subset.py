@@ -8,8 +8,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HOST = "https://clinical-ultrasound-image-repository.s3.amazonaws.com"
-RAW_ROOT = PROJECT_ROOT / "external_data" / "raw" / "MONAI_ClinicalUltrasoundRepository"
-INDEX_ROOT = PROJECT_ROOT / "external_data" / "indices"
+RAW_ROOT = PROJECT_ROOT / "dataset_aumentado" / "fontes" / "external_data" / "raw" / "MONAI_ClinicalUltrasoundRepository"
+INDEX_ROOT = PROJECT_ROOT / "dataset_aumentado" / "fontes" / "external_data" / "indices"
 PATTERNS = ("RENAL", "RETROPERITONEAL", "KIDNEY")
 
 
@@ -126,6 +126,8 @@ def estimate_sizes(rows, sleep_seconds):
 def load_processed_studies():
     manifest_path = (
         PROJECT_ROOT
+        / "dataset_aumentado"
+        / "fontes"
         / "external_data"
         / "processed"
         / "monai_renal_png"

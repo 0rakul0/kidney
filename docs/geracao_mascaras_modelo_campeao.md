@@ -52,19 +52,19 @@ Depois da etapa, o `dataset_geral` passou a ter:
 
 O manifesto principal foi atualizado em:
 
-`D:\kidney\dataset_geral\manifest.csv`
+`D:\kidney\dataset_aumentado\dataset_geral\manifest.csv`
 
 O resumo consolidado foi atualizado em:
 
-`D:\kidney\dataset_geral\summary.json`
+`D:\kidney\dataset_aumentado\dataset_geral\summary.json`
 
 O relatorio especifico da rodada com o modelo campeao foi salvo em:
 
-`D:\kidney\dataset_geral\relatorios\mascaras_geradas_modelo_campeao.csv`
+`D:\kidney\dataset_aumentado\dataset_geral\relatorios\mascaras_geradas_modelo_campeao.csv`
 
 As imagens que ainda permanecem sem mascara foram registradas em:
 
-`D:\kidney\dataset_geral\relatorios\faltando_mascara.csv`
+`D:\kidney\dataset_aumentado\dataset_geral\relatorios\faltando_mascara.csv`
 
 ## Atualizacao dos splits
 

@@ -1,0 +1,54 @@
+{
+  "architecture": "MedullaROIUNet",
+  "input_channels": [
+    "grayscale_roi",
+    "masked_kidney_roi",
+    "kidney_mask"
+  ],
+  "output": "medulla_mask_constrained_to_kidney",
+  "checkpoint": "D:\\kidney\\models\\medulla_roi_unet_annotator1.pth",
+  "device": "cuda",
+  "dataset_sizes": {
+    "train": 236,
+    "val": 50,
+    "test": 50
+  },
+  "best_epoch": 25,
+  "best_threshold": 0.65,
+  "best_val_dice": 0.729537,
+  "best_val_iou": 0.57423,
+  "test_loss": 0.186451,
+  "test_dice": 0.732553,
+  "test_iou": 0.577975,
+  "elapsed_seconds": 224.98,
+  "config": {
+    "dataset_root": "D:\\kidney\\dataset_intrarrenal\\medulla_annotator_1",
+    "checkpoint_path": "D:\\kidney\\models\\medulla_roi_unet_annotator1.pth",
+    "experiment_name": "medulla_roi_unet_annotator1",
+    "img_size": 256,
+    "base_channels": 32,
+    "epochs": 50,
+    "batch_size": 8,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05,
+    "early_stopping": 10,
+    "num_workers": 0,
+    "seed": 42,
+    "clahe": true,
+    "augment": true,
+    "threshold_candidates": [
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "tversky_alpha": 0.45,
+    "tversky_beta": 0.55,
+    "focal_tversky_gamma": 1.33
+  }
+}

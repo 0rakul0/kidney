@@ -12,12 +12,12 @@ from tqdm import tqdm
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-INPUT_FOLDER = "dataset_loader"
+INPUT_FOLDER = "dataset_aumentado/fontes/dataset_loader"
 
-IDENTIFICADA_IMG = "identificada/image"
-IDENTIFICADA_MASK = "identificada/mask"
+IDENTIFICADA_IMG = "dataset_aumentado/fontes/identificada/image"
+IDENTIFICADA_MASK = "dataset_aumentado/fontes/identificada/mask"
 
-NAO_IDENTIFICADA = "nao_identificada"
+NAO_IDENTIFICADA = "dataset_aumentado/fontes/nao_identificada"
 
 MODEL_PATH = "models/best_model.pth"
 

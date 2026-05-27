@@ -18,8 +18,8 @@ from src.segmentation.core.segmentation_training import SegmentationTrainingConf
 
 
 DATASET_VARIANTS = {
-    "original": "dataset",
-    "augmented": "dataset_augmented",
+    "original": "dataset_inicial",
+    "augmented": "dataset_aumentado/expansao_pseudorrotulada",
 }
 
 EXISTING_ORIGINAL_EXPERIMENTS = {

@@ -14,7 +14,7 @@ docs/narrativa_engenharia_dataset.md
 O script `build_dataset_geral.py` monta a base geral com o formato:
 
 ```text
-dataset_geral/
+dataset_aumentado/dataset_geral/
   imagens/
   mascaras/
   manifest.csv
@@ -27,15 +27,16 @@ dataset_geral/
 
 Ele procura imagens em:
 
-- `dataset/`
-- `dataset_augmented/`
-- `identificada/image/`
-- `pseudo_labels/accepted/image/`
-- `dataset_loader/`
-- `kidneyUS_images_25_june_2025/`
-- `external_data/processed/*/images/`
+- `dataset_inicial/`
+- `dataset_aumentado/expansao_pseudorrotulada/`
+- `dataset_aumentado/fontes/identificada/image/`
+- `dataset_aumentado/pseudo_labels/accepted/image/`
+- `dataset_aumentado/fontes/dataset_loader/`
+- `dataset_aumentado/fontes/kidneyUS_images_25_june_2025/`
+- `dataset_aumentado/fontes/external_data/processed/*/images/`
 
-Quando a mascara ja existe, ela e copiada para `dataset_geral/mascaras/`.
+Quando a mascara ja existe, ela e copiada para
+`dataset_aumentado/dataset_geral/mascaras/`.
 Quando a mascara nao existe, o script usa o segmentador configurado para gerar
 uma pseudo-mascara e so aceita se passar pelos criterios de qualidade.
 

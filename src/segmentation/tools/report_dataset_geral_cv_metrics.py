@@ -157,7 +157,7 @@ def evaluate_fold(index, args):
     summary = read_json(summary_path) if summary_path.exists() else {}
     metadata = read_json(metadata_path)
     hyper = metadata.get("hyperparameters", summary.get("hyperparameters", {}))
-    dataset_path = hyper.get("dataset_path") or str(PROJECT_ROOT / "dataset_geral_cv" / "folds" / f"fold_{index:02d}")
+    dataset_path = hyper.get("dataset_path") or str(PROJECT_ROOT / "dataset_aumentado" / "dataset_geral_cv" / "folds" / f"fold_{index:02d}")
     threshold = float(metadata.get("best_threshold", summary.get("best_threshold", 0.5)))
     model_kwargs = metadata.get("model_kwargs") or summary.get("model_kwargs") or {
         "backbone": "resnet50",

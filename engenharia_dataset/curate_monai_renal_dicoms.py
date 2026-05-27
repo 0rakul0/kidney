@@ -14,13 +14,15 @@ import pydicom
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ZIP_DIR = (
     PROJECT_ROOT
+    / "dataset_aumentado"
+    / "fontes"
     / "external_data"
     / "raw"
     / "MONAI_ClinicalUltrasoundRepository"
     / "per-study-zips"
 )
 DEFAULT_OUTPUT_DIR = (
-    PROJECT_ROOT / "external_data" / "processed" / "monai_renal_png"
+    PROJECT_ROOT / "dataset_aumentado" / "fontes" / "external_data" / "processed" / "monai_renal_png"
 )
 
 

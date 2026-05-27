@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 
 
-DATASET_DIR = "dataset"
-OUTPUT_DIR = "reference_masks"
+DATASET_DIR = "dataset_inicial"
+OUTPUT_DIR = "dataset_aumentado/fontes/reference_masks"
 WINDOW_NAME = "Reference ROI Annotator"
 
 

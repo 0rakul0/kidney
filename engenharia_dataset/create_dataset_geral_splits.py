@@ -8,8 +8,8 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT_ROOT = PROJECT_ROOT / "dataset_geral"
-DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "dataset_geral_cv"
+DEFAULT_INPUT_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_geral"
+DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_geral_cv"
 
 
 def parse_args():

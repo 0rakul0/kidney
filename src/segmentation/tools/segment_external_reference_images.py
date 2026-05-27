@@ -18,7 +18,7 @@ from src.segmentation.core.model_loader import load_model_bundle
 
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
-DEFAULT_INPUT_DIR = PROJECT_ROOT / "external_data" / "reference_ultrasound" / "images"
+DEFAULT_INPUT_DIR = PROJECT_ROOT / "dataset_aumentado" / "fontes" / "external_data" / "reference_ultrasound" / "images"
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "results" / "external_reference_segmentation"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "dataset_geral_deeplab_resnet50_best.pth"
 

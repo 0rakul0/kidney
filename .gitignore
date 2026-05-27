@@ -66,6 +66,8 @@ out/
 results/
 
 # Local image datasets
+dataset_inicial/
+dataset_aumentado/
 dataset/
 dataset_loader/
 identificada/
@@ -78,3 +80,5 @@ external_data/
 .kaggle/
 dataset_geral/
 dataset_geral_cv/
+dataset_intrarrenal/
+/artigo

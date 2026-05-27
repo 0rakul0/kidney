@@ -54,12 +54,12 @@ Caracteristicas descritas:
 
 As imagens externas baixadas manualmente devem ser salvas em:
 
-`D:\kidney\external_data\reference_ultrasound\images`
+`D:\kidney\dataset_aumentado\fontes\external_data\reference_ultrasound\images`
 
 Sugestao de subpastas:
 
 ```text
-D:\kidney\external_data\reference_ultrasound\images
+D:\kidney\dataset_aumentado\fontes\external_data\reference_ultrasound\images
 |-- healthy
 |-- suspicious
 `-- unknown

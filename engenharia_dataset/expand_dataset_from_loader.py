@@ -26,7 +26,7 @@ IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Gera pseudo-mascaras a partir de dataset_loader/ e monta "
+            "Gera pseudo-mascaras a partir de dataset_aumentado/fontes/dataset_loader/ e monta "
             "um dataset aumentado em uma pasta separada."
         )
     )
@@ -37,9 +37,9 @@ def parse_args():
         help="Gera pseudo-mascaras filtradas a partir das imagens do dataset_loader.",
     )
     add_shared_generation_args(generate)
-    generate.add_argument("--loader-dir", type=str, default="dataset_loader")
-    generate.add_argument("--dataset-root", type=str, default="dataset")
-    generate.add_argument("--output-root", type=str, default="pseudo_labels")
+    generate.add_argument("--loader-dir", type=str, default="dataset_aumentado/fontes/dataset_loader")
+    generate.add_argument("--dataset-root", type=str, default="dataset_inicial")
+    generate.add_argument("--output-root", type=str, default="dataset_aumentado/pseudo_labels")
     generate.add_argument("--include-existing", action="store_true")
     generate.add_argument("--img-size", type=int, default=256)
     generate.add_argument("--min-confidence", type=float, default=0.88)
@@ -55,9 +55,9 @@ def parse_args():
             "aceitas, em uma nova pasta."
         ),
     )
-    build.add_argument("--dataset-root", type=str, default="dataset")
-    build.add_argument("--pseudo-root", type=str, default="pseudo_labels")
-    build.add_argument("--output-root", type=str, default="dataset_augmented")
+    build.add_argument("--dataset-root", type=str, default="dataset_inicial")
+    build.add_argument("--pseudo-root", type=str, default="dataset_aumentado/pseudo_labels")
+    build.add_argument("--output-root", type=str, default="dataset_aumentado/expansao_pseudorrotulada")
     build.add_argument("--seed", type=int, default=42)
     build.add_argument("--clear-output", action="store_true")
 
@@ -66,10 +66,10 @@ def parse_args():
         help="Executa generate e build-augmented em sequencia.",
     )
     add_shared_generation_args(full)
-    full.add_argument("--loader-dir", type=str, default="dataset_loader")
-    full.add_argument("--dataset-root", type=str, default="dataset")
-    full.add_argument("--pseudo-root", type=str, default="pseudo_labels")
-    full.add_argument("--output-root", type=str, default="dataset_augmented")
+    full.add_argument("--loader-dir", type=str, default="dataset_aumentado/fontes/dataset_loader")
+    full.add_argument("--dataset-root", type=str, default="dataset_inicial")
+    full.add_argument("--pseudo-root", type=str, default="dataset_aumentado/pseudo_labels")
+    full.add_argument("--output-root", type=str, default="dataset_aumentado/expansao_pseudorrotulada")
     full.add_argument("--include-existing", action="store_true")
     full.add_argument("--img-size", type=int, default=256)
     full.add_argument("--min-confidence", type=float, default=0.88)

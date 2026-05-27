@@ -15,7 +15,7 @@ from src.segmentation.core.segmentation_evaluation import evaluate_segmentation_
 from src.segmentation.core.segmentation_training import SegmentationTrainingConfig, train_segmentation_model
 
 
-DEFAULT_SPLITS_ROOT = PROJECT_ROOT / "dataset_geral_cv" / "folds"
+DEFAULT_SPLITS_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_geral_cv" / "folds"
 DEFAULT_RESULTS_ROOT = PROJECT_ROOT / "results" / "segmentation_experiments"
 
 

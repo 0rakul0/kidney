@@ -26,7 +26,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMG_SIZE = 256
 N_SAMPLES = 10
 
-DATASET_PATH = "dataset"
+DATASET_PATH = "dataset_inicial"
 MODELS_PATH = "models"
 
 SAVE_PATH = "results/prediction_samples"

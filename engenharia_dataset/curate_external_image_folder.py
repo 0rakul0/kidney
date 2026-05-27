@@ -15,7 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description=(
             "Curadoria generica de uma pasta externa de imagens: copia apenas "
-            "ultrassom B-mode/escala de cinza para external_data/processed."
+            "ultrassom B-mode/escala de cinza para dataset_aumentado/fontes/external_data/processed."
         )
     )
     parser.add_argument("--input-dir", type=Path, required=True)
@@ -23,7 +23,7 @@ def parse_args():
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path("external_data") / "processed",
+        default=Path("dataset_aumentado") / "fontes" / "external_data" / "processed",
     )
     parser.add_argument("--min-width", type=int, default=128)
     parser.add_argument("--min-height", type=int, default=128)

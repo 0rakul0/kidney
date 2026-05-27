@@ -49,7 +49,7 @@ def parse_args():
     )
     parser.add_argument("--img-size", type=int, default=256)
     parser.add_argument("--batch-size", type=int, default=8)
-    parser.add_argument("--dataset-path", type=str, default="dataset")
+    parser.add_argument("--dataset-path", type=str, default="dataset_inicial")
     parser.add_argument("--model-dir", type=str, default="models")
     return parser.parse_args()
 

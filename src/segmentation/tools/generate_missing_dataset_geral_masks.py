@@ -24,7 +24,7 @@ from src.segmentation.build_dataset_geral import (
 from src.segmentation.core.model_loader import load_model_bundle
 
 
-DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_geral"
+DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_geral"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "dataset_geral_deeplab_resnet50_best.pth"
 
 

@@ -9,7 +9,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = PROJECT_ROOT / "config" / "kaggle_datasets.csv"
-DEFAULT_OUTPUT = PROJECT_ROOT / "external_data" / "raw"
+DEFAULT_OUTPUT = PROJECT_ROOT / "dataset_aumentado" / "fontes" / "external_data" / "raw"
 
 
 def parse_args():

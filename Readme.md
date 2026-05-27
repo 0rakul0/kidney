@@ -1,8 +1,19 @@
-# Analise de Achados Hiperecogenicos em Ultrassonografia Renal
+# Segmentacao Renal e Caracterizacao Ultrassonografica Intrarrenal
 
-Este projeto investiga o uso de visao computacional e aprendizado profundo em imagens de ultrassonografia renal. A versao atual da pesquisa foca em segmentar o rim e analisar regioes hiperecogenicas suspeitas proximas as piramides renais.
+Este projeto investiga o uso de visao computacional e aprendizado profundo em imagens de ultrassonografia renal. A versao atual da pesquisa foca em segmentar o rim e estruturas intrarrenais anotadas, extraindo marcadores exploratorios de ecogenicidade e textura.
 
-O estado atual do projeto ja resolve uma etapa importante: a segmentacao automatica do rim. A proposta transforma essa segmentacao em uma etapa intermediaria de um *pipeline* maior, no qual a mascara renal delimita a regiao de analise antes da extracao de medidas internas. A classificacao de suspeita de fibrose ainda e tratada como prova de conceito, pois faltam exemplos reais, rotulados e balanceados.
+O estado atual do projeto ja resolve uma etapa importante: a segmentacao automatica do rim. A proposta transforma essa segmentacao em uma etapa intermediaria de um *pipeline* maior, no qual a mascara renal delimita a regiao de analise antes da extracao de medidas internas. Fibrose renal nao e um rotulo demonstrado na base atual: a literatura a relaciona principalmente a `interstitial fibrosis and tubular atrophy` (`IFTA`) avaliada em biopsia, e faltam imagens vinculadas a esse padrao de referencia.
+
+## Organizacao Atual dos Dados
+
+A raiz mantem apenas `dataset_inicial/`, com os splits originais, e
+`dataset_aumentado/`, com fontes adicionais, `dataset_geral`, conjuntos
+derivados e a planilha de curadoria. A estrutura vigente e o dicionario da
+planilha estao descritos em:
+
+```text
+docs/organizacao_datasets_curadoria.md
+```
 
 ## Objetivo Atual
 
@@ -12,10 +23,10 @@ O objetivo passou a ser:
 
 1. segmentar o rim com boa precisao;
 2. usar essa mascara para isolar o orgao;
-3. localizar regioes internas candidatas proximas as piramides renais;
-4. medir intensidade, textura e concentracao de pontos claros dentro do rim;
-5. comparar, quando possivel, a ecogenicidade do rim com a de orgaos proximos, como figado ou pancreas;
-6. preparar atributos para uma etapa exploratoria de suspeita de fibrose ou alteracao patologica.
+3. segmentar a classe anatomica `Medulla` e estender a analise para `Cortex`;
+4. medir intensidade, textura e contraste cortico-medular dentro do rim;
+5. comparar, quando possivel, a ecogenicidade cortical com a de orgaos proximos, como figado ou pancreas;
+6. preparar atributos para caracterizacao exploratoria de alteracao parenquimatosa.
 
 Na versao do artigo, a etapa 6 ainda nao e apresentada como classificador final.
 Ela e uma prova de conceito sobre um subconjunto pequeno, enquanto a contribuicao
@@ -55,14 +66,14 @@ figuras; a pagina 7 contem apenas as referencias.
 
 ## Motivacao Clinica
 
-Na ultrassonografia, rins doentes podem apresentar alteracoes visuais relevantes no parenquima, como:
+Na ultrassonografia, alteracoes renais podem apresentar sinais visuais no parenquima, como:
 
 - aumento de brilho difuso;
 - presenca de muitos pontos brancos;
 - alteracao de contraste interno;
 - mudanca relativa de ecogenicidade em comparacao com estruturas adjacentes.
 
-Dentro da proposta deste projeto, esses sinais serao investigados de forma computacional a partir da segmentacao do rim e da analise das suas estruturas internas.
+Dentro da proposta deste projeto, esses sinais serao investigados de forma computacional a partir da segmentacao do rim e da analise das suas estruturas internas. Sem rotulo de biopsia ou validacao clinica correspondente, esses marcadores nao devem ser denominados deteccao de fibrose.
 
 ## Estado Atual
 
@@ -78,31 +89,37 @@ O projeto ja possui:
 O projeto agora tambem possui:
 
 - extracao automatica de features intrarrenais;
-- mascara interna candidata das piramides renais por heuristica;
+- mascara interna candidata por heuristica;
+- mascaras manuais de `Medulla` extraidas das anotacoes multiclasse do `kidneyUS`;
+- segmentadores iniciais de medula e geracao controlada de pseudo-mascaras;
 - exportacao de CSV para analise quantitativa da ROI renal;
 - suporte a mascara manual de orgao de referencia, como figado.
 
 O projeto ainda nao possui:
 
-- mascaras das piramides renais;
-- rotulos clinicos de fibrose;
+- conjunto ampliado de mascaras de medula revisadas para retreinamento;
+- rotulos clinicos ou histologicos de IFTA/fibrose;
 - classificador final de rim saudavel versus rim doente;
 - comparacao automatica com figado ou pancreas;
 - metrica final clinica para a nova tarefa.
 
 ## Proximos Passos
 
-A proxima etapa metodologica sera criar um modelo intrarrenal. Esse modelo usara
-a mascara gerada pelo segmentador DeepLab campeao para isolar a ROI renal e, a
-partir dela, avaliar se a imagem contem um rim anatomicamente util e se o
-parenquima apresenta padroes texturais sugestivos de alteracao.
+A proxima etapa metodologica sera ampliar o modelo intrarrenal. Esse modelo
+usara a mascara gerada pelo segmentador DeepLab campeao para isolar a ROI renal
+e analisar `Medulla`, `Cortex`, ecogenicidade e diferenciacao
+cortico-medular.
 
 Esse terceiro modelo nao deve ser apresentado como diagnostico direto de
-fibrose. A formulacao mais adequada para a tese e tratar sua saida como
-identificacao de padroes ultrassonograficos sugestivos de alteracao
-parenquimatosa compativel com fibrose renal.
+fibrose. Com os dados atuais, sua saida e a quantificacao exploratoria de
+marcadores ultrassonograficos parenquimatosos. Uma etapa de predicao de IFTA
+dependera de imagens vinculadas a biopsia ou a referencia clinica validada.
 
 Plano detalhado: `docs/proximos_passos_modelo_intrarrenal.md`.
+Pipeline atualizado de rim, medula e opacidade:
+`docs/pipeline_rim_medula_opacidade.md`.
+Revisao medico-metodologica sobre fibrose e IFTA:
+`docs/revisao_medico_metodologica_fibrose.md`.
 
 Quando houver uma ROI manual do figado, o projeto ja consegue comparar rim e figado de forma quantitativa.
 
@@ -1069,15 +1086,15 @@ O problema cientifico principal, a partir de agora, e avancar da pergunta:
 onde esta o rim?
 ```
 
-para a pergunta:
+para a pergunta demonstravel com os dados atuais:
 
 ```text
-o interior desse rim apresenta achados hiperecogenicos suspeitos proximos as
-piramides renais?
+quais marcadores ultrassonograficos podem ser quantificados dentro da ROI
+renal e de seus compartimentos anotados?
 ```
 
-Essa transicao define a nova fase do projeto. A decisao de fibrose em sim ou nao
-ainda depende de mais exemplos reais e balanceados.
+Essa transicao define a nova fase do projeto. Predizer IFTA ou fibrose exigira
+imagens vinculadas a biopsia ou a referencia clinica previamente definida.
 
 ## Referencias e Inspiracao
 
