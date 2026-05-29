@@ -82,6 +82,7 @@ external_data/processed/monai_renal_png/summary.json
 | `suggest_renal_labels.py` | Sugere rotulos heuristicos iniciais a partir das features extraidas. |
 | `build_intrarenal_kidneyus_dataset.py` | Converte os poligonos multiclasse do kidneyUS em mascaras e ROIs supervisionadas para o modelo 3. |
 | `create_medulla_splits.py` | Cria `train`, `val` e `test` com ROIs e mascaras de `Medulla` para treinar o segmentador do modelo 3. |
+| `create_intrarenal_multiclass_splits.py` | Cria a etapa 2 multiclasse dentro da ROI renal: fundo, `Cortex`, `Medulla` e `Central Echo Complex`. |
 | `build_medulla_consensus_expanded_dataset.py` | Materializa expansao pseudo-rotulada de `Medulla`, mantendo validacao/teste manuais e gerando folhas de auditoria. |
 | `../src/segmentation/tools/evaluate_medulla_stability.py` | Mede a estabilidade da cascata rim-medula e das medidas iniciais de opacidade. |
 | `../src/segmentation/tools/select_medulla_consensus_candidates.py` | Prioriza pseudo-mascaras de medula para revisao por consenso entre modelos. |
@@ -135,7 +136,8 @@ Essa base rasteriza as anotacoes `Medulla`, `Capsule`, `Cortex` e
 usam a capsula manual para isolar a dificuldade da segmentacao interna; a
 avaliacao em cascata devera repetir o experimento usando a mascara produzida
 pelo modelo 2 como ROI. Para imagens que possuem `Medulla`, tambem sao salvas
-as imagens isoladas em `dataset_intrarrenal/kidneyus_regions/roi/<anotador>/medulla_image/`.
+as imagens isoladas em
+`dataset_intrarrenal/intermediario/kidneyus_regions/roi/<anotador>/medulla_image/`.
 
 Avaliar a heuristica atual de piramides contra o alvo supervisionado `Medulla`:
 
@@ -153,7 +155,7 @@ Treinar um primeiro DeepLab binario sobre esses recortes:
 
 ```powershell
 .\.venv\Scripts\python.exe src\segmentation\experiments\train_deeplab.py `
-  --dataset-path dataset_intrarrenal\medulla_annotator_1 `
+  --dataset-path dataset_aumentado\dataset_intrarrenal\supervisionado\medulla_annotator_1 `
   --experiment-name medulla_deeplab_resnet50_annotator1_baseline `
   --checkpoint-name medulla_deeplab_resnet50_annotator1_baseline.pth `
   --epochs 30 --batch-size 8 --augment --clahe `
@@ -217,7 +219,7 @@ Treinar o modelo expandido v1:
 
 ```powershell
 .\.venv\Scripts\python.exe src\segmentation\experiments\train_deeplab.py `
-  --dataset-path dataset_intrarrenal\medulla_expanded_consensus_v1 `
+  --dataset-path dataset_aumentado\dataset_intrarrenal\pseudo_expandido\medulla_expanded_consensus_v1 `
   --experiment-name medulla_deeplab_resnet50_consensus_v1 `
   --checkpoint-name medulla_deeplab_resnet50_consensus_v1.pth `
   --epochs 30 --batch-size 8 --augment --clahe `
@@ -238,7 +240,7 @@ Gerar a nova rodada de candidatas e preparar a fila v2:
 
 .\.venv\Scripts\python.exe engenharia_dataset\build_medulla_consensus_expanded_dataset.py `
   --selected-manifest results\intrarenal_model3\medulla_consensus_review_v2\selected_for_review.csv `
-  --output-root dataset_intrarrenal\medulla_expanded_consensus_v2 `
+  --output-root dataset_aumentado\dataset_intrarrenal\pseudo_expandido\medulla_expanded_consensus_v2 `
   --review-root results\intrarenal_model3\medulla_consensus_review_v2\audit_packet_v2 `
   --clear-output
 ```
@@ -258,3 +260,40 @@ Todo dado externo usado em experimento deve manter:
 Dados externos com pseudo-mascaras devem ser reportados separadamente dos dados
 com mascaras manuais.
 
+### Etapa 2 multiclasse com DeepLabV3
+
+O caminho recomendado para aproximar o fluxo do `kidneyUS` e reduzir modelos
+separados e:
+
+1. segmentar `Rim/Capsule` com o DeepLab binario ja existente;
+2. usar a ROI renal para segmentar, em uma unica inferencia multiclasse,
+   `Cortex`, `Medulla` e `Central Echo Complex`.
+
+Preparar o dataset supervisionado, com separacao por paciente:
+
+```powershell
+.\.venv\Scripts\python.exe engenharia_dataset\create_intrarenal_multiclass_splits.py --clear-output
+```
+
+Treinar o DeepLabV3 multiclasse:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_deeplab_intrarenal_multiclass.py --epochs 50 --batch-size 4
+```
+
+Aplicar o modelo no `dataset_geral`:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\tools\generate_intrarenal_multiclass_masks_from_kidney_roi.py
+```
+
+Resultado inicial do checkpoint
+`models/intrarenal_deeplab_resnet50_multiclass_annotator1.pth`, treinado com
+`235/50/50` imagens e sem vazamento de pacientes entre os splits:
+
+| Classe | Dice teste | IoU teste |
+|---|---:|---:|
+| `Cortex` | 0.682169 | 0.517645 |
+| `Medulla` | 0.715567 | 0.557108 |
+| `Central Echo Complex` | 0.849745 | 0.738745 |
+| Media das classes internas | 0.749160 | 0.604499 |

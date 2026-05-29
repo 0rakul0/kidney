@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Curadoria Renal</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="menu">&#9776;</span>
+        <span class="kidney-mark" aria-hidden="true"><i></i><i></i></span>
+        <h1>Curadoria Renal</h1>
+      </div>
+      <div class="identity">
+        <span class="help-dot">?</span>
+        <label class="reviewer-field">
+          <span>Revisor</span>
+          <input id="reviewer" placeholder="Revisor 01" autocomplete="username">
+        </label>
+        <select id="reviewer-type" aria-label="Perfil do revisor">
+          <option value="especialista">Especialista</option>
+          <option value="nao_especialista">Nao especialista</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="rail left">
+        <section class="progress-panel">
+          <h2>Progresso da fila</h2>
+          <div class="progress-body">
+            <div id="progress-ring" class="progress-ring"><span id="progress-percent">0%</span></div>
+            <div>
+              <p class="metric-label">Pendentes</p>
+              <strong id="pending">-</strong>
+              <p class="metric-sub">de <span id="total">-</span></p>
+            </div>
+          </div>
+          <p class="complete">Concluidos: <strong id="reviewed">-</strong></p>
+          <div class="bar"><span id="progress-bar"></span></div>
+        </section>
+
+        <section class="filters">
+          <div class="section-title"><h2>Filtros</h2><button id="clear-filters" type="button">Limpar</button></div>
+          <label>Origem da anotacao
+            <select id="annotation">
+              <option value="">Todas</option>
+              <option value="pseudo">Somente pseudo-mascaras</option>
+              <option value="manual">Somente anotacoes manuais</option>
+            </select>
+          </label>
+          <label>Status
+            <select id="queue-state">
+              <option value="pendentes">Pendentes</option>
+              <option value="todos">Todos</option>
+              <option value="revisados">Revisados</option>
+            </select>
+          </label>
+          <label>Espaco visual
+            <select id="source">
+              <option value="">Todos</option>
+              <option value="manual_full_resolution">Resolucao original</option>
+              <option value="dataset_geral_prediction_space">Dataset geral</option>
+            </select>
+          </label>
+          <label>Buscar ID<input id="search" placeholder="IM-0712"></label>
+        </section>
+
+        <section class="queue">
+          <h2>Proximos na fila</h2>
+          <ol id="case-list" class="case-list"></ol>
+        </section>
+      </aside>
+
+      <section class="center">
+        <div class="viewer">
+          <nav class="case-nav">
+            <button id="previous" type="button">&larr; Anterior</button>
+            <h2 id="image-id">Selecione um caso</h2>
+            <button id="next" type="button">Proximo &rarr;</button>
+          </nav>
+          <div id="image-stage" class="image-stage">
+            <div class="toolstrip">
+              <button class="active" type="button">Mover</button>
+              <button id="tool-zoom" type="button">Zoom</button>
+              <button id="zoom-reset" type="button">Ajustar</button>
+              <button id="tool-polygon" type="button">Poligono</button>
+            </div>
+            <section id="polygon-panel" class="polygon-panel" aria-label="Editar mascara">
+              <strong>Corrigir por poligono</strong>
+              <label>Classe
+                <select id="polygon-layer">
+                  <option value="rim">Rim</option>
+                  <option value="cortex" selected>Cortex</option>
+                  <option value="medulla">Medulla</option>
+                  <option value="central_echo_complex">Central echo complex</option>
+                </select>
+              </label>
+              <label>Acao
+                <select id="polygon-operation">
+                  <option value="substituir">Substituir mascara</option>
+                  <option value="adicionar">Adicionar area</option>
+                  <option value="apagar">Apagar area</option>
+                </select>
+              </label>
+              <div class="polygon-actions">
+                <button id="polygon-clear" type="button">Limpar</button>
+                <button id="polygon-save" type="button">Aplicar</button>
+              </div>
+              <small>Clique nos vertices; aplicar fecha o poligono.</small>
+            </section>
+            <div id="image-stack" class="image-stack">
+              <img id="base-image" alt="Ultrassom para revisao">
+              <img id="layer-rim" class="overlay" alt="">
+              <img id="layer-cortex" class="overlay" alt="">
+              <img id="layer-medulla" class="overlay" alt="">
+              <img id="layer-central_echo_complex" class="overlay" alt="">
+              <svg id="drawing-layer" class="drawing-layer" aria-label="Poligono em edicao"></svg>
+            </div>
+            <p id="empty-state">Selecione um caso na fila para iniciar a curadoria.</p>
+            <div class="canvas-footer">
+              <fieldset class="layer-toggle">
+                <legend>Camadas</legend>
+                <label class="red"><input type="checkbox" id="toggle-rim" checked> Rim</label>
+                <label class="cyan"><input type="checkbox" id="toggle-cortex" checked> Cortex</label>
+                <label class="yellow"><input type="checkbox" id="toggle-medulla" checked> Medulla</label>
+                <label class="orange"><input type="checkbox" id="toggle-central_echo_complex" checked> CEC</label>
+              </fieldset>
+              <div class="zoom">
+                <button id="zoom-out" type="button">-</button>
+                <span id="zoom-label">100%</span>
+                <button id="zoom-in" type="button">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="model-info">
+          <div class="section-title">
+            <h2>Metadados da segmentacao</h2>
+            <span id="model-scope" class="scope"></span>
+          </div>
+          <div id="model-empty" class="model-empty">Caso com anotacao manual: nao ha metrica de pseudo-mascara aplicada a esta visualizacao.</div>
+          <div id="kidney-data" class="additional-model">
+            <span>Rim pseudo - modelo</span>
+            <strong id="kidney-model-name">-</strong>
+            <small>Dice <b id="kidney-dice">-</b> &nbsp; IoU <b id="kidney-iou">-</b> &nbsp; F1 <b id="kidney-f1">-</b></small>
+          </div>
+          <div id="cortex-data" class="additional-model cortex-model">
+            <span>Cortex pseudo - modelo</span>
+            <strong id="cortex-model-name">-</strong>
+            <small>Dice <b id="cortex-dice">-</b> &nbsp; IoU <b id="cortex-iou">-</b> &nbsp; F1 <b id="cortex-f1">-</b></small>
+          </div>
+          <div id="central-data" class="additional-model central-model">
+            <span>CEC pseudo - modelo</span>
+            <strong id="central-model-name">-</strong>
+            <small>Dice <b id="central-dice">-</b> &nbsp; IoU <b id="central-iou">-</b> &nbsp; F1 <b id="central-f1">-</b></small>
+          </div>
+          <div id="model-data" class="model-data">
+            <div class="model-name"><span>Modelo</span><strong id="model-name">-</strong></div>
+            <div><span>Dice</span><strong id="model-dice">-</strong></div>
+            <div><span>IoU</span><strong id="model-iou">-</strong></div>
+            <div><span>F1</span><strong id="model-f1">-</strong></div>
+            <div id="agreement-card"><span>Concordancia Dice</span><strong id="agreement-dice">-</strong></div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="rail right review">
+        <section class="item-info side-info">
+          <h2>Informacoes do item</h2>
+          <dl>
+            <div><dt>Origem</dt><dd id="item-source">-</dd></div>
+            <div><dt>Dimensao</dt><dd id="item-dimension">-</dd></div>
+            <div><dt>Mascara do rim</dt><dd id="item-rim">-</dd></div>
+            <div><dt>Mascara cortex</dt><dd id="item-cortex">-</dd></div>
+            <div><dt>Mascara medulla</dt><dd id="item-medulla">-</dd></div>
+            <div><dt>Mascara CEC</dt><dd id="item-central">-</dd></div>
+          </dl>
+        </section>
+        <h2>Revisao das anotacoes</h2>
+        <form id="review-form">
+          <fieldset class="binary" data-field="status_rim">
+            <legend>Rim (anot1)</legend>
+            <input type="hidden" name="status_rim" value="pendente">
+            <button type="button" data-value="aceita">1 Correta</button>
+            <button type="button" data-value="corrigir">0 Incorreta</button>
+          </fieldset>
+          <fieldset class="binary" data-field="status_cortex">
+            <legend>Cortex (anot2)</legend>
+            <input type="hidden" name="status_cortex" value="pendente">
+            <button type="button" data-value="aceita">1 Correta</button>
+            <button type="button" data-value="corrigir">0 Incorreta</button>
+          </fieldset>
+          <fieldset class="binary" data-field="status_medulla">
+            <legend>Medulla</legend>
+            <input type="hidden" name="status_medulla" value="pendente">
+            <button type="button" data-value="aceita">1 Correta</button>
+            <button type="button" data-value="corrigir">0 Incorreta</button>
+          </fieldset>
+          <fieldset class="binary" data-field="status_central_echo_complex">
+            <legend>Central Echo Complex</legend>
+            <input type="hidden" name="status_central_echo_complex" value="pendente">
+            <button type="button" data-value="aceita">1 Correta</button>
+            <button type="button" data-value="corrigir">0 Incorreta</button>
+          </fieldset>
+          <fieldset class="ternary" data-field="fibrose">
+            <legend>Fibrose (referencia clinica)</legend>
+            <input type="hidden" name="fibrose" value="">
+            <button type="button" data-value="1">1 Fibrose</button>
+            <button type="button" data-value="0">0 Saudavel</button>
+            <button type="button" data-value="">Sem info</button>
+          </fieldset>
+          <label>Fonte da fibrose
+            <input name="fonte_fibrose" placeholder="biopsia, laudo, especialista">
+          </label>
+          <label>Observacoes
+            <textarea name="observacao" rows="5" maxlength="1000" placeholder="Adicione observacoes aqui..."></textarea>
+          </label>
+          <p class="hint">Marque fibrose somente quando houver referencia clinica rastreavel.</p>
+          <button id="save-next" class="primary" type="submit">Salvar e avancar &rarr;</button>
+          <p id="message" class="message" role="status"></p>
+        </form>
+        <footer class="export">
+          <span>Exportar respostas:</span>
+          <a href="/api/export.json" download>JSON</a>
+          <a href="/api/export.csv" download>CSV</a>
+        </footer>
+      </aside>
+    </main>
+    <script src="/app.js?v=20260528_polygon_fix"></script>
+  </body>
+</html>

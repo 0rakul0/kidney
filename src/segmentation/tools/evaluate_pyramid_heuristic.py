@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from utils.renal_features import heuristic_pyramid_mask, normalize_image
 
 
-DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "kidneyus_regions"
+DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "intermediario" / "kidneyus_regions"
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "results" / "intrarenal_model3" / "heuristic_medulla_baseline"
 
 

@@ -48,7 +48,7 @@ aceitar somente casos concordantes.
 Arquivos:
 
 ```text
-dataset_intrarrenal/medulla_expanded_consensus_v1/
+dataset_aumentado/dataset_intrarrenal/pseudo_expandido/medulla_expanded_consensus_v1/
 results/intrarenal_model3/medulla_consensus_review/audit_packet_v1/
 ```
 
@@ -113,7 +113,7 @@ Arquivos:
 results/intrarenal_model3/medulla_predictions_consensus_v1_dataset_geral/
 results/intrarenal_model3/medulla_consensus_review_v2/
 results/intrarenal_model3/medulla_consensus_review_v2/audit_packet_v2/
-dataset_intrarrenal/medulla_expanded_consensus_v2/
+dataset_aumentado/dataset_intrarrenal/pseudo_expandido/medulla_expanded_consensus_v2/
 ```
 
 ## Decisao da etapa
@@ -154,5 +154,5 @@ Arquivos:
 ```text
 results/intrarenal_model3/medulla_consensus_generated_kidney_review_v1/
 results/intrarenal_model3/medulla_consensus_generated_kidney_review_v1/audit_packet_v1/
-dataset_intrarrenal/medulla_generated_kidney_consensus_v1/
+dataset_aumentado/dataset_intrarrenal/pseudo_expandido/medulla_generated_kidney_consensus_v1/
 ```

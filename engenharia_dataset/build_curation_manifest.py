@@ -6,7 +6,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATASET_AUMENTADO = PROJECT_ROOT / "dataset_aumentado"
 DEFAULT_DATASET_MANIFEST = DATASET_AUMENTADO / "dataset_geral" / "manifest.csv"
-DEFAULT_REGIONS_MANIFEST = DATASET_AUMENTADO / "dataset_intrarrenal" / "kidneyus_regions" / "manifest.csv"
+DEFAULT_REGIONS_MANIFEST = (
+    DATASET_AUMENTADO / "dataset_intrarrenal" / "intermediario" / "kidneyus_regions" / "manifest.csv"
+)
 DEFAULT_MEDULLA_PREDICTIONS = (
     PROJECT_ROOT
     / "results"
@@ -44,7 +46,7 @@ def existing_path(value):
 
 
 def build_manual_medulla_index(regions_manifest):
-    medulla_dir = regions_manifest.parent / "roi" / "annotator_1" / "medulla_mask"
+    medulla_dir = regions_manifest.parent / "full_masks" / "annotator_1" / "medulla"
     index = {}
     for row in read_rows(regions_manifest):
         if row.get("annotator") != "annotator_1" or row.get("has_medulla", "").lower() != "true":

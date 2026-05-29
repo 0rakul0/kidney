@@ -22,8 +22,9 @@ from src.segmentation.tools.generate_medulla_masks_from_kidney_roi import (
 )
 
 
-DEFAULT_REGIONS_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "kidneyus_regions"
-DEFAULT_TEST_MANIFEST = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "medulla_annotator_1" / "test" / "manifest.csv"
+INTRARENAL_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal"
+DEFAULT_REGIONS_ROOT = INTRARENAL_ROOT / "intermediario" / "kidneyus_regions"
+DEFAULT_TEST_MANIFEST = INTRARENAL_ROOT / "supervisionado" / "medulla_annotator_1" / "test" / "manifest.csv"
 DEFAULT_KIDNEY_CHECKPOINT = PROJECT_ROOT / "models" / "dataset_geral_deeplab_resnet50_best.pth"
 DEFAULT_MEDULLA_DEEPLAB_CHECKPOINT = PROJECT_ROOT / "models" / "medulla_deeplab_resnet50_annotator1_baseline.pth"
 DEFAULT_MEDULLA_ROI_UNET_CHECKPOINT = PROJECT_ROOT / "models" / "medulla_roi_unet_annotator1.pth"

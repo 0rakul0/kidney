@@ -11,7 +11,8 @@ import numpy as np
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_BASE_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "medulla_annotator_1"
+INTRARENAL_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal"
+DEFAULT_BASE_ROOT = INTRARENAL_ROOT / "supervisionado" / "medulla_annotator_1"
 DEFAULT_SELECTED_MANIFEST = (
     PROJECT_ROOT
     / "results"
@@ -19,7 +20,7 @@ DEFAULT_SELECTED_MANIFEST = (
     / "medulla_consensus_review"
     / "selected_for_review.csv"
 )
-DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "medulla_expanded_consensus_v1"
+DEFAULT_OUTPUT_ROOT = INTRARENAL_ROOT / "pseudo_expandido" / "medulla_expanded_consensus_v1"
 DEFAULT_REVIEW_ROOT = (
     PROJECT_ROOT
     / "results"

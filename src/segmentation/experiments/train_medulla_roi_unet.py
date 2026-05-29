@@ -23,7 +23,8 @@ from src.segmentation.core.losses import focal_tversky_loss
 from src.segmentation.core.metrics import dice_score, iou_score
 
 
-DEFAULT_DATASET_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "medulla_annotator_1"
+INTRARENAL_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal"
+DEFAULT_DATASET_ROOT = INTRARENAL_ROOT / "supervisionado" / "medulla_annotator_1"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "medulla_roi_unet_annotator1.pth"
 DEFAULT_RESULTS_ROOT = PROJECT_ROOT / "results" / "intrarenal_model3"
 
@@ -194,10 +195,11 @@ def evaluate(model, loader, device, config, search_threshold=False, threshold=0.
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Treina U-Net condicionada pela ROI renal para segmentar Medulla.")
-    parser.add_argument("--dataset-root", type=Path, default=DEFAULT_DATASET_ROOT)
-    parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
-    parser.add_argument("--experiment-name", default="medulla_roi_unet_annotator1")
+    parser = argparse.ArgumentParser(description="Treina U-Net condicionada pela ROI renal para segmentar estrutura intrarrenal.")
+    parser.add_argument("--target", choices=["medulla", "cortex"], default="medulla")
+    parser.add_argument("--dataset-root", type=Path, default=None)
+    parser.add_argument("--checkpoint", type=Path, default=None)
+    parser.add_argument("--experiment-name", default=None)
     parser.add_argument("--img-size", type=int, default=256)
     parser.add_argument("--base-channels", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=50)
@@ -210,6 +212,20 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if args.dataset_root is None:
+        args.dataset_root = (
+            DEFAULT_DATASET_ROOT
+            if args.target == "medulla"
+            else INTRARENAL_ROOT / "supervisionado" / "cortex_annotator_1"
+        )
+    if args.checkpoint is None:
+        args.checkpoint = (
+            DEFAULT_CHECKPOINT
+            if args.target == "medulla"
+            else PROJECT_ROOT / "models" / "cortex_roi_unet_annotator1.pth"
+        )
+    if args.experiment_name is None:
+        args.experiment_name = f"{args.target}_roi_unet_annotator1"
     config = TrainConfig(
         dataset_root=str(args.dataset_root),
         checkpoint_path=str(args.checkpoint),
@@ -284,9 +300,10 @@ def main():
         writer.writeheader()
         writer.writerows(history)
     summary = {
-        "architecture": "MedullaROIUNet",
+        "architecture": "IntrarenalROIUNet",
         "input_channels": ["grayscale_roi", "masked_kidney_roi", "kidney_mask"],
-        "output": "medulla_mask_constrained_to_kidney",
+        "output": f"{args.target}_mask_constrained_to_kidney",
+        "target": args.target,
         "checkpoint": str(args.checkpoint),
         "device": device,
         "dataset_sizes": {split: len(dataset) for split, dataset in datasets.items()},

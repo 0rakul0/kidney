@@ -1,0 +1,743 @@
+"""Servidor local para curadoria visual de mascaras renais.
+
+O aplicativo evita transportar milhares de imagens dentro de uma planilha:
+serve os arquivos do manifesto validado, desenha contornos na mesma resolucao
+da imagem e persiste uma avaliacao por revisor em SQLite.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import mimetypes
+import sqlite3
+from datetime import datetime, timezone
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO, StringIO
+from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
+
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+STATIC_ROOT = Path(__file__).resolve().parent / "static"
+DEFAULT_MANIFEST = (
+    PROJECT_ROOT / "dataset_aumentado" / "curadoria" / "miniaturas_completas" / "manifest.csv"
+)
+DEFAULT_DATA_DIR = PROJECT_ROOT / "dataset_aumentado" / "curadoria" / "respostas"
+DATASET_MANIFEST = PROJECT_ROOT / "dataset_aumentado" / "dataset_geral" / "manifest.csv"
+MEDULLA_PREDICTIONS = (
+    PROJECT_ROOT
+    / "results"
+    / "intrarenal_model3"
+    / "medulla_predictions_consensus_v1_dataset_geral"
+    / "manifest.csv"
+)
+MEDULLA_MODEL_SUMMARY = (
+    PROJECT_ROOT
+    / "results"
+    / "segmentation_experiments"
+    / "medulla_deeplab_resnet50_consensus_v1_summary.json"
+)
+KIDNEY_MODEL_SUMMARY = (
+    PROJECT_ROOT
+    / "results"
+    / "intrarenal_model3"
+    / "stability_evaluation_consensus_v1"
+    / "deeplab"
+    / "summary.json"
+)
+CONSENSUS_SELECTED = (
+    PROJECT_ROOT
+    / "results"
+    / "intrarenal_model3"
+    / "medulla_consensus_review_v2"
+    / "selected_for_review.csv"
+)
+CORTEX_MODEL_SUMMARY = (
+    PROJECT_ROOT / "results" / "intrarenal_model3" / "cortex_roi_unet_annotator1" / "summary.json"
+)
+INTRARENAL_MULTICLASS_SUMMARY = (
+    PROJECT_ROOT / "results" / "intrarenal_model3" / "intrarenal_deeplab_resnet50_multiclass_annotator1" / "summary.json"
+)
+STATUS_VALUES = {"pendente", "aceita", "corrigir", "rejeitada", "indisponivel"}
+FIBROSE_VALUES = {"", "0", "1", "nao_avaliado"}
+LAYER_FIELDS = {
+    "rim": ("mascara_rim_visual", (255, 62, 73, 235)),
+    "cortex": ("mascara_cortex_visual", (0, 211, 224, 235)),
+    "medulla": ("mascara_medulla_visual", (255, 213, 61, 245)),
+    "central_echo_complex": ("mascara_central_echo_complex_visual", (255, 145, 0, 245)),
+}
+REVIEW_STATUS_FIELDS = {
+    "rim": "status_rim",
+    "cortex": "status_cortex",
+    "medulla": "status_medulla",
+    "central_echo_complex": "status_central_echo_complex",
+}
+
+
+class CurationStore:
+    def __init__(self, manifest_path: Path, database_path: Path, cache_dir: Path):
+        self.manifest_path = manifest_path
+        self.database_path = database_path
+        self.cache_dir = cache_dir
+        self.corrections_dir = database_path.parent / "mascaras_corrigidas"
+        self.items = self._load_manifest()
+        self.dataset_metadata = self._read_csv_index(DATASET_MANIFEST)
+        self.medulla_predictions = self._read_csv_index(MEDULLA_PREDICTIONS)
+        self.consensus_selected = self._read_csv_index(CONSENSUS_SELECTED)
+        self.medulla_summary = self._read_json(MEDULLA_MODEL_SUMMARY)
+        self.kidney_summary = self._read_json(KIDNEY_MODEL_SUMMARY)
+        self.cortex_summary = self._read_json(CORTEX_MODEL_SUMMARY)
+        self.intrarenal_multiclass_summary = self._read_json(INTRARENAL_MULTICLASS_SUMMARY)
+        self.by_id = {item["image_id"]: item for item in self.items}
+        self._prepare_database()
+
+    @staticmethod
+    def _read_json(path):
+        if not path.exists():
+            return {}
+        with path.open("r", encoding="utf-8") as handle:
+            return json.load(handle)
+
+    @staticmethod
+    def _read_csv_index(path):
+        if not path.exists():
+            return {}
+        with path.open("r", encoding="utf-8-sig", newline="") as handle:
+            return {row["image_id"]: row for row in csv.DictReader(handle)}
+
+    def _load_manifest(self):
+        if not self.manifest_path.exists():
+            raise FileNotFoundError(
+                f"Manifesto visual nao encontrado: {self.manifest_path}. "
+                "Execute engenharia_dataset/build_curation_thumbnails.py primeiro."
+            )
+        with self.manifest_path.open("r", encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        required = {"image_id", "origem_visual", "imagem_visual"} | {
+            field for field, _ in LAYER_FIELDS.values()
+        }
+        if not rows or not required.issubset(rows[0]):
+            raise ValueError("O manifesto visual nao contem as colunas esperadas.")
+        return rows
+
+    def connect(self):
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    def _prepare_database(self):
+        self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.connect() as connection:
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS reviews (
+                    image_id TEXT NOT NULL,
+                    reviewer TEXT NOT NULL,
+                    reviewer_type TEXT NOT NULL,
+                    status_rim TEXT NOT NULL,
+                    status_cortex TEXT NOT NULL,
+                    status_medulla TEXT NOT NULL,
+                    status_central_echo_complex TEXT NOT NULL DEFAULT 'pendente',
+                    fibrose TEXT NOT NULL,
+                    fonte_fibrose TEXT NOT NULL,
+                    observacao TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (image_id, reviewer)
+                )
+                """
+            )
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(reviews)").fetchall()
+            }
+            if "status_central_echo_complex" not in columns:
+                connection.execute(
+                    "ALTER TABLE reviews ADD COLUMN status_central_echo_complex TEXT NOT NULL DEFAULT 'pendente'"
+                )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS mask_edits (
+                    image_id TEXT NOT NULL,
+                    reviewer TEXT NOT NULL,
+                    layer TEXT NOT NULL,
+                    mask_path TEXT NOT NULL,
+                    operation TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (image_id, reviewer, layer)
+                )
+                """
+            )
+
+    def summary(self, reviewer=""):
+        with self.connect() as connection:
+            if reviewer:
+                reviewed = connection.execute(
+                    "SELECT COUNT(*) FROM reviews WHERE reviewer = ?", (reviewer,)
+                ).fetchone()[0]
+            else:
+                reviewed = connection.execute(
+                    "SELECT COUNT(DISTINCT image_id) FROM reviews"
+                ).fetchone()[0]
+        source_counts = {}
+        for item in self.items:
+            source = item["origem_visual"]
+            source_counts[source] = source_counts.get(source, 0) + 1
+        return {
+            "total": len(self.items),
+            "revisados": reviewed,
+            "pendentes": len(self.items) - reviewed,
+            "origens": source_counts,
+            "manifesto": str(self.manifest_path),
+        }
+
+    def is_pseudo(self, item):
+        dataset_info = self.dataset_metadata.get(item["image_id"], {})
+        kidney_generated = dataset_info.get("mask_status", "").startswith("generated")
+        medulla_generated = (
+            item["origem_visual"] == "dataset_geral_prediction_space"
+            and bool(item["mascara_medulla_visual"])
+        )
+        cortex_generated = (
+            item["origem_visual"] == "dataset_geral_prediction_space"
+            and bool(item["mascara_cortex_visual"])
+        )
+        central_generated = (
+            item["origem_visual"] == "dataset_geral_prediction_space"
+            and bool(item.get("mascara_central_echo_complex_visual", ""))
+        )
+        return kidney_generated or medulla_generated or cortex_generated or central_generated
+
+    def list_items(self, reviewer="", state="todos", source="", annotation="", search="", limit=150):
+        reviews = self.reviews_by_image(reviewer) if reviewer else {}
+        normalized_search = search.casefold().strip()
+        listed = []
+        for item in self.items:
+            has_review = item["image_id"] in reviews
+            if state == "pendentes" and has_review:
+                continue
+            if state == "revisados" and not has_review:
+                continue
+            if source and item["origem_visual"] != source:
+                continue
+            is_pseudo = self.is_pseudo(item)
+            if annotation == "pseudo" and not is_pseudo:
+                continue
+            if annotation == "manual" and is_pseudo:
+                continue
+            if normalized_search and normalized_search not in item["image_id"].casefold():
+                continue
+            listed.append(
+                {
+                    "image_id": item["image_id"],
+                    "origem_visual": item["origem_visual"],
+                    "pseudo_mascara": is_pseudo,
+                    "revisado": has_review,
+                    "tem_cortex": bool(item["mascara_cortex_visual"]),
+                    "thumb_url": f"/api/media/{item['image_id']}/image",
+                }
+            )
+            if len(listed) >= limit:
+                break
+        return listed
+
+    def reviews_by_image(self, reviewer):
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM reviews WHERE reviewer = ?", (reviewer,)
+            ).fetchall()
+        return {row["image_id"]: dict(row) for row in rows}
+
+    def get_item(self, image_id, reviewer=""):
+        item = self.by_id.get(image_id)
+        if item is None:
+            return None
+        review = None
+        if reviewer:
+            with self.connect() as connection:
+                row = connection.execute(
+                    "SELECT * FROM reviews WHERE image_id = ? AND reviewer = ?",
+                    (image_id, reviewer),
+                ).fetchone()
+            review = dict(row) if row else None
+        dataset_info = self.dataset_metadata.get(image_id, {})
+        prediction = self.medulla_predictions.get(image_id, {})
+        agreement = self.consensus_selected.get(image_id, {})
+        is_pseudo = self.is_pseudo(item)
+        medulla_generated = (
+            item["origem_visual"] == "dataset_geral_prediction_space"
+            and bool(item["mascara_medulla_visual"])
+        )
+        cortex_generated = (
+            item["origem_visual"] == "dataset_geral_prediction_space"
+            and bool(item["mascara_cortex_visual"])
+        )
+        central_generated = (
+            item["origem_visual"] == "dataset_geral_prediction_space"
+            and bool(item.get("mascara_central_echo_complex_visual", ""))
+        )
+        effective_layers = {
+            name: self.effective_mask(image_id, name, reviewer)
+            for name in LAYER_FIELDS
+        }
+        with Image.open(item["imagem_visual"]) as source_image:
+            dimensions = f"{source_image.width} x {source_image.height}"
+        medulla_metrics = {}
+        if medulla_generated:
+            dice = self.medulla_summary.get("test_dice")
+            medulla_metrics = {
+                "modelo": Path(self.medulla_summary.get("checkpoint_path", "")).name,
+                "dice": dice,
+                "iou": self.medulla_summary.get("test_iou"),
+                "f1": dice,
+                "escopo": "Teste do modelo de Medulla; F1 equivale ao Dice binario.",
+                "limiar": self.medulla_summary.get("best_threshold"),
+            }
+        kidney_generated = dataset_info.get("mask_status", "").startswith("generated")
+        cortex_metrics = {}
+        if cortex_generated:
+            multiclass_test = self.intrarenal_multiclass_summary.get("test", {})
+            dice = multiclass_test.get("cortex_dice") or self.cortex_summary.get("test_dice")
+            cortex_metrics = {
+                "modelo": Path(
+                    self.intrarenal_multiclass_summary.get("checkpoint", "")
+                    or self.cortex_summary.get("checkpoint", "")
+                ).name,
+                "dice": dice,
+                "iou": multiclass_test.get("cortex_iou") or self.cortex_summary.get("test_iou"),
+                "f1": dice,
+                "escopo": "Teste do DeepLab multiclasse intrarrenal; F1 equivale ao Dice por classe.",
+            }
+        central_metrics = {}
+        if central_generated:
+            multiclass_test = self.intrarenal_multiclass_summary.get("test", {})
+            dice = multiclass_test.get("central_echo_complex_dice")
+            central_metrics = {
+                "modelo": Path(self.intrarenal_multiclass_summary.get("checkpoint", "")).name,
+                "dice": dice,
+                "iou": multiclass_test.get("central_echo_complex_iou"),
+                "f1": dice,
+                "escopo": "Teste do DeepLab multiclasse intrarrenal; F1 equivale ao Dice por classe.",
+            }
+        kidney_metrics = {}
+        if kidney_generated:
+            kidney_result = self.kidney_summary.get("model2_kidney_against_manual_capsule", {})
+            kidney_metrics = {
+                "modelo": Path(self.kidney_summary.get("kidney_checkpoint", "")).name,
+                "dice": kidney_result.get("global_dice"),
+                "iou": kidney_result.get("global_iou"),
+                "f1": kidney_result.get("global_dice"),
+                "escopo": "Holdout de capsula renal; F1 equivale ao Dice binario.",
+            }
+        return {
+            "image_id": image_id,
+            "origem_visual": item["origem_visual"],
+            "pseudo_mascara": is_pseudo,
+            "tem_cortex": bool(effective_layers["cortex"]),
+            "camadas_disponiveis": {
+                name: bool(effective_layers[name]) for name in LAYER_FIELDS
+            },
+            "info": {
+                "origem": dataset_info.get("source_name", image_id.split("__", 1)[0]),
+                "dimensao": dimensions,
+                "mascara_rim": "pseudo" if kidney_generated else "existente/manual",
+                "mascara_cortex": "pseudo" if cortex_generated else ("manual" if item["mascara_cortex_visual"] else "indisponivel"),
+                "mascara_medulla": "pseudo" if medulla_generated else ("manual" if item["mascara_medulla_visual"] else "indisponivel"),
+                "mascara_central_echo_complex": "pseudo" if central_generated else ("manual" if item.get("mascara_central_echo_complex_visual", "") else "indisponivel"),
+            },
+            "metricas": {
+                "rim": kidney_metrics,
+                "cortex": cortex_metrics,
+                "medulla": medulla_metrics,
+                "central_echo_complex": central_metrics,
+                "concordancia_modelos": {
+                    "dice": agreement.get("model_dice", ""),
+                    "iou": agreement.get("model_iou", ""),
+                    "escopo": "Concordancia DeepLab x ROI-UNet para priorizacao de revisao.",
+                }
+                if agreement
+                else {},
+            },
+            "image_url": f"/api/media/{image_id}/image",
+            "layers": {
+                name: (
+                    f"/api/media/{image_id}/{name}?reviewer={reviewer}"
+                    if effective_layers[name]
+                    else ""
+                )
+                for name in LAYER_FIELDS
+            },
+            "camadas_editadas": {
+                name: self.edited_mask(image_id, name, reviewer) is not None
+                for name in LAYER_FIELDS
+            },
+            "review": review,
+        }
+
+    def save_review(self, payload):
+        image_id = str(payload.get("image_id", "")).strip()
+        reviewer = str(payload.get("reviewer", "")).strip()
+        reviewer_type = str(payload.get("reviewer_type", "")).strip()
+        if image_id not in self.by_id:
+            raise ValueError("Imagem desconhecida.")
+        if not reviewer:
+            raise ValueError("Informe o identificador do revisor.")
+        if reviewer_type not in {"especialista", "nao_especialista"}:
+            raise ValueError("Escolha o tipo de revisor.")
+        values = {
+            field: str(payload.get(field, "pendente")).strip()
+            for field in REVIEW_STATUS_FIELDS.values()
+        }
+        if any(value not in STATUS_VALUES for value in values.values()):
+            raise ValueError("Estado de mascara invalido.")
+        fibrose = str(payload.get("fibrose", "")).strip()
+        if fibrose not in FIBROSE_VALUES:
+            raise ValueError("Estado de fibrose invalido.")
+        now = datetime.now(timezone.utc).isoformat()
+        with self.connect() as connection:
+            existing = connection.execute(
+                "SELECT created_at FROM reviews WHERE image_id = ? AND reviewer = ?",
+                (image_id, reviewer),
+            ).fetchone()
+            created_at = existing["created_at"] if existing else now
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO reviews (
+                    image_id, reviewer, reviewer_type, status_rim, status_cortex,
+                    status_medulla, status_central_echo_complex, fibrose, fonte_fibrose, observacao,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    image_id,
+                    reviewer,
+                    reviewer_type,
+                    values["status_rim"],
+                    values["status_cortex"],
+                    values["status_medulla"],
+                    values["status_central_echo_complex"],
+                    fibrose,
+                    str(payload.get("fonte_fibrose", "")).strip(),
+                    str(payload.get("observacao", "")).strip(),
+                    created_at,
+                    now,
+                ),
+            )
+        return self.get_item(image_id, reviewer)
+
+    def export_rows(self):
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM reviews ORDER BY updated_at, image_id, reviewer"
+            ).fetchall()
+            edits = connection.execute(
+                "SELECT image_id, reviewer, layer, mask_path, operation FROM mask_edits"
+            ).fetchall()
+        edits_by_key = {
+            (row["image_id"], row["reviewer"], row["layer"]): dict(row)
+            for row in edits
+        }
+        exported = []
+        for row in rows:
+            result = dict(row)
+            for layer in LAYER_FIELDS:
+                edit = edits_by_key.get((row["image_id"], row["reviewer"], layer), {})
+                result[f"mascara_corrigida_{layer}"] = edit.get("mask_path", "")
+                result[f"operacao_corrigida_{layer}"] = edit.get("operation", "")
+            exported.append(result)
+        return exported
+
+    def source_file(self, image_id, kind):
+        item = self.by_id.get(image_id)
+        if item is None:
+            return None
+        if kind == "image":
+            path = Path(item["imagem_visual"])
+            return path if path.exists() else None
+        if kind not in LAYER_FIELDS:
+            return None
+        field, _ = LAYER_FIELDS[kind]
+        path = Path(item[field]) if item[field] else None
+        return path if path and path.exists() else None
+
+    def edited_mask(self, image_id, kind, reviewer):
+        if not reviewer:
+            return None
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT mask_path FROM mask_edits WHERE image_id = ? AND reviewer = ? AND layer = ?",
+                (image_id, reviewer, kind),
+            ).fetchone()
+        path = Path(row["mask_path"]) if row else None
+        return path if path and path.exists() else None
+
+    def effective_mask(self, image_id, kind, reviewer=""):
+        return self.edited_mask(image_id, kind, reviewer) or self.source_file(image_id, kind)
+
+    @staticmethod
+    def _safe_name(value):
+        return "".join(
+            character if character.isalnum() or character in "-_" else "_"
+            for character in value
+        )
+
+    def save_polygon(self, payload):
+        image_id = str(payload.get("image_id", "")).strip()
+        reviewer = str(payload.get("reviewer", "")).strip()
+        layer = str(payload.get("layer", "")).strip()
+        operation = str(payload.get("operation", "substituir")).strip()
+        points = payload.get("points", [])
+        if image_id not in self.by_id or layer not in LAYER_FIELDS:
+            raise ValueError("Imagem ou classe de mascara invalida.")
+        if not reviewer:
+            raise ValueError("Informe o revisor antes de corrigir uma mascara.")
+        if operation not in {"substituir", "adicionar", "apagar"}:
+            raise ValueError("Operacao de desenho invalida.")
+        if not isinstance(points, list) or len(points) < 3:
+            raise ValueError("Desenhe um poligono com pelo menos tres pontos.")
+        image_path = Path(self.by_id[image_id]["imagem_visual"])
+        with Image.open(image_path) as source:
+            size = source.size
+        coordinates = []
+        for point in points:
+            if not isinstance(point, list) or len(point) != 2:
+                raise ValueError("Coordenadas do poligono invalidas.")
+            x, y = float(point[0]), float(point[1])
+            coordinates.append((min(max(x, 0), size[0] - 1), min(max(y, 0), size[1] - 1)))
+        previous = self.effective_mask(image_id, layer, reviewer)
+        if operation == "substituir" or previous is None:
+            mask = Image.new("L", size, 0)
+        else:
+            with Image.open(previous) as current:
+                if current.size != size:
+                    raise ValueError("Mascara existente nao corresponde a imagem exibida.")
+                mask = current.convert("L")
+        ImageDraw.Draw(mask).polygon(coordinates, fill=0 if operation == "apagar" else 255)
+        destination = (
+            self.corrections_dir
+            / self._safe_name(reviewer)
+            / layer
+            / f"{self._safe_name(image_id)}.png"
+        )
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        mask.save(destination, format="PNG")
+        now = datetime.now(timezone.utc).isoformat()
+        with self.connect() as connection:
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO mask_edits
+                    (image_id, reviewer, layer, mask_path, operation, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (image_id, reviewer, layer, str(destination), operation, now),
+            )
+        return self.get_item(image_id, reviewer)
+
+    def contour_bytes(self, image_id, kind, reviewer=""):
+        item = self.by_id.get(image_id)
+        if item is None or kind not in LAYER_FIELDS:
+            return None
+        _, color = LAYER_FIELDS[kind]
+        mask_path = self.effective_mask(image_id, kind, reviewer)
+        if not mask_path:
+            return None
+        image_path = Path(item["imagem_visual"])
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        reviewer_suffix = f"__{self._safe_name(reviewer)}" if reviewer else ""
+        target = self.cache_dir / f"{image_id}__{kind}{reviewer_suffix}.png"
+        if target.exists() and target.stat().st_mtime >= mask_path.stat().st_mtime:
+            return target.read_bytes()
+        with Image.open(image_path) as image, Image.open(mask_path) as mask:
+            if image.size != mask.size:
+                raise ValueError(
+                    f"Dimensoes incompatíveis: {image_id} {kind} "
+                    f"imagem={image.size} mascara={mask.size}"
+                )
+            binary = mask.convert("L").point(lambda value: 255 if value > 0 else 0)
+            eroded = binary.filter(ImageFilter.MinFilter(3))
+            boundary = ImageChops.difference(binary, eroded)
+            overlay = Image.new("RGBA", image.size, color)
+            alpha_value = min(color[3], 190)
+            alpha = boundary.point(lambda value: alpha_value if value > 0 else 0)
+            overlay.putalpha(alpha)
+            output = BytesIO()
+            overlay.save(output, format="PNG")
+        target.write_bytes(output.getvalue())
+        return output.getvalue()
+
+
+class CurationHandler(BaseHTTPRequestHandler):
+    store: CurationStore
+
+    def log_message(self, format_string, *args):
+        print(f"[web] {self.address_string()} - {format_string % args}")
+
+    def send_json(self, value, status=HTTPStatus.OK):
+        body = json.dumps(value, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_file(self, path, content_type=None):
+        body = path.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header(
+            "Content-Type", content_type or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        )
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
+        reviewer = query.get("reviewer", [""])[0].strip()
+        try:
+            if path == "/api/meta":
+                self.send_json(self.store.summary(reviewer))
+                return
+            if path == "/api/items":
+                limit = min(max(int(query.get("limit", ["150"])[0]), 1), 500)
+                self.send_json(
+                    self.store.list_items(
+                        reviewer=reviewer,
+                        state=query.get("state", ["todos"])[0],
+                        source=query.get("source", [""])[0],
+                        annotation=query.get("annotation", [""])[0],
+                        search=query.get("search", [""])[0],
+                        limit=limit,
+                    )
+                )
+                return
+            if path.startswith("/api/item/"):
+                image_id = unquote(path[len("/api/item/") :])
+                item = self.store.get_item(image_id, reviewer)
+                if item is None:
+                    self.send_json({"error": "Imagem nao encontrada."}, HTTPStatus.NOT_FOUND)
+                    return
+                self.send_json(item)
+                return
+            if path.startswith("/api/media/"):
+                parts = path.split("/")
+                if len(parts) != 5:
+                    raise ValueError("Caminho de mídia inválido.")
+                image_id, kind = unquote(parts[3]), parts[4]
+                if kind == "image":
+                    source = self.store.source_file(image_id, kind)
+                    if source is None:
+                        self.send_json({"error": "Imagem nao encontrada."}, HTTPStatus.NOT_FOUND)
+                    else:
+                        self.send_file(source)
+                    return
+                body = self.store.contour_bytes(image_id, kind, reviewer)
+                if body is None:
+                    self.send_json({"error": "Mascara nao encontrada."}, HTTPStatus.NOT_FOUND)
+                    return
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "private, max-age=3600")
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            if path == "/api/export.json":
+                self.send_json(self.store.export_rows())
+                return
+            if path == "/api/export.csv":
+                rows = self.store.export_rows()
+                fields = [
+                    "image_id",
+                    "reviewer",
+                    "reviewer_type",
+                    "status_rim",
+                    "status_cortex",
+                    "status_medulla",
+                    "status_central_echo_complex",
+                    "fibrose",
+                    "fonte_fibrose",
+                    "observacao",
+                    "mascara_corrigida_rim",
+                    "operacao_corrigida_rim",
+                    "mascara_corrigida_cortex",
+                    "operacao_corrigida_cortex",
+                    "mascara_corrigida_medulla",
+                    "operacao_corrigida_medulla",
+                    "mascara_corrigida_central_echo_complex",
+                    "operacao_corrigida_central_echo_complex",
+                    "created_at",
+                    "updated_at",
+                ]
+                output = StringIO()
+                writer = csv.DictWriter(output, fieldnames=fields)
+                writer.writeheader()
+                writer.writerows(rows)
+                body = output.getvalue().encode("utf-8-sig")
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "text/csv; charset=utf-8")
+                self.send_header("Content-Disposition", "attachment; filename=curadoria_respostas.csv")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            target = STATIC_ROOT / ("index.html" if path == "/" else path.lstrip("/"))
+            if target.exists() and target.resolve().is_relative_to(STATIC_ROOT.resolve()):
+                self.send_file(target)
+                return
+            self.send_json({"error": "Recurso nao encontrado."}, HTTPStatus.NOT_FOUND)
+        except (OSError, ValueError) as error:
+            self.send_json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        if parsed.path not in {"/api/reviews", "/api/corrections"}:
+            self.send_json({"error": "Recurso nao encontrado."}, HTTPStatus.NOT_FOUND)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            item = (
+                self.store.save_review(payload)
+                if parsed.path == "/api/reviews"
+                else self.store.save_polygon(payload)
+            )
+            self.send_json({"saved": True, "item": item})
+        except (json.JSONDecodeError, ValueError) as error:
+            self.send_json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Servidor web local para curadoria renal.")
+    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument("--database", type=Path, default=DEFAULT_DATA_DIR / "curadoria.sqlite3")
+    parser.add_argument("--cache-dir", type=Path, default=DEFAULT_DATA_DIR / "overlay_cache")
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8765)
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    store = CurationStore(args.manifest, args.database, args.cache_dir)
+    CurationHandler.store = store
+    server = ThreadingHTTPServer((args.host, args.port), CurationHandler)
+    print(f"Curadoria Renal: http://{args.host}:{args.port}")
+    print(f"Casos: {len(store.items)} | Banco: {args.database.resolve()}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServidor encerrado.")
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()

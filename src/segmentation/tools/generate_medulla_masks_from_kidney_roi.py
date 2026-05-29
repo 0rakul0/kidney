@@ -29,10 +29,11 @@ DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "results" / "intrarenal_model3" / "medulla_
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Gera pseudo-mascaras candidatas de Medulla dentro das mascaras "
+            "Gera pseudo-mascaras candidatas de estrutura intrarrenal dentro das mascaras "
             "renais ja existentes em dataset_geral."
         )
     )
+    parser.add_argument("--target", choices=["medulla", "cortex"], default="medulla")
     parser.add_argument("--dataset-root", type=Path, default=DEFAULT_DATASET_ROOT)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--checkpoint", type=Path, default=None)
@@ -197,10 +198,16 @@ def main():
     args = parse_args()
     if args.checkpoint is None:
         args.checkpoint = (
-            DEFAULT_ROI_UNET_CHECKPOINT
+            (
+                DEFAULT_ROI_UNET_CHECKPOINT
+                if args.target == "medulla"
+                else PROJECT_ROOT / "models" / "cortex_roi_unet_annotator1.pth"
+            )
             if args.architecture == "roi_unet"
             else DEFAULT_DEEPLAB_CHECKPOINT
         )
+    if args.output_root == DEFAULT_OUTPUT_ROOT and args.target == "cortex":
+        args.output_root = PROJECT_ROOT / "results" / "intrarenal_model3" / "cortex_roi_unet_predictions_dataset_geral"
     if not args.checkpoint.exists():
         raise FileNotFoundError(f"Checkpoint nao encontrado: {args.checkpoint}")
     rows = read_manifest(args.dataset_root / "manifest.csv")
@@ -216,6 +223,9 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     bundle = load_medulla_bundle(args, device)
+    mask_path_field = f"predicted_{args.target}_mask_path"
+    pixels_field = f"{args.target}_pixels"
+    ratio_field = f"{args.target}_to_kidney_ratio"
     output_rows = []
     preview_count = 0
     for index, row in enumerate(targets, 1):
@@ -228,10 +238,10 @@ def main():
                     "kidney_mask_status": row.get("mask_status", ""),
                     "dataset_image_path": row["dataset_image_path"],
                     "dataset_kidney_mask_path": row["dataset_mask_path"],
-                    "predicted_medulla_mask_path": "",
+                    mask_path_field: "",
                     "prediction_status": "skipped_empty_kidney_mask",
-                    "medulla_pixels": 0,
-                    "medulla_to_kidney_ratio": "0.000000",
+                    pixels_field: 0,
+                    ratio_field: "0.000000",
                     "mean_foreground_probability": "0.000000",
                 }
             )
@@ -262,10 +272,10 @@ def main():
                 "kidney_mask_status": row.get("mask_status", ""),
                 "dataset_image_path": row["dataset_image_path"],
                 "dataset_kidney_mask_path": row["dataset_mask_path"],
-                "predicted_medulla_mask_path": str(mask_path),
+                mask_path_field: str(mask_path),
                 "prediction_status": status,
-                "medulla_pixels": pixels,
-                "medulla_to_kidney_ratio": f"{ratio:.6f}",
+                pixels_field: pixels,
+                ratio_field: f"{ratio:.6f}",
                 "mean_foreground_probability": f"{confidence:.6f}",
             }
         )
@@ -281,13 +291,14 @@ def main():
         "dataset_root": str(args.dataset_root),
         "checkpoint": str(args.checkpoint),
         "architecture": args.architecture,
+        "target": args.target,
         "threshold_from_checkpoint": float(bundle["threshold"]),
         "device": device,
         "kidney_rois_processed": len(output_rows),
         "status_counts": status_counts,
         "output_root": str(args.output_root),
         "note": (
-            "Estas mascaras sao pseudo-rotulos candidatos de Medulla. "
+            f"Estas mascaras sao pseudo-rotulos candidatos de {args.target}. "
             "Predicoes baseadas em mascaras renais geradas requerem revisao "
             "anatomica da ROI antes de qualquer uso em retreinamento."
         ),

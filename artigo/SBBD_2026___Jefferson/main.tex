@@ -22,7 +22,7 @@
 \setlength{\belowcaptionskip}{0pt}
 \setlength{\parskip}{2pt}
 
-\title{Um \textit{Pipeline} de Vis\~ao Computacional para An\'alise de Achados Hiperecog\^enicos em tUltrassonografia Renal}
+\title{Um \textit{Pipeline} de Vis\~ao Computacional para Caracteriza\c{c}\~ao de Achados Intrarrenais em Ultrassonografia}
 
 \author{
   Jefferson S. dos Anjos\inst{1}, Amaro A. de Lima\inst{1},
@@ -44,16 +44,18 @@
 \maketitle
 
 \begin{abstract}
-Renal ultrasound interpretation depends on subjective visual inspection and anatomical delimitation of the kidney. This paper proposes a computer vision \textit{pipeline} that first segments the kidney and then analyzes suspicious hyperechoic regions near renal pyramids. An exploratory annotated set was used to train an initial model, which generated pseudo masks accepted only above a 90\% operational confidence threshold. After data expansion, a second DeepLabV3 ResNet50 model was trained on the consolidated set and achieved Dice of 0.9235, IoU of 0.8741 and precision of 0.9301 on a fixed test set. The fibrosis suspicion classifier remains exploratory due to the lack of real labeled examples.
+Renal ultrasound interpretation depends on subjective visual inspection and anatomical delimitation of the kidney. This paper proposes a computer vision \textit{pipeline} that first segments the kidney and then extracts exploratory intrarenal echogenicity and texture markers. An exploratory annotated set was used to train an initial model, which generated pseudo masks accepted only above a 90\% operational confidence threshold. After data expansion, a second DeepLabV3 ResNet50 model was trained on the consolidated set and achieved Dice of 0.9235, IoU of 0.8741 and precision of 0.9301 on a fixed test set. Fibrosis, commonly assessed histologically as interstitial fibrosis and tubular atrophy (IFTA), is not a validated outcome in the current dataset.
 \end{abstract}
 
 \begin{resumo}
-A interpreta\c{c}\~ao de ultrassonografias renais depende de inspe\c{c}\~ao visual subjetiva e da delimita\c{c}\~ao anat\^omica do rim. Este artigo prop\~oe um \textit{pipeline} de vis\~ao computacional que primeiro segmenta o rim e depois analisa regi\~oes hiperecog\^enicas suspeitas pr\'oximas \`as pir\^amides renais. Uma base explorat\'oria anotada foi usada para treinar um modelo inicial, que gerou pseudom\'ascaras aceitas apenas acima de 90\% de confian\c{c}a operacional. Ap\'os a expans\~ao dos dados, um segundo DeepLabV3 ResNet50 foi treinado no conjunto consolidado e atingiu Dice de 0,9235, IoU de 0,8741 e precis\~ao de 0,9301 no teste fixo. O classificador de suspeita de fibrose permanece explorat\'orio pela falta de exemplos reais rotulados.
+A interpreta\c{c}\~ao de ultrassonografias renais depende de inspe\c{c}\~ao visual subjetiva e da delimita\c{c}\~ao anat\^omica do rim. Este artigo prop\~oe um \textit{pipeline} de vis\~ao computacional que primeiro segmenta o rim e depois extrai marcadores explorat\'orios de ecogenicidade e textura intrarrenal. Uma base explorat\'oria anotada foi usada para treinar um modelo inicial, que gerou pseudom\'ascaras aceitas apenas acima de 90\% de confian\c{c}a operacional. Ap\'os a expans\~ao dos dados, um segundo DeepLabV3 ResNet50 foi treinado no conjunto consolidado e atingiu Dice de 0,9235, IoU de 0,8741 e precis\~ao de 0,9301 no teste fixo. Fibrose, usualmente avaliada histologicamente como fibrose intersticial e atrofia tubular (IFTA), n\~ao constitui um desfecho validado na base atual.
 \end{resumo}
 
 \section{Introdu\c{c}\~ao}
 
-A ultrassonografia renal \'e acess\'ivel, n\~ao invasiva e amplamente usada na avalia\c{c}\~ao de altera\c{c}\~oes estruturais do rim. Na pr\'atica cl\'inica, regi\~oes muito claras no par\^enquima, especialmente pr\'oximas \`as pir\^amides renais, podem indicar achados suspeitos que exigem an\'alise cuidadosa.
+A ultrassonografia renal \'e acess\'ivel, n\~ao invasiva e amplamente usada na avalia\c{c}\~ao de altera\c{c}\~oes estruturais do rim. Na pr\'atica cl\'inica, ecogenicidade cortical, dimens\~oes renais e diferencia\c{c}\~ao cortico-medular podem contribuir para avaliar altera\c{c}\~oes parenquimatosas, embora n\~ao determinem isoladamente fibrose.
+
+Em estudos pareados com bi\'opsia, o desfecho de fibrose \'e frequentemente operacionalizado como \textit{interstitial fibrosis and tubular atrophy} (IFTA). Moghazi et al.~\cite{Moghazi2005} mostraram que a ecogenicidade cortical correlaciona-se com achados histopatol\'ogicos, mas possui especificidade limitada quando usada isoladamente. Athavale et al.~\cite{Athavale2021} demonstraram a viabilidade de predizer classes de IFTA a partir de ultrassonografia, utilizando r\'otulos histol\'ogicos como padr\~ao de refer\^encia.
 
 A ecogenicidade cortical, especialmente quando comparada ao fígado, também é
 observada em pacientes com doença renal crônica. A razão entre a intensidade cortical
@@ -61,12 +63,12 @@ renal e a intensidade de um órgão de referência pode reduzir parte da subjeti
 inspeção visual~\cite{Manley2001}.
 
 Em paralelo, a literatura explora segmentação renal e extração de medidas
-quantitativas de intensidade e textura para investigar padrões associados a alterações
-renais~\cite{Chavhan2008}. Ainda assim, permanece a lacuna entre segmentar o rim e examinar, dentro dele, pontos hiperecog\^enicos candidatos a achados suspeitos.
+quantitativas de intensidade e textura para investigar padr\~oes associados a altera\c{c}\~oes
+renais~\cite{Athavale2021}. Ainda assim, permanece a lacuna entre segmentar o rim e examinar, dentro dele, pontos hiperecog\^enicos candidatos a achados suspeitos.
 
 Esse recorte \'e importante porque a ultrassonografia apresenta ru\'ido, sombras ac\'usticas, varia\c{c}\~oes de ganho e diferen\c{c}as de enquadramento. Sem uma m\'ascara renal confi\'avel, pontos muito claros podem ser confundidos com artefatos ou estruturas externas ao rim. Por isso, este trabalho parte da delimita\c{c}\~ao sem\^antica do rim e s\'o depois transforma achados hiperecog\^enicos em medidas computacionais.
 
-Este artigo combina segmenta\c{c}\~ao renal, expans\~ao supervisionada por pseudom\'ascaras e extra\c{c}\~ao de atributos intrarrenais. As contribui\c{c}\~oes s\~ao: consolida\c{c}\~ao de acervo expandido, gera\c{c}\~ao de pseudom\'ascaras com limiar de 90\%, treinamento de um segundo segmentador e avalia\c{c}\~ao explorat\'oria de atributos para suspeita de fibrose.
+Este artigo combina segmenta\c{c}\~ao renal, expans\~ao supervisionada por pseudom\'ascaras e extra\c{c}\~ao de atributos intrarrenais. As contribui\c{c}\~oes s\~ao: consolida\c{c}\~ao de acervo expandido, gera\c{c}\~ao de pseudom\'ascaras com limiar de 90\%, treinamento de um segundo segmentador e avalia\c{c}\~ao explorat\'oria de marcadores ultrassonogr\'aficos intrarrenais.
 
 \section{Contexto e Trabalhos Relacionados}
 
@@ -75,19 +77,17 @@ A segmenta\c{c}\~ao autom\'atica de rim em ultrassonografia \'e a primeira linha
 A segunda linha é a quantificação da ecogenicidade renal relativa, em que medidas
 entre rim e fígado aproximam critérios usados por especialistas~\cite{Manley2001}.A terceira
 é a extração de atributos quantitativos relacionados à textura e intensidade da imagem
-para investigação de alterações renais\cite{Chavhan2008}.
+para investigacao de alteracoes renais~\cite{Athavale2021}.
 
-As pir\^amides renais s\~ao estruturas da medula do rim, entre o c\'ortex e o sistema coletor, que servem como refer\^encias anat\^omicas internas em ultrassonografia. Altera\c{c}\~oes de ecogenicidade nessas pir\^amides foram associadas a pior fun\c{c}\~ao renal em cen\'arios cl\'inicos espec\'ificos~\cite{Chavhan2008}, o que motiva a busca por estruturas claras nessa regi\~ao.
+Estruturas intrarrenais candidatas s\~ao mantidas apenas como refer\^encias espaciais explorat\'orias; elas n\~ao s\~ao tratadas, neste estudo, como marcador direto de IFTA.
 
 Em segmenta\c{c}\~ao, Dice e IoU medem a sobreposi\c{c}\~ao entre m\'ascara prevista e refer\^encia. Ambas variam de 0 a 1: valores pr\'oximos de 0 indicam baixa concord\^ancia, e valores pr\'oximos de 1 indicam maior proximidade entre predi\c{c}\~ao e anota\c{c}\~ao esperada.
 
-No pr\'oprio SBBD, trabalhos recentes discutem organiza\c{c}\~ao de dados de sa\'ude para aprendizagem computacional~\cite{Lima2021DataLakeSaude} e aprendizado ativo para reduzir rotula\c{c}\~ao~\cite{Constantino2022SBBD}. Este trabalho aproxima essas linhas em um \textit{pipeline} de dados no qual a m\'ascara segmentada delimita a busca por regi\~oes claras pr\'oximas \`as pir\^amides candidatas.
-
 \section{Metodologia}
 
-A metodologia foi organizada para transformar uma imagem de ultrassonografia renal em uma regi\~ao anat\^omica delimitada e, em seguida, extrair medidas de achados hiperecog\^enicos pr\'oximos \`as pir\^amides renais.
+A metodologia foi organizada para transformar uma imagem de ultrassonografia renal em uma regi\~ao anat\^omica delimitada e, em seguida, extrair marcadores explorat\'orios de intensidade e textura intrarrenal.
 
-Para isso, o \textit{pipeline} primeiro prepara a entrada, segmenta o rim, restringe a an\'alise \`a m\'ascara renal, procura regi\~oes claras intrarrenais e, por fim, produz atributos que podem alimentar uma etapa explorat\'oria de suspeita de fibrose. A Figura~\ref{fig:tikz_pipeline} apresenta essa organiza\c{c}\~ao geral.
+Para isso, o \textit{pipeline} primeiro prepara a entrada, segmenta o rim, restringe a an\'alise \`a m\'ascara renal, procura regi\~oes claras intrarrenais e, por fim, produz marcadores quantitativos. Uma eventual predi\c{c}\~ao de IFTA exige dados associados a bi\'opsia ou refer\^encia cl\'inica validada e fica fora do escopo demonstrado. A Figura~\ref{fig:tikz_pipeline} apresenta essa organiza\c{c}\~ao geral.
 
 \begin{figure}[htb!]
 \centering
@@ -101,13 +101,13 @@ Para isso, o \textit{pipeline} primeiro prepara a entrada, segmenta o rim, restr
 \node[block, right=of input] (prep) {Preparo da\\entrada};
 \node[block, right=of prep] (seg) {Segmenta\c{c}\~ao\\renal};
 \node[block, right=of seg] (feat) {Regi\~oes claras\\intrarrenais};
-\node[block, right=of feat] (clf) {Suspeita\\explorat\'oria};
+\node[block, right=of feat] (clf) {Marcadores\\explorat\'orios};
 \draw[->, thick] (input) -- (prep);
 \draw[->, thick] (prep) -- (seg);
 \draw[->, thick] (seg) -- (feat);
 \draw[->, thick] (feat) -- (clf);
 \end{tikzpicture}
-\caption{\textit{Pipeline} metodol\'ogico: a segmenta\c{c}\~ao renal isola o rim para an\'alise de regi\~oes hiperecog\^enicas pr\'oximas \`as pir\^amides renais.}
+\caption{\textit{Pipeline} metodol\'ogico: a segmenta\c{c}\~ao renal isola o rim para extra\c{c}\~ao explorat\'oria de marcadores intrarrenais.}
 \label{fig:tikz_pipeline}
 \end{figure}
 
@@ -116,7 +116,7 @@ Como indicado na Figura~\ref{fig:tikz_pipeline}, a primeira etapa recebe a image
 Na terceira etapa, a imagem em tons de cinza é examinada apenas dentro dessa região, buscando concentra\c{c}\~oes locais de pixels de alta intensidade próximas a regiões internas candidatas às pir\^amides.Em seguida, são extraídos atributos de intensidade,
 dispersão, percentis, proporção de pixels brilhantes e textura por matrizes de coocorrência de níveis de cinza~\cite{Haralick1973}.
 
-Quando h\'a ROI manual do f\'igado, tamb\'em s\~ao calculadas raz\~oes entre rim e f\'igado. A etapa final usa um Random Forest~\cite{Breiman2001} apenas como prova de conceito, pois os achados claros ainda s\~ao medidas explorat\'orias e n\~ao uma decis\~ao robusta de fibrose em sim ou n\~ao.
+Quando h\'a ROI manual do f\'igado, tamb\'em s\~ao calculadas raz\~oes entre rim e f\'igado. A etapa final usa um Random Forest~\cite{Breiman2001} apenas como prova de conceito de separa\c{c}\~ao de marcadores imag\'eticos; os r\'otulos dispon\'iveis n\~ao representam IFTA confirmada.
 
 O desenvolvimento foi organizado em duas fases. Na primeira, a base explorat\'oria derivada do Open Kidney Ultrasound Data Set~\cite{Singla2023KidneyUS} reuniu 513 pares imagem e m\'ascara, distribu\'idos em 360 imagens de treino, 51 de valida\c{c}\~ao e 102 de teste. Esse conjunto treinou o modelo inicial, respons\'avel por aprender o contorno renal.
 
@@ -146,9 +146,9 @@ Na vers\~ao usada nos experimentos relatados, 3.962 imagens tinham m\'ascaras ac
 
 No segundo treinamento, 30\% das 3.962 imagens com m\'ascara foram reservadas para teste fixo, e os 70\% restantes foram usados em valida\c{c}\~ao cruzada com 5 folds. Foram avaliadas as fam\'ilias \mbox{U-Net}, UNet++, DeepLabV3 e SegFormer.
 
-A classifica\c{c}\~ao de suspeita de fibrose usa apenas 50 imagens rotuladas, com 44 para treino e valida\c{c}\~ao e 6 para teste. Por esse motivo, essa etapa permanece explorat\'oria e ainda n\~ao fecha diagn\'ostico de fibrose em sim ou n\~ao.
+A classifica\c{c}\~ao explorat\'oria de padr\~oes intrarrenais usa apenas 50 imagens rotuladas, com 44 para treino e valida\c{c}\~ao e 6 para teste. Esses r\'otulos n\~ao constituem refer\^encia histol\'ogica de IFTA e, portanto, n\~ao permitem avaliar detec\c{c}\~ao de fibrose.
 
-Essa separa\c{c}\~ao entre segmenta\c{c}\~ao e decis\~ao cl\'inica foi adotada deliberadamente. O primeiro problema exige aprender o contorno renal com boa estabilidade; o segundo exige exemplos reais de fibrose, preferencialmente balanceados e associados a informa\c{c}\~oes cl\'inicas. Neste est\'agio, portanto, o artigo prioriza a etapa que j\'a pode ser avaliada de forma consistente.
+Essa separa\c{c}\~ao entre segmenta\c{c}\~ao e decis\~ao cl\'inica foi adotada deliberadamente. O primeiro problema exige aprender o contorno renal com boa estabilidade; o segundo exige imagens vinculadas a IFTA por bi\'opsia ou a refer\^encia cl\'inica definida. Neste est\'agio, portanto, o artigo prioriza a etapa que j\'a pode ser avaliada de forma consistente.
 
 Para exemplificar a aplica\c{c}\~ao do \textit{pipeline} em uma imagem concreta, a Figura~\ref{fig:reference_example} mostra, em sequ\^encia, o exame original, a m\'ascara renal, a regi\~ao intrarrenal analisada, as pir\^amides candidatas e as ROIs de refer\^encia quando h\'a compara\c{c}\~ao com f\'igado.
 
@@ -209,7 +209,7 @@ Para ilustrar o uso do modelo de segmenta\c{c}\~ao 2 como entrada da prova de co
 \label{fig:model2_proof}
 \end{figure}
 
-Na Figura~\ref{fig:model2_proof}, a sa\'ida do segundo segmentador n\~ao \'e tratada como diagn\'ostico final. Ela define a janela anat\^omica para extrair atributos de intensidade, textura e rela\c{c}\~ao espacial. Assim, a etapa de suspeita de fibrose permanece explorat\'oria: verifica se os atributos extra\'idos da regi\~ao renal carregam algum sinal, mas ainda depende de mais exemplos reais e balanceados para sustentar uma decis\~ao cl\'inica em sim ou n\~ao.
+Na Figura~\ref{fig:model2_proof}, a sa\'ida do segundo segmentador n\~ao \'e tratada como diagn\'ostico final. Ela define a janela anat\^omica para extrair atributos de intensidade, textura e rela\c{c}\~ao espacial. Assim, a etapa posterior permanece uma caracteriza\c{c}\~ao explorat\'oria de marcadores ultrassonogr\'aficos; avaliar IFTA exigiria imagens associadas a bi\'opsia ou padr\~ao cl\'inico definido.
 
 \section{Discussão}
 
@@ -229,12 +229,12 @@ As principais limitações envolvem a ausência de um conjunto clínico robusto 
 
 \section{Conclus\~ao}
 
-Este artigo prop\^os um \textit{pipeline} para isolar o rim e analisar regi\~oes hiperecog\^enicas suspeitas pr\'oximas \`as pir\^amides renais. A segmenta\c{c}\~ao foi constru\'ida em duas fases: modelo explorat\'orio inicial, gera\c{c}\~ao de pseudom\'ascaras com 90\% de confian\c{c}a e treinamento de um segundo modelo no \texttt{dataset\_geral}. Esse modelo alcan\c{c}ou Dice m\'edio de 0,9235 e sustenta a an\'alise intrarrenal.
+Este artigo prop\^os um \textit{pipeline} para isolar o rim e extrair marcadores ultrassonogr\'aficos intrarrenais explorat\'orios. A segmenta\c{c}\~ao foi constru\'ida em duas fases: modelo explorat\'orio inicial, gera\c{c}\~ao de pseudom\'ascaras com 90\% de confian\c{c}a e treinamento de um segundo modelo no \texttt{dataset\_geral}. Esse modelo alcan\c{c}ou Dice m\'edio de 0,9235 e sustenta a an\'alise intrarrenal.
 
 Os resultados mostram que a segmentação pode restringir a análise computacional à anatomia renal, reduzindo interferências externas e aumentando a confiabilidade das medidas extraídas. A expansão supervisionada por pseudomáscaras também demonstrou potencial para ampliar o acervo de treinamento mesmo em cenários com limitação de
 anotações manuais.
 
-Além do desempenho quantitativo, o pipeline preserva a separação entre evidência computacional e interpretação clínica. Nesse contexto, as regiões hiperecogênicas são tratadas como achados candidatos para investigação, e não como diagnóstico automático. Ainda assim, a etapa de suspeita de fibrose permanece exploratória devido à limitação de exemplos clínicos rotulados e ao reduzido conjunto balanceado de casos confirmados.
+Al\'em do desempenho quantitativo, o \textit{pipeline} preserva a separa\c{c}\~ao entre evid\^encia computacional e interpreta\c{c}\~ao cl\'inica. Nesse contexto, as regi\~oes hiperecog\^enicas s\~ao tratadas como achados candidatos para investiga\c{c}\~ao, e n\~ao como diagn\'ostico autom\'atico. Uma etapa de predi\c{c}\~ao de IFTA depende de casos vinculados a padr\~ao histol\'ogico ou cl\'inico validado.
 
 Como trabalhos futuros, pretende-se ampliar o conjunto anotado, incluir marcações específicas das pirâmides renais e validar os atributos extraídos em cenários clínicos reais. Também se pretende investigar estratégias semi-supervisionadas e avaliar a integração de informações clínicas e medidas relativas de ecogenicidade para aumentar a robustez da análise.
 

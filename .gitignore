@@ -64,6 +64,7 @@ Thumbs.db
 # Generated outputs
 out/
 results/
+archive_local/
 
 # Local image datasets
 dataset_inicial/

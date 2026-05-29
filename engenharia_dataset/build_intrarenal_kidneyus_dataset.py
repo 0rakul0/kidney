@@ -12,7 +12,7 @@ import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_DIR = PROJECT_ROOT / "dataset_aumentado" / "fontes" / "kidneyUS_images_25_june_2025"
-DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "kidneyus_regions"
+DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "dataset_aumentado" / "dataset_intrarrenal" / "intermediario" / "kidneyus_regions"
 ANNOTATOR_FILES = {
     "annotator_1": "reviewed_labels_1.csv",
     "annotator_2": "reviewed_labels_2.csv",

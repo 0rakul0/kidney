@@ -8,12 +8,61 @@ O estado atual do projeto ja resolve uma etapa importante: a segmentacao automat
 
 A raiz mantem apenas `dataset_inicial/`, com os splits originais, e
 `dataset_aumentado/`, com fontes adicionais, `dataset_geral`, conjuntos
-derivados e a planilha de curadoria. A estrutura vigente e o dicionario da
-planilha estao descritos em:
+derivados e os artefatos de curadoria. A estrutura vigente esta descrita em:
 
 ```text
 docs/organizacao_datasets_curadoria.md
 ```
+
+A organizacao geral do repositorio, incluindo a diferenca entre pastas ativas,
+historicas, derivadas e temporarias, esta documentada em:
+
+```text
+docs/organizacao_repositorio.md
+```
+
+## Curadoria Humana das Mascaras
+
+Para evitar distorcoes de referencia e o compartilhamento de uma planilha
+pesada com milhares de imagens incorporadas, a curadoria passou a usar uma
+interface web local. A aplicacao sobrepoe os contornos na mesma dimensao da
+imagem exibida e salva uma avaliacao estruturada por revisor em SQLite, com
+exportacao posterior para `JSON` ou `CSV`.
+
+![Interface web de curadoria das mascaras renais e intrarrenais](docs/assets/curadoria_renal_web.png)
+
+Na interface:
+
+- vermelho representa a mascara do rim;
+- amarelo representa a mascara de `Medulla`;
+- ciano representa a mascara de `Cortex`, quando disponivel;
+- o filtro `Somente pseudo-mascaras` isola anotacoes geradas automaticamente;
+- a ferramenta `Poligono` permite corrigir as classes `Rim`, `Cortex` e
+  `Medulla` por revisor, sem sobrescrever a proposta automatica original;
+- o painel de segmentacao apresenta o modelo e suas metricas de avaliacao
+  (`Dice`, `IoU` e `F1`) somente quando a visualizacao utiliza pseudo-mascara;
+- a concordancia entre modelos e informada quando calculada para priorizar a
+  revisao, sem substituir a decisao humana.
+
+O caminho atual da etapa 2 segue uma formulacao mais proxima do `kidneyUS`:
+primeiro segmenta `Rim/Capsule`, depois aplica um DeepLabV3 multiclasse dentro
+da ROI renal. O checkpoint
+`intrarenal_deeplab_resnet50_multiclass_annotator1.pth` segmenta `Cortex`,
+`Medulla` e `Central Echo Complex` em uma unica inferencia. No teste separado
+por paciente (`50` imagens), obteve `Dice=0.682169` para `Cortex`, `0.715567`
+para `Medulla` e `0.849745` para `Central Echo Complex`; portanto, suas
+mascaras candidatas entram na interface como pseudo-mascaras para correcao
+humana.
+
+Executar a interface:
+
+```powershell
+.\.venv\Scripts\python.exe .\curadoria_web\app.py
+```
+
+O aplicativo fica disponivel em `http://127.0.0.1:8765`. Os detalhes do fluxo
+e as recomendacoes para compartilhamento institucional estao em
+`curadoria_web/README.md`.
 
 ## Objetivo Atual
 
@@ -92,6 +141,8 @@ O projeto agora tambem possui:
 - mascara interna candidata por heuristica;
 - mascaras manuais de `Medulla` extraidas das anotacoes multiclasse do `kidneyUS`;
 - segmentadores iniciais de medula e geracao controlada de pseudo-mascaras;
+- segmentador DeepLabV3 multiclasse para `Cortex`, `Medulla` e
+  `Central Echo Complex`, com pseudo-mascaras candidatas para curadoria;
 - exportacao de CSV para analise quantitativa da ROI renal;
 - suporte a mascara manual de orgao de referencia, como figado.
 
@@ -235,13 +286,76 @@ Estado atual da ultima montagem:
 
 - `5.994` imagens unicas;
 - `1.001` mascaras existentes copiadas;
-- `2.961` pseudo-mascaras geradas e aceitas;
-- `2.032` imagens ainda sem mascara aceita;
-- `3.962` imagens com mascara em `dataset_geral/mascaras/`.
+- `3.852` pseudo-mascaras geradas e aceitas;
+- `1.141` imagens ainda sem mascara aceita;
+- `4.853` imagens com mascara em `dataset_geral/mascaras/`.
 
 A confianca de `0.90` e um criterio operacional do modelo e dos filtros de
 qualidade. Ela nao substitui revisao humana, mas impede que mascaras fracas
 entrem automaticamente na base geral.
+
+### Criterios para aceitar uma mascara gerada
+
+Uma mascara gerada automaticamente so entra no `dataset_geral` quando passa por
+todos os filtros abaixo. Se falhar em qualquer um deles, a imagem permanece no
+manifesto como `generated_rejected` ou sem mascara aceita.
+
+| Criterio | Valor atual | Motivo |
+| --- | ---: | --- |
+| Confianca media dentro da mascara | `>= 0.90` | Evitar aceitar predicoes incertas |
+| Area relativa da mascara | `>= 0.03` da imagem | Evitar mascaras pequenas demais |
+| Area relativa da mascara | `<= 0.75` da imagem | Evitar mascaras que cobrem quase a imagem inteira |
+| Pixels positivos minimos | `>= 800` | Evitar regioes residuais ou ruido |
+| Componentes conectados | `<= 3` | Evitar mascaras muito fragmentadas |
+
+O processo de aceite e:
+
+```text
+imagem sem mascara
+-> inferencia do segmentador
+-> binarizacao da probabilidade usando o limiar do checkpoint
+-> calculo de confianca, area, pixels positivos e componentes
+-> aceite somente se todos os criterios forem satisfeitos
+-> gravacao da mascara e registro no manifest.csv
+```
+
+O `manifest.csv` registra, para cada imagem, `mask_status`, `confidence`,
+`foreground_pixels`, `area_ratio`, `components`, `largest_component_pixels` e
+`rejection_reason`. Assim, cada aceite ou rejeicao pode ser auditado.
+
+### Origem das pseudo-mascaras
+
+As pseudo-mascaras deste projeto nao foram desenhadas manualmente do zero.
+Elas foram geradas por modelos treinados a partir das anotacoes manuais do
+Open Kidney Ultrasound Data Set (`kidneyUS`).
+
+O fluxo e:
+
+```text
+anotacoes manuais do OpenKidney/kidneyUS
+-> treino de segmentadores renais e intrarrenais
+-> aplicacao dos modelos em imagens sem mascara
+-> filtragem por confianca e criterios geometricos
+-> entrada das pseudo-mascaras aceitas no dataset aumentado
+```
+
+Na segmentacao externa, as anotacoes de capsula/rim do OpenKidney/kidneyUS
+serviram como referencia inicial para treinar o segmentador renal. Esse modelo
+foi aplicado em imagens adicionais e gerou pseudo-mascaras do rim, aceitas
+somente quando passaram pelos filtros definidos.
+
+Na etapa intrarrenal, as anotacoes multiclasse do OpenKidney/kidneyUS
+(`Capsule`, `Cortex`, `Medulla` e `Central Echo Complex`) foram usadas para
+treinar modelos capazes de gerar mascaras candidatas das estruturas internas.
+Essas mascaras internas tambem sao tratadas como pseudo-mascaras candidatas e
+devem passar por curadoria humana antes de serem consideradas referencia final.
+
+Assim, quando perguntarem de onde vieram as pseudo-mascaras, a resposta curta e:
+
+> Elas foram geradas pelos modelos treinados com anotacoes manuais do
+> OpenKidney/kidneyUS. As pseudo-mascaras aprovadas por filtros automaticos, e
+> posteriormente por curadoria humana, sao usadas para aumentar gradualmente o
+> dataset e melhorar o desempenho do segmentador.
 
 ## Proveniencia dos Dados
 
