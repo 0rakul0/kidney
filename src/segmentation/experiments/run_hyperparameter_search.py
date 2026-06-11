@@ -4,6 +4,13 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_CAPSULE_DATASET = (
+    PROJECT_ROOT
+    / "dataset_aumentado"
+    / "dataset_intrarrenal"
+    / "supervisionado"
+    / "capsule_annotator_1"
+)
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -138,7 +145,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Busca simples de hiperparametros para segmentacao renal.")
     parser.add_argument("--model", choices=["all", *MODEL_REGISTRY.keys()], default="all")
     parser.add_argument("--epochs", type=int, default=40)
-    parser.add_argument("--dataset-path", type=str, default="dataset_inicial")
+    parser.add_argument("--dataset-path", type=str, default=str(DEFAULT_CAPSULE_DATASET))
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--summary-name", type=str, default="hyperparameter_search_summary.csv")
 

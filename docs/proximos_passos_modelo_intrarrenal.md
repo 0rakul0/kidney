@@ -69,7 +69,7 @@ Resultados iniciais desse baseline:
 `docs/resultados_modelo3_baseline_medulla.md`.
 
 Depois do treinamento de um segmentador binario de `Medulla`, o script
-`src/segmentation/tools/generate_medulla_masks_from_kidney_roi.py` aplica o
+`src/segmentation/tools/predict/medulla_roi.py` aplica o
 checkpoint somente nas imagens que ja possuem mascara renal em `dataset_geral`.
 A predição e recortada pela mascara do rim e salva como pseudo-rotulo candidato
 em uma pasta separada, ate que haja revisao de qualidade. Predicoes feitas

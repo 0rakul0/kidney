@@ -2,14 +2,11 @@
 
 ## Estrutura na raiz
 
-A raiz do projeto mantem somente duas pastas de dados:
+A raiz do projeto mantem uma pasta principal de dados:
 
 ```text
-dataset_inicial/
 dataset_aumentado/
 ```
-
-`dataset_inicial/` contem a divisao original em `train`, `val` e `test`.
 
 `dataset_aumentado/` concentra fontes adicionais, pseudorrotulos, conjuntos
 derivados e artefatos preparados para curadoria:
@@ -31,9 +28,14 @@ dataset_aumentado/
 `-- curadoria/
 ```
 
+O kidneyUS e a fonte canonica do novo ciclo. A base supervisionada para
+segmentacao externa do rim e
+`dataset_aumentado/dataset_intrarrenal/supervisionado/capsule_annotator_1/`,
+criada a partir da classe `Capsule`.
+
 O subconjunto MONAI bruto/processado esta em
 `dataset_aumentado/fontes/external_data/`. As imagens consolidadas para uso
-do pipeline permanecem em `dataset_aumentado/dataset_geral/`, junto do
+do pipeline podem ser montadas em `dataset_aumentado/dataset_geral/`, junto do
 manifesto que registra a origem de cada imagem.
 
 ## Organizacao do dataset intrarrenal
@@ -48,6 +50,7 @@ dataset_intrarrenal/
 |-- intermediario/
 |   `-- kidneyus_regions/                       # OpenKidney/kidneyUS
 |-- supervisionado/
+|   |-- capsule_annotator_1/                    # Capsule binario
 |   |-- medulla_annotator_1/                    # Medulla binario
 |   |-- cortex_annotator_1/                     # Cortex binario
 |   `-- regions_multiclass_annotator_1/         # Cortex, Medulla e CEC
@@ -66,6 +69,7 @@ Contagens principais:
 
 | Base | Total | Train | Val | Test |
 | --- | ---: | ---: | ---: | ---: |
+| `supervisionado/capsule_annotator_1/` | gerado por `create_capsule_splits.py` | - | - | - |
 | `supervisionado/medulla_annotator_1/` | 336 | 236 | 50 | 50 |
 | `supervisionado/cortex_annotator_1/` | 336 | 236 | 50 | 50 |
 | `supervisionado/regions_multiclass_annotator_1/` | 335 | 235 | 50 | 50 |

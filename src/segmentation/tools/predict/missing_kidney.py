@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -39,12 +39,20 @@ def parse_args():
     parser.add_argument("--model", choices=["unet", "unetplusplus", "deeplab", "segformer"], default="deeplab")
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
     parser.add_argument("--img-size", type=int, default=256)
+    parser.add_argument("--clahe", action="store_true")
+    parser.add_argument("--super-resolution", choices=["none", "lanczos"], default="none")
+    parser.add_argument("--super-resolution-scale", type=int, default=2)
     parser.add_argument("--confidence-threshold", type=float, default=0.90)
     parser.add_argument("--min-area-ratio", type=float, default=0.03)
     parser.add_argument("--max-area-ratio", type=float, default=0.75)
     parser.add_argument("--min-foreground-pixels", type=int, default=800)
     parser.add_argument("--max-components", type=int, default=3)
     parser.add_argument("--limit", type=int, default=None, help="Limita a quantidade de imagens processadas.")
+    parser.add_argument(
+        "--refresh-all",
+        action="store_true",
+        help="Reprocessa todas as imagens do manifesto, inclusive mascaras ja geradas.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Calcula a inferencia sem salvar mascaras ou manifestos.")
     parser.add_argument(
         "--refresh-summary-only",
@@ -55,7 +63,7 @@ def parse_args():
 
 
 def read_manifest(path):
-    with path.open("r", newline="", encoding="utf-8") as file:
+    with path.open("r", newline="", encoding="utf-8-sig") as file:
         return list(csv.DictReader(file))
 
 
@@ -73,10 +81,35 @@ def read_grayscale(path):
     return image
 
 
+def maybe_apply_clahe(image, enabled):
+    if not enabled:
+        return image
+    return cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(image)
+
+
+def maybe_apply_super_resolution(image, method, scale):
+    if method == "none":
+        return image
+    if method == "lanczos":
+        height, width = image.shape[:2]
+        return cv2.resize(
+            image,
+            (width * scale, height * scale),
+            interpolation=cv2.INTER_LANCZOS4,
+        )
+    raise ValueError(f"Super-resolucao desconhecida: {method}")
+
+
 def generate_one(bundle, row, args, device):
     image_path = Path(row["dataset_image_path"])
     image = read_grayscale(image_path)
-    tensor = prepare_tensor(image, args.img_size, device)
+    model_image = maybe_apply_super_resolution(
+        image,
+        args.super_resolution,
+        args.super_resolution_scale,
+    )
+    model_image = maybe_apply_clahe(model_image, args.clahe)
+    tensor = prepare_tensor(model_image, args.img_size, device)
     threshold = float(bundle["threshold"])
 
     with torch.no_grad():
@@ -88,6 +121,8 @@ def generate_one(bundle, row, args, device):
         image.shape,
         {
             "confidence_threshold": args.confidence_threshold,
+            "clahe": args.clahe,
+            "super_resolution": args.super_resolution,
             "min_area_ratio": args.min_area_ratio,
             "max_area_ratio": args.max_area_ratio,
             "min_foreground_pixels": args.min_foreground_pixels,
@@ -113,6 +148,9 @@ def update_summary(dataset_root, rows, args, device, processed, accepted, reject
             "checkpoint": str(args.checkpoint),
             "device": device,
             "confidence_threshold": args.confidence_threshold,
+            "super_resolution": args.super_resolution,
+            "super_resolution_scale": args.super_resolution_scale,
+            "clahe": args.clahe,
             "duplicates_skipped": previous_summary.get("duplicates_skipped", 0),
             "last_missing_mask_generation": {
                 "timestamp": datetime.now().isoformat(timespec="seconds"),
@@ -123,6 +161,7 @@ def update_summary(dataset_root, rows, args, device, processed, accepted, reject
                 "accepted": accepted,
                 "rejected": rejected,
                 "threshold_from_checkpoint": None,
+                "refresh_all": args.refresh_all,
             },
         }
     )
@@ -142,7 +181,7 @@ def main():
         raise FileNotFoundError(f"Checkpoint nao encontrado: {args.checkpoint}")
 
     rows = read_manifest(manifest_path)
-    targets = [row for row in rows if mask_is_missing(row)]
+    targets = rows if args.refresh_all else [row for row in rows if mask_is_missing(row)]
     if args.limit is not None:
         targets = targets[: args.limit]
 
@@ -193,13 +232,13 @@ def main():
                 cv2.imwrite(str(output_path), analysis["mask"].astype(np.uint8) * 255)
             row["dataset_mask_path"] = str(output_path)
             row["has_mask"] = "true"
-            row["mask_status"] = "generated_accepted_champion_deeplab"
+            row["mask_status"] = f"generated_accepted_champion_{args.model}"
             accepted += 1
             accepted_rows.append(dict(row))
         else:
             row["dataset_mask_path"] = ""
             row["has_mask"] = "false"
-            row["mask_status"] = "generated_rejected_champion_deeplab"
+            row["mask_status"] = f"generated_rejected_champion_{args.model}"
             rejected += 1
             rejected_rows.append(dict(row))
 

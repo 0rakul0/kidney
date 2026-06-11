@@ -83,15 +83,24 @@ label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); fo
 .case-list button.active .done { color: white; }
 .center { min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .viewer { padding: 12px; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.case-nav { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 2px 10px; }
-.case-nav button { border: 1px solid var(--line); background: white; border-radius: 7px; padding: 9px 14px; color: #283c58; }
-.case-nav h2 { font-size: 16px; }
+.case-nav {
+  height: 50px; display: grid; grid-template-columns: 112px minmax(0, 1fr) 112px;
+  align-items: center; gap: 10px; padding: 0 2px 10px;
+}
+.case-nav button {
+  width: 112px; min-width: 112px; border: 1px solid var(--line); background: white;
+  border-radius: 7px; padding: 9px 10px; color: #283c58; white-space: nowrap;
+}
+.case-nav h2 {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: center; font-size: 16px;
+}
 .image-stage {
   position: relative; min-height: 300px; flex: 1; background: #020405; border-radius: 8px;
   overflow: hidden; display: grid; place-items: center;
 }
 .toolstrip {
-  position: absolute; z-index: 5; top: 12px; left: 10px; width: 66px; overflow: hidden;
+  position: absolute; z-index: 5; top: 12px; left: 10px; width: 76px; overflow: hidden;
   border-radius: 8px; background: rgba(22,27,35,.92); display: grid;
 }
 .toolstrip button { color: white; border: 0; background: transparent; padding: 15px 5px; font-size: 12px; }
@@ -105,6 +114,7 @@ label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); fo
 .polygon-panel strong { font-size: 13px; }
 .polygon-panel label { color: #bdc9d9; }
 .polygon-panel select { min-height: 33px; padding: 6px 8px; color: #182a44; }
+.polygon-panel input[type="range"] { min-height: 28px; padding: 0; accent-color: var(--blue); }
 .polygon-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .polygon-actions button { min-height: 34px; border-radius: 6px; border: 1px solid #4a5a71; color: white; background: transparent; cursor: pointer; }
 .polygon-actions #polygon-save { border-color: var(--blue); background: var(--blue); }
@@ -116,13 +126,19 @@ label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); fo
 .drawing-layer.active { pointer-events: all; cursor: crosshair; }
 #empty-state { color: #bcc8d3; }
 .canvas-footer {
-  position: absolute; bottom: 10px; left: 10px; right: 10px; height: 45px; padding: 0 13px;
+  position: absolute; bottom: 10px; left: 10px; right: 10px; min-height: 45px; padding: 7px 13px;
   border-radius: 8px; background: rgba(20,23,29,.9); color: white; display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
 }
-.layer-toggle { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 21px; }
+.layer-toggle { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 16px; }
 .layer-toggle legend { margin-right: 12px; float: left; font-weight: 600; }
 .layer-toggle label { display: inline-flex; flex-direction: row; align-items: center; color: white; font-size: 13px; gap: 6px; }
 .layer-toggle .red { color: var(--rim); } .layer-toggle .cyan { color: var(--cortex); } .layer-toggle .yellow { color: var(--medulla); } .layer-toggle .orange { color: var(--central); }
+.model-picker { flex-direction: row; align-items: center; gap: 8px; color: white; font-size: 12px; }
+.model-picker select { min-height: 30px; padding: 4px 8px; border-color: #374253; color: white; background: #1b2431; }
+.view-toggle { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 10px; }
+.view-toggle legend { margin-right: 4px; float: left; font-weight: 600; }
+.view-toggle label { display: inline-flex; flex-direction: row; align-items: center; gap: 5px; color: white; font-size: 12px; white-space: nowrap; }
 .zoom { display: flex; align-items: center; gap: 8px; }
 .zoom button { color: white; border: 1px solid #374253; background: transparent; border-radius: 5px; height: 28px; width: 29px; }
 .item-info, .model-info { padding: 12px 15px; }
@@ -175,6 +191,34 @@ textarea { resize: vertical; }
 .hint { padding: 10px; color: #356da8; background: #f1f7ff; border: 1px solid #cbe0fb; border-radius: 7px; font-size: 12px; line-height: 1.4; }
 .primary { margin-top: 4px; height: 56px; color: white; font-size: 16px; font-weight: 600; border: 0; background: var(--blue); border-radius: 8px; cursor: pointer; }
 .message { min-height: 18px; color: var(--green); } .message.error { color: var(--red); }
+.changes-panel { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.changes-panel .section-title { margin-bottom: 10px; }
+.correction-list {
+  list-style: none; margin: 0 0 12px; padding: 0; max-height: 190px;
+  overflow: auto; display: grid; gap: 7px;
+}
+.correction-item, .empty-change {
+  min-width: 0; padding: 9px 10px; border: 1px solid var(--line);
+  border-radius: 7px; background: #fbfcff;
+}
+.correction-item { padding: 0; overflow: hidden; }
+.correction-item button {
+  width: 100%; padding: 9px 10px; border: 0; background: transparent;
+  color: inherit; text-align: left; cursor: pointer;
+}
+.correction-item button:hover { background: #eef5ff; }
+.correction-item strong, .correction-item span, .correction-item small {
+  display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.correction-item strong { color: var(--blue); font-size: 12px; text-transform: capitalize; }
+.correction-item span { margin-top: 4px; color: var(--ink); font-size: 12px; }
+.correction-item small, .empty-change { color: var(--muted); font-size: 12px; }
+.correction-item.aprovada { border-color: #b7e4d0; background: #f2fbf6; }
+.correction-item.reprovada { border-color: #fac2c6; background: #fff6f6; }
+.database-action {
+  width: 100%; min-height: 45px; color: white; font-weight: 650;
+  border: 0; background: #0f8b67; border-radius: 8px; cursor: pointer;
+}
 .export { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 13px; color: var(--muted); font-size: 12px; }
 .export a { display: inline-block; margin-left: 7px; padding: 7px 10px; color: var(--blue); text-decoration: none; border: 1px solid var(--line); border-radius: 6px; }
 @media (max-width: 1150px) {

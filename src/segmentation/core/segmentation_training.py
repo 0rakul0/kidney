@@ -24,6 +24,13 @@ from src.segmentation.core.metrics import dice_score, iou_score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_THRESHOLD_CANDIDATES = tuple(round(x / 100, 2) for x in range(35, 70, 5))
+DEFAULT_CAPSULE_DATASET = (
+    PROJECT_ROOT
+    / "dataset_aumentado"
+    / "dataset_intrarrenal"
+    / "supervisionado"
+    / "capsule_annotator_1"
+)
 
 
 @dataclass
@@ -160,7 +167,7 @@ def add_training_args(parser, default_model_name, default_checkpoint_name, defau
     parser.add_argument("--clahe", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num-workers", type=int, default=0)
-    parser.add_argument("--dataset-path", type=str, default=str((PROJECT_ROOT / "dataset_inicial").resolve()))
+    parser.add_argument("--dataset-path", type=str, default=str(DEFAULT_CAPSULE_DATASET.resolve()))
     parser.add_argument("--experiment-name", type=str, default=default_experiment_name)
     parser.add_argument("--checkpoint-name", type=str, default=default_checkpoint_name)
     parser.add_argument("--model-name", type=str, default=default_model_name)

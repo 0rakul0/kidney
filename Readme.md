@@ -6,9 +6,10 @@ O estado atual do projeto ja resolve uma etapa importante: a segmentacao automat
 
 ## Organizacao Atual dos Dados
 
-A raiz mantem apenas `dataset_inicial/`, com os splits originais, e
-`dataset_aumentado/`, com fontes adicionais, `dataset_geral`, conjuntos
-derivados e os artefatos de curadoria. A estrutura vigente esta descrita em:
+A raiz mantem `dataset_aumentado/` como area principal de dados. O novo ciclo
+usa o kidneyUS como fonte canonica: a segmentacao externa vem da classe
+`Capsule`, e a etapa intrarrenal usa `Cortex`, `Medulla` e
+`Central Echo Complex`. A estrutura vigente esta descrita em:
 
 ```text
 docs/organizacao_datasets_curadoria.md
@@ -359,22 +360,27 @@ Assim, quando perguntarem de onde vieram as pseudo-mascaras, a resposta curta e:
 
 ## Proveniencia dos Dados
 
-As imagens utilizadas neste repositorio foram organizadas localmente a partir de material recebido no arquivo `flood_1.zip`. Conforme a comunicacao recebida junto ao compartilhamento desse arquivo, o conjunto de imagens usado no estudo tem como origem o projeto publico [The Open Kidney Ultrasound Data Set (`rsingla92/kidneyUS`)](https://github.com/rsingla92/kidneyUS), que tambem serviu como principal referencia tecnica para a etapa de segmentacao renal.
+As imagens utilizadas no novo ciclo sao organizadas a partir do projeto publico
+[The Open Kidney Ultrasound Data Set (`rsingla92/kidneyUS`)](https://github.com/rsingla92/kidneyUS).
+O arquivo `flood_1.zip` foi recebido anteriormente como material historico e
+corresponde a um subconjunto preprocessado de imagens tambem presentes no
+kidneyUS; por isso ele saiu do fluxo de treinamento atual.
 
 Para fins de documentacao e publicacao deste projeto, a cadeia de proveniencia dos dados e descrita da seguinte forma:
 
 ```text
-Open Kidney Ultrasound Dataset (fonte publica citada pelo autor)
--> arquivo flood_1.zip recebido por e-mail
--> organizacao local em dataset_loader/, identificada/ e dataset/
--> split final train/val/test usado neste repositorio
+Open Kidney Ultrasound Dataset / kidneyUS
+-> anotacoes reviewed_labels_1.csv e reviewed_labels_2.csv
+-> mascara Capsule para segmentacao externa do rim
+-> Cortex, Medulla e Central Echo Complex para segmentacao intrarrenal
+-> splits supervisionados derivados em dataset_aumentado/dataset_intrarrenal/
 ```
 
 Registro de procedencia local:
 
-- a pasta `dataset/` usada neste repositorio foi montada a partir do arquivo `flood_1.zip`;
-- esse arquivo foi recebido por e-mail no contexto de compartilhamento do material de pesquisa;
-- a mensagem recebida informa que os dados do estudo foram obtidos do Open Kidney Ultrasound Dataset.
+- `flood_1.zip` permanece apenas como registro historico da primeira etapa;
+- o treinamento novo deve usar o kidneyUS como fonte canonica;
+- os splits supervisionados sao gerados a partir das anotacoes poligonais do kidneyUS.
 
 Caracteristicas descritas pelo acervo de referencia:
 

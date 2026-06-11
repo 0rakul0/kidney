@@ -20,9 +20,14 @@ from src.segmentation.core.model_loader import load_model_bundle
 
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
-DATASET_INICIAL_ROOT = PROJECT_ROOT / "dataset_inicial"
 DATASET_AUMENTADO_ROOT = PROJECT_ROOT / "dataset_aumentado"
 FONTES_ROOT = DATASET_AUMENTADO_ROOT / "fontes"
+KIDNEYUS_CAPSULE_ROOT = (
+    DATASET_AUMENTADO_ROOT
+    / "dataset_intrarrenal"
+    / "supervisionado"
+    / "capsule_annotator_1"
+)
 DEFAULT_OUTPUT_ROOT = DATASET_AUMENTADO_ROOT / "dataset_geral"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "augmented_deeplab_resnet50_baseline.pth"
 
@@ -63,6 +68,11 @@ def parse_args():
         action=argparse.BooleanOptionalAction,
         default=True,
         help="Inclui PNGs curados de dataset_aumentado/fontes/external_data/processed/*/images, incluindo MONAI e outros datasets externos.",
+    )
+    parser.add_argument(
+        "--include-256x256",
+        action="store_true",
+        help="Inclui imagens 256x256 antigas. Por padrao elas sao excluidas por duplicidade/preprocessamento.",
     )
     return parser.parse_args()
 
@@ -114,7 +124,7 @@ def collect_flat_pair(image_dir, mask_dir, source_name, label_source):
 
 def collect_all_candidates(include_monai):
     candidates = []
-    candidates.extend(collect_split_dataset(DATASET_INICIAL_ROOT, "dataset", "manual_or_primary"))
+    candidates.extend(collect_split_dataset(KIDNEYUS_CAPSULE_ROOT, "kidneyus_capsule", "kidneyus_capsule"))
     candidates.extend(
         collect_split_dataset(
             DATASET_AUMENTADO_ROOT / "expansao_pseudorrotulada",
@@ -186,6 +196,13 @@ def read_grayscale_image(path):
     return image
 
 
+def is_legacy_256_image(path):
+    image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+    if image is None:
+        raise FileNotFoundError(f"Nao foi possivel ler imagem: {path}")
+    return image.shape[:2] == (256, 256)
+
+
 def copy_image(candidate, image_id, output_image_dir):
     image = read_grayscale_image(candidate.image_path)
     output_path = output_image_dir / f"{image_id}.png"
@@ -199,7 +216,7 @@ def copy_existing_mask(mask_path, image_shape, image_id, output_mask_dir):
         return None, "existing_mask_unreadable"
     if mask.shape[:2] != image_shape[:2]:
         mask = cv2.resize(mask, (image_shape[1], image_shape[0]), interpolation=cv2.INTER_NEAREST)
-    mask = ((mask > 0).astype(np.uint8) * 255)
+    mask = keep_largest_component((mask > 0).astype(np.uint8)) * 255
     output_path = output_mask_dir / f"{image_id}.png"
     cv2.imwrite(str(output_path), mask)
     return output_path, "existing_mask_copied"
@@ -230,6 +247,15 @@ def predict_probability(bundle, tensor, img_size):
     return torch.sigmoid(logits).squeeze().detach().cpu().numpy()
 
 
+def keep_largest_component(mask):
+    mask = (mask > 0).astype(np.uint8)
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    if num_labels <= 2:
+        return mask
+    largest_label = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    return (labels == largest_label).astype(np.uint8)
+
+
 def analyze_mask(probability, threshold, original_shape, config):
     probability = cv2.resize(
         probability,
@@ -237,6 +263,8 @@ def analyze_mask(probability, threshold, original_shape, config):
         interpolation=cv2.INTER_LINEAR,
     )
     mask = (probability >= threshold).astype(np.uint8)
+    if config.get("keep_largest_component", True):
+        mask = keep_largest_component(mask)
     foreground_pixels = int(mask.sum())
     total_pixels = int(mask.size)
     area_ratio = float(foreground_pixels / max(total_pixels, 1))
@@ -358,6 +386,22 @@ def main():
     report_dir.mkdir(parents=True, exist_ok=True)
 
     candidates = collect_all_candidates(include_monai=args.include_monai)
+    excluded_256_rows = []
+    if not args.include_256x256:
+        filtered_candidates = []
+        for candidate in candidates:
+            if is_legacy_256_image(candidate.image_path):
+                excluded_256_rows.append(
+                    {
+                        "source_name": candidate.source_name,
+                        "image_path": str(candidate.image_path),
+                        "mask_path": str(candidate.mask_path or ""),
+                        "label_source": candidate.label_source,
+                    }
+                )
+            else:
+                filtered_candidates.append(candidate)
+        candidates = filtered_candidates
     seen_hashes = {}
     used_ids = set()
     rows = []
@@ -460,6 +504,7 @@ def main():
 
     write_csv(args.output_root / "manifest.csv", rows)
     write_csv(report_dir / "duplicadas_por_hash.csv", duplicate_rows)
+    write_csv(report_dir / "excluidas_256x256.csv", excluded_256_rows)
     write_csv(report_dir / "faltando_mascara.csv", [row for row in rows if row["has_mask"] == "false"])
     write_csv(report_dir / "mascaras_geradas.csv", [row for row in rows if row["mask_status"].startswith("generated")])
 
@@ -474,6 +519,7 @@ def main():
             "device": device,
             "confidence_threshold": args.confidence_threshold,
             "duplicates_skipped": len(duplicate_rows),
+            "excluded_256x256": len(excluded_256_rows),
         }
     )
     with (args.output_root / "summary.json").open("w", encoding="utf-8") as file:

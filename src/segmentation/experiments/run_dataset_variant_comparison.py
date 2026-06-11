@@ -18,7 +18,7 @@ from src.segmentation.core.segmentation_training import SegmentationTrainingConf
 
 
 DATASET_VARIANTS = {
-    "original": "dataset_inicial",
+    "kidneyus_capsule": "dataset_aumentado/dataset_intrarrenal/supervisionado/capsule_annotator_1",
     "augmented": "dataset_aumentado/expansao_pseudorrotulada",
 }
 

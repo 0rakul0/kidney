@@ -48,6 +48,7 @@
           <label>Origem da anotacao
             <select id="annotation">
               <option value="">Todas</option>
+              <option value="sem_mascara">Sem mascara renal</option>
               <option value="pseudo">Somente pseudo-mascaras</option>
               <option value="manual">Somente anotacoes manuais</option>
             </select>
@@ -88,9 +89,11 @@
               <button id="tool-zoom" type="button">Zoom</button>
               <button id="zoom-reset" type="button">Ajustar</button>
               <button id="tool-polygon" type="button">Poligono</button>
+              <button id="tool-brush" type="button">Pincel</button>
+              <button id="tool-eraser" type="button">Borracha</button>
             </div>
             <section id="polygon-panel" class="polygon-panel" aria-label="Editar mascara">
-              <strong>Corrigir por poligono</strong>
+              <strong id="drawing-title">Corrigir por poligono</strong>
               <label>Classe
                 <select id="polygon-layer">
                   <option value="rim">Rim</option>
@@ -106,11 +109,14 @@
                   <option value="apagar">Apagar area</option>
                 </select>
               </label>
+              <label id="brush-size-field">Tamanho
+                <input id="brush-size" type="range" min="2" max="50" value="12">
+              </label>
               <div class="polygon-actions">
                 <button id="polygon-clear" type="button">Limpar</button>
                 <button id="polygon-save" type="button">Aplicar</button>
               </div>
-              <small>Clique nos vertices; aplicar fecha o poligono.</small>
+              <small id="drawing-help">Clique nos vertices; aplicar fecha o poligono.</small>
             </section>
             <div id="image-stack" class="image-stack">
               <img id="base-image" alt="Ultrassom para revisao">
@@ -128,6 +134,17 @@
                 <label class="cyan"><input type="checkbox" id="toggle-cortex" checked> Cortex</label>
                 <label class="yellow"><input type="checkbox" id="toggle-medulla" checked> Medulla</label>
                 <label class="orange"><input type="checkbox" id="toggle-central_echo_complex" checked> CEC</label>
+              </fieldset>
+              <label class="model-picker">Modelo interno
+                <select id="segmentation-model">
+                  <option value="unet">U-Net</option>
+                  <option value="deeplab">DeepLabV3</option>
+                </select>
+              </label>
+              <fieldset class="view-toggle">
+                <legend>Imagem</legend>
+                <label><input type="checkbox" id="toggle-superres"> Super-res</label>
+                <label><input type="checkbox" id="toggle-clahe-view"> CLAHE</label>
               </fieldset>
               <div class="zoom">
                 <button id="zoom-out" type="button">-</button>
@@ -224,6 +241,15 @@
           <button id="save-next" class="primary" type="submit">Salvar e avancar &rarr;</button>
           <p id="message" class="message" role="status"></p>
         </form>
+        <section class="changes-panel">
+          <div class="section-title">
+            <h2>Modificacoes feitas</h2>
+            <button id="refresh-corrections" type="button">Atualizar</button>
+          </div>
+          <ol id="correction-list" class="correction-list"></ol>
+          <button id="export-database" class="database-action" type="button">Exportar tudo para o banco</button>
+          <p id="database-message" class="message" role="status"></p>
+        </section>
         <footer class="export">
           <span>Exportar respostas:</span>
           <a href="/api/export.json" download>JSON</a>
@@ -231,6 +257,6 @@
         </footer>
       </aside>
     </main>
-    <script src="/app.js?v=20260528_polygon_fix"></script>
+    <script src="/app.js?v=20260607_brush_eraser"></script>
   </body>
 </html>

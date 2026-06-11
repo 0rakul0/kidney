@@ -4,10 +4,11 @@ Esta pasta agrupa os scripts de engenharia, tratamento, manipulacao e extracao
 de dados usados no projeto. A ideia e separar a construcao da base dos scripts de
 treino, avaliacao e escrita do artigo.
 
-Os dados foram reorganizados em `dataset_inicial/` e `dataset_aumentado/`.
-Fontes externas e MONAI agora ficam sob
-`dataset_aumentado/fontes/external_data/`, e a base consolidada fica em
-`dataset_aumentado/dataset_geral/`. Veja
+Os dados foram reorganizados em `dataset_aumentado/`. A fonte canonica para o
+novo ciclo e o kidneyUS, materializado em bases supervisionadas dentro de
+`dataset_aumentado/dataset_intrarrenal/`. Fontes externas e MONAI ficam sob
+`dataset_aumentado/fontes/external_data/`, e bases consolidadas ficam em
+`dataset_aumentado/dataset_geral/` quando forem usadas. Veja
 `docs/organizacao_datasets_curadoria.md`.
 
 A narrativa completa da busca de datasets externos, da estrategia incremental
@@ -165,7 +166,7 @@ Treinar um primeiro DeepLab binario sobre esses recortes:
 Gerar pseudo-mascaras candidatas de medula dentro dos rins ja segmentados:
 
 ```powershell
-.\.venv\Scripts\python.exe src\segmentation\tools\generate_medulla_masks_from_kidney_roi.py
+.\.venv\Scripts\python.exe src\segmentation\tools\predict\medulla_roi.py
 ```
 
 As predicoes sao restritas pela mascara renal e salvas em `results/` como
@@ -180,7 +181,7 @@ Treinar a arquitetura dedicada condicionada pela mascara renal:
 Aplicar a arquitetura dedicada em uma saida separada:
 
 ```powershell
-.\.venv\Scripts\python.exe src\segmentation\tools\generate_medulla_masks_from_kidney_roi.py `
+.\.venv\Scripts\python.exe src\segmentation\tools\predict\medulla_roi.py `
   --architecture roi_unet `
   --output-root results\intrarenal_model3\medulla_roi_unet_predictions_dataset_geral
 ```
@@ -229,7 +230,7 @@ Treinar o modelo expandido v1:
 Gerar a nova rodada de candidatas e preparar a fila v2:
 
 ```powershell
-.\.venv\Scripts\python.exe src\segmentation\tools\generate_medulla_masks_from_kidney_roi.py `
+.\.venv\Scripts\python.exe src\segmentation\tools\predict\medulla_roi.py `
   --architecture deeplab `
   --checkpoint models\medulla_deeplab_resnet50_consensus_v1.pth `
   --output-root results\intrarenal_model3\medulla_predictions_consensus_v1_dataset_geral
@@ -278,13 +279,13 @@ Preparar o dataset supervisionado, com separacao por paciente:
 Treinar o DeepLabV3 multiclasse:
 
 ```powershell
-.\.venv\Scripts\python.exe src\segmentation\experiments\train_deeplab_intrarenal_multiclass.py --epochs 50 --batch-size 4
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_inner_deeplab.py --epochs 50 --batch-size 4
 ```
 
 Aplicar o modelo no `dataset_geral`:
 
 ```powershell
-.\.venv\Scripts\python.exe src\segmentation\tools\generate_intrarenal_multiclass_masks_from_kidney_roi.py
+.\.venv\Scripts\python.exe src\segmentation\tools\predict\inner_deeplab.py
 ```
 
 Resultado inicial do checkpoint

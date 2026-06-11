@@ -9,7 +9,6 @@ ser removido sem antes registrar o motivo.
 
 ```text
 D:\kidney
-|-- dataset_inicial/
 |-- dataset_aumentado/
 |-- src/
 |-- engenharia_dataset/
@@ -27,11 +26,10 @@ D:\kidney
 
 | Pasta | Papel | Status |
 | --- | --- | --- |
-| `dataset_inicial/` | Base original com splits `train`, `val` e `test`, derivada do Open Kidney/kidneyUS. | Manter |
 | `dataset_aumentado/fontes/` | Fontes brutas, externas ou complementares usadas para montar bases derivadas. | Manter |
 | `dataset_aumentado/pseudo_labels/` | Pseudo-mascaras antigas da primeira expansao. | Manter como historico |
 | `dataset_aumentado/expansao_pseudorrotulada/` | Versao intermediaria da base expandida. | Manter como historico metodologico |
-| `dataset_aumentado/dataset_geral/` | Base consolidada atual: imagens, mascaras aceitas, manifestos e relatorios. | Fonte principal atual |
+| `dataset_aumentado/dataset_geral/` | Base consolidada para pseudo-rotulagem e curadoria quando houver expansoes externas. | Derivada |
 | `dataset_aumentado/dataset_geral_cv/` | Folds e holdout derivados do `dataset_geral`; usa hardlinks quando criado com `--link-mode hardlink`. | Manter |
 | `dataset_aumentado/dataset_intrarrenal/` | Bases derivadas para cortex, medula e segmentacao intrarrenal; inclui intermediarios, bases supervisionadas e pseudo-expansoes. | Manter |
 | `dataset_aumentado/curadoria/` | Manifestos, miniaturas, respostas e artefatos de revisao humana. | Manter |
@@ -53,13 +51,13 @@ criados como hardlinks para `dataset_geral/`, portanto representam a mesma base
 em diferentes splits experimentais. A pasta deve ser tratada como derivada, mas
 nao como copia solta.
 
-`dataset_inicial/`, `expansao_pseudorrotulada/` e `dataset_geral/` tambem podem
-parecer versoes repetidas. Elas correspondem a momentos diferentes da
-metodologia:
+`expansao_pseudorrotulada/`, `dataset_geral/` e as bases em
+`dataset_intrarrenal/supervisionado/` podem parecer versoes repetidas. Elas
+correspondem a momentos diferentes da metodologia:
 
-1. base original com mascaras iniciais;
+1. base canonica kidneyUS com mascaras `Capsule` e estruturas internas;
 2. primeira expansao por pseudo-rotulagem;
-3. base consolidada atual para treinamento e avaliacao.
+3. base consolidada para treinamento, avaliacao ou curadoria.
 
 As pseudo-mascaras foram geradas por modelos treinados com anotacoes manuais
 do Open Kidney Ultrasound Data Set (`kidneyUS`). Elas servem para ampliar o
@@ -80,7 +78,7 @@ nao passa nos filtros.
 - `intermediario/kidneyus_regions/`: intermediario derivado do
   OpenKidney/kidneyUS, com ROIs e mascaras por classe/anotador;
 - `supervisionado/`: bases supervisionadas finais, incluindo
-  `medulla_annotator_1/`, `cortex_annotator_1/` e
+  `capsule_annotator_1/`, `medulla_annotator_1/`, `cortex_annotator_1/` e
   `regions_multiclass_annotator_1/`;
 - `pseudo_expandido/`: bases experimentais com pseudo-mascaras adicionadas ao
   treino, incluindo as expansoes de medula.
@@ -101,8 +99,8 @@ principal:
 
 Nao arquivar automaticamente:
 
-- `dataset_inicial/`;
-- `dataset_aumentado/dataset_geral/`;
+- `dataset_aumentado/fontes/kidneyUS_images_25_june_2025/`;
+- `dataset_aumentado/dataset_geral/`, quando houver resultados dependentes dele;
 - `dataset_aumentado/dataset_geral_cv/`;
 - `dataset_aumentado/dataset_intrarrenal/`;
 - `results/`;

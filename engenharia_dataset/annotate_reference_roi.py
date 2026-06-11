@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 
-DATASET_DIR = "dataset_inicial"
+DATASET_DIR = "dataset_aumentado/dataset_intrarrenal/supervisionado/capsule_annotator_1"
 OUTPUT_DIR = "dataset_aumentado/fontes/reference_masks"
 WINDOW_NAME = "Reference ROI Annotator"
 

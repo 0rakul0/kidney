@@ -19,7 +19,14 @@ DEFAULT_LOCAL_RESULTS = (
     PROJECT_ROOT / "results" / "segmentation_experiments" / "dataset_variant_comparison.csv"
 )
 DEFAULT_EXTERNAL_WEIGHTS_ROOT = Path(r"E:\weights\weights")
-DEFAULT_DATASET_SPLIT = PROJECT_ROOT / "dataset_inicial" / "test"
+DEFAULT_DATASET_SPLIT = (
+    PROJECT_ROOT
+    / "dataset_aumentado"
+    / "dataset_intrarrenal"
+    / "supervisionado"
+    / "capsule_annotator_1"
+    / "test"
+)
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "results" / "qualitative_comparison"
 DEFAULT_IMAGE_NAME = "1_IM-0001-0059_anon.png"
 

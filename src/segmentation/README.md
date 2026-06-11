@@ -27,7 +27,7 @@ dataset_aumentado/dataset_geral/
 
 Ele procura imagens em:
 
-- `dataset_inicial/`
+- `dataset_aumentado/dataset_intrarrenal/supervisionado/capsule_annotator_1/`
 - `dataset_aumentado/expansao_pseudorrotulada/`
 - `dataset_aumentado/fontes/identificada/image/`
 - `dataset_aumentado/pseudo_labels/accepted/image/`
@@ -51,6 +51,10 @@ Por padrao, o script usa:
 - modelo: `deeplab`;
 - checkpoint: `models/augmented_deeplab_resnet50_baseline.pth`;
 - limiar minimo de confianca: `0.90`.
+
+A base supervisionada canonica para segmentacao externa do rim agora e criada
+com `engenharia_dataset/create_capsule_splits.py`, usando a classe `Capsule` do
+kidneyUS. O `dataset_inicial/flood_1` foi retirado do fluxo de treinamento.
 
 Essa confianca e operacional: significa que a pseudo-mascara precisa passar por
 filtros de confianca media do modelo, area plausivel, quantidade minima de

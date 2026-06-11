@@ -17,12 +17,12 @@ mascara ausente, foram processadas.
 
 O script criado para esta engenharia foi:
 
-`D:\kidney\src\segmentation\tools\generate_missing_dataset_geral_masks.py`
+`D:\kidney\src\segmentation\tools\predict\missing_kidney.py`
 
 Comando executado:
 
 ```powershell
-.\.venv\Scripts\python.exe src\segmentation\tools\generate_missing_dataset_geral_masks.py
+.\.venv\Scripts\python.exe src\segmentation\tools\predict\missing_kidney.py
 ```
 
 O script usa o limiar salvo no checkpoint campeao (`best_threshold=0.5`) e aplica um filtro

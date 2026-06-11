@@ -25,7 +25,7 @@ As duas anotacoes descrevem as mesmas classes anatomicas:
 | Classe | Papel no novo pipeline |
 | --- | --- |
 | `Capsule` | Mascara principal do rim; substitui o contorno renal vindo do `flood_1`. |
-| `Cortex` | Classe intrarrenal para segmentacao/análise cortical. |
+| `Cortex` | Classe intrarrenal para segmentacao/analise cortical. |
 | `Medulla` | Classe intrarrenal associada a regiao medular/piramides. |
 | `Central Echo Complex` | Classe intrarrenal do complexo ecogenico central. |
 
@@ -100,4 +100,3 @@ O nome exato pode mudar, mas a separacao conceitual deve permanecer:
 - treino principal;
 - validacao por segundo anotador;
 - consenso quando aplicavel.
-

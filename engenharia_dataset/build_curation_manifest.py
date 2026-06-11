@@ -34,7 +34,7 @@ def parse_args():
 def read_rows(path):
     if not path.exists():
         return []
-    with path.open("r", newline="", encoding="utf-8") as file:
+    with path.open("r", newline="", encoding="utf-8-sig") as file:
         return list(csv.DictReader(file))
 
 

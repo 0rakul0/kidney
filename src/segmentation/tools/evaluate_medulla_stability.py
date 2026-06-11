@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.segmentation.build_dataset_geral import predict_probability, prepare_tensor
 from src.segmentation.core.model_loader import load_model_bundle
-from src.segmentation.tools.generate_medulla_masks_from_kidney_roi import (
+from src.segmentation.tools.predict.medulla_roi import (
     load_medulla_bundle,
     predict_roi_probability,
     roi_bounds,

@@ -19,6 +19,9 @@ from utils.model_loader import load_model_bundle
 
 DEFAULT_MODEL = "segformer"
 DEFAULT_CHECKPOINT = "models/segformer_b2_capacity_8ep.pth"
+DEFAULT_CAPSULE_DATASET = (
+    "dataset_aumentado/dataset_intrarrenal/supervisionado/capsule_annotator_1"
+)
 SPLITS = ("train", "val", "test")
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
 
@@ -38,7 +41,7 @@ def parse_args():
     )
     add_shared_generation_args(generate)
     generate.add_argument("--loader-dir", type=str, default="dataset_aumentado/fontes/dataset_loader")
-    generate.add_argument("--dataset-root", type=str, default="dataset_inicial")
+    generate.add_argument("--dataset-root", type=str, default=DEFAULT_CAPSULE_DATASET)
     generate.add_argument("--output-root", type=str, default="dataset_aumentado/pseudo_labels")
     generate.add_argument("--include-existing", action="store_true")
     generate.add_argument("--img-size", type=int, default=256)
@@ -55,7 +58,7 @@ def parse_args():
             "aceitas, em uma nova pasta."
         ),
     )
-    build.add_argument("--dataset-root", type=str, default="dataset_inicial")
+    build.add_argument("--dataset-root", type=str, default=DEFAULT_CAPSULE_DATASET)
     build.add_argument("--pseudo-root", type=str, default="dataset_aumentado/pseudo_labels")
     build.add_argument("--output-root", type=str, default="dataset_aumentado/expansao_pseudorrotulada")
     build.add_argument("--seed", type=int, default=42)
@@ -67,7 +70,7 @@ def parse_args():
     )
     add_shared_generation_args(full)
     full.add_argument("--loader-dir", type=str, default="dataset_aumentado/fontes/dataset_loader")
-    full.add_argument("--dataset-root", type=str, default="dataset_inicial")
+    full.add_argument("--dataset-root", type=str, default=DEFAULT_CAPSULE_DATASET)
     full.add_argument("--pseudo-root", type=str, default="dataset_aumentado/pseudo_labels")
     full.add_argument("--output-root", type=str, default="dataset_aumentado/expansao_pseudorrotulada")
     full.add_argument("--include-existing", action="store_true")

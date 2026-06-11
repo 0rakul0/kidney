@@ -59,7 +59,7 @@ def parse_args():
 
 
 def read_csv(path):
-    with path.open("r", newline="", encoding="utf-8") as file:
+    with path.open("r", newline="", encoding="utf-8-sig") as file:
         return list(csv.DictReader(file))
 
 

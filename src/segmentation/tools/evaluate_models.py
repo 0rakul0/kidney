@@ -9,6 +9,13 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+DEFAULT_CAPSULE_DATASET = (
+    PROJECT_ROOT
+    / "dataset_aumentado"
+    / "dataset_intrarrenal"
+    / "supervisionado"
+    / "capsule_annotator_1"
+)
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -49,7 +56,7 @@ def parse_args():
     )
     parser.add_argument("--img-size", type=int, default=256)
     parser.add_argument("--batch-size", type=int, default=8)
-    parser.add_argument("--dataset-path", type=str, default="dataset_inicial")
+    parser.add_argument("--dataset-path", type=str, default=str(DEFAULT_CAPSULE_DATASET))
     parser.add_argument("--model-dir", type=str, default="models")
     return parser.parse_args()
 

@@ -21,7 +21,14 @@ if str(PROJECT_ROOT) not in sys.path:
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 IMG_SIZE = 256
-DATASET_PATH = "dataset_inicial/test"
+DATASET_PATH = str(
+    PROJECT_ROOT
+    / "dataset_aumentado"
+    / "dataset_intrarrenal"
+    / "supervisionado"
+    / "capsule_annotator_1"
+    / "test"
+)
 
 DEEPLAB_MODEL = "models/deeplab_best.pth"
 UNET_MODEL = "models/unet_best.pth"
