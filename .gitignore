@@ -82,4 +82,11 @@ external_data/
 dataset_geral/
 dataset_geral_cv/
 dataset_intrarrenal/
-/artigo
+/tmp
+/artigo/artigo_base
+/artigo/SBBD_2026___Jefferson/*.aux
+/artigo/SBBD_2026___Jefferson/*.bbl
+/artigo/SBBD_2026___Jefferson/*.blg
+/artigo/SBBD_2026___Jefferson/*.fdb_latexmk
+/artigo/SBBD_2026___Jefferson/*.fls
+/artigo/SBBD_2026___Jefferson/*.log
