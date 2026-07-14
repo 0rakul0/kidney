@@ -186,6 +186,11 @@ pseudomascaras, enquanto o consenso entre modelos foi usado como indicador
 operacional de qualidade e priorizacao, nao como substituto da validacao
 manual.
 
+![Consenso entre modelos](D:/kidney/artigo/SBBD_2026___Jefferson/figures/capsule_model_consensus.png)
+
+**Figura 2.** Consenso entre U-Net e DeepLabV3: exemplos de concordancia alta,
+intermediaria e baixa entre os contornos previstos.
+
 Por fim, U-Net e DeepLabV3 foram comparadas na segmentacao intrarrenal usando
 as mesmas 50 imagens de teste com referencia manual. A U-Net obteve os maiores
 valores de Dice para cortex e medula, enquanto a DeepLabV3 foi ligeiramente
@@ -202,3 +207,94 @@ apresentou o melhor resultado agregado.
 Embora a diferenca media seja pequena, a U-Net foi mantida como modelo
 intrarrenal da cascata por apresentar o melhor resultado agregado e maior Dice
 em duas das tres estruturas.
+
+![Exemplo intrarrenal](D:/kidney/artigo/SBBD_2026___Jefferson/figures/intrarenal_multiclass_example.png)
+
+**Figura 3.** Exemplo da etapa intrarrenal: imagem original, anotacao manual e
+predicao multiclasse da U-Net para cortex, medula e complexo ecogenico
+central.
+
+![Comparacao qualitativa da capsula](D:/kidney/artigo/SBBD_2026___Jefferson/figures/capsule_quality_comparison.png)
+
+**Figura 4.** Contraste qualitativo no conjunto externo: exemplo sem predicao
+e exemplo com limites renais mais nitidos, acompanhado dos contornos previstos
+pela U-Net e pela DeepLabV3.
+
+## Discussao
+
+A qualidade das imagens foi um dos fatores mais associados as falhas de
+segmentacao da capsula. Baixo contraste, sombras acusticas, ruido e perda de
+detalhes dificultam a identificacao dos limites renais e reduzem a estabilidade
+da segmentacao no conjunto externo.
+
+A cascata tambem permanece dependente da primeira etapa: uma mascara renal
+incompleta, deslocada ou com tecido adjacente altera a ROI e pode comprometer a
+identificacao das estruturas internas. Por isso, o consenso entre modelos foi
+tratado como mecanismo de triagem e priorizacao de revisao, e nao como
+substituto da validacao humana.
+
+As pseudomascaras externas representam uma estrategia de engenharia de dados,
+nao um resultado clinico final. O repositorio documenta essa etapa de forma
+rastreavel, mas a confirmacao da qualidade das mascaras ainda depende de
+curadoria especializada.
+
+## Conclusao
+
+Este trabalho apresentou um pipeline rastreavel para analise de
+ultrassonografias renais em tres etapas: segmentacao da capsula, verificacao
+por consenso entre modelos e segmentacao das estruturas intrarrenais.
+
+Na delimitacao da capsula, a U-Net obteve Dice de `0,9290` e IoU de `0,8722`
+no teste deduplicado de 70 imagens. O consenso com a DeepLabV3 ajudou a
+priorizar a revisao das `3.534` pseudomascaras externas sem substituir a
+validacao por especialistas. Na etapa intrarrenal, a U-Net alcancou Dice medio
+de `0,7594` nas 50 imagens de teste.
+
+Como proximo passo cientifico, a evolucao natural do trabalho e incorporar
+apenas pseudomascaras revisadas e estabelecer referencia clinica ou histologica
+para investigar a associacao entre regioes hiperecogenicas e alteracoes
+funcionais do rim.
+
+## Referencias
+
+- CHAVHAN, Govind B.; PARRA, Dimitri A.; OUDJHANE, Kamaldine et al. *Renal
+  pyramid echogenicity in ureteropelvic junction obstruction: correlation
+  between altered echogenicity and differential renal function*. Pediatric
+  Radiology, v. 38, n. 10, p. 1063-1069, 2008.
+- CHEN, Liang-Chieh; ZHU, Yukun; PAPANDREOU, George; SCHROFF, Florian; ADAM,
+  Hartwig. *Encoder-Decoder with Atrous Separable Convolution for Semantic
+  Image Segmentation*. European Conference on Computer Vision (ECCV), p.
+  801-818, 2018.
+- CONSTANTINO, Kattiana; CRUZ, Victor Augusto L.; ZUCHERATTO, Otavio M. M. et
+  al. *Segmentacao e Classificacao Semantica de Trechos de Diarios Oficiais
+  Usando Aprendizado Ativo*. Anais do XXXVII Simposio Brasileiro de Banco de
+  Dados (SBBD), p. 304-316, 2022.
+- DICE, Lee R. *Measures of the Amount of Ecologic Association Between
+  Species*. Ecology, v. 26, n. 3, p. 297-302, 1945.
+- JACCARD, Paul. *Etude comparative de la distribution florale dans une
+  portion des Alpes et des Jura*. Bulletin de la Societe Vaudoise des Sciences
+  Naturelles, v. 37, p. 547-579, 1901.
+- LEE, Dong-Hyun. *Pseudo-Label: The Simple and Efficient Semi-Supervised
+  Learning Method for Deep Neural Networks*. Workshop on Challenges in
+  Representation Learning, ICML, 2013.
+- LIMA, Daniel M.; MORENO, Ramon A.; PIRES, Fabio A.; GUTIERREZ, Marco A. *Uma
+  proposta de data lake para pesquisa em saude a partir de data pools
+  multicentricos interoperaveis*. Anais do XXXVI Simposio Brasileiro de Banco
+  de Dados (SBBD), p. 367-372, 2021.
+- MANLEY, J. A.; O'NEILL, W. C. *How echogenic is echogenic? Quantitative
+  acoustics of the renal cortex*. American Journal of Kidney Diseases, v. 37,
+  n. 4, p. 706-711, 2001.
+- RONNEBERGER, Olaf; FISCHER, Philipp; BROX, Thomas. *U-Net: Convolutional
+  Networks for Biomedical Image Segmentation*. Medical Image Computing and
+  Computer-Assisted Intervention (MICCAI), p. 234-241, 2015.
+- SINGLA, Rohit; RINGSTROM, Cailin; HU, Grace; LESSOWAY, Victoria; REID,
+  Janice; NGUAN, Christopher; ROHLING, Robert. *The Open Kidney Ultrasound Data
+  Set*. In: *Simplifying Medical Ultrasound*. Lecture Notes in Computer
+  Science, v. 14337, p. 155-164, 2023.
+- XIE, Enze; WANG, Wenhai; YU, Zhiding; ANANDKUMAR, Anima; ALVAREZ, Jose M.;
+  LUO, Ping. *SegFormer: Simple and Efficient Design for Semantic Segmentation
+  with Transformers*. Advances in Neural Information Processing Systems, v. 34,
+  p. 12077-12090, 2021.
+- ZUIDERVELD, Karel. *Contrast Limited Adaptive Histogram Equalization*. In:
+  HECKBERT, Paul S. (ed.). *Graphics Gems IV*. Academic Press, p. 474-485,
+  1994.
