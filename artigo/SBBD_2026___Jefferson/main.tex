@@ -6,7 +6,6 @@
 \usepackage[brazilian]{babel}
 \usepackage{graphicx,url}
 \usepackage{float}
-\usepackage{multirow}
 \usepackage[none]{hyphenat}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta}
@@ -15,19 +14,25 @@
 \hyphenpenalty=10000
 \exhyphenpenalty=10000
 \emergencystretch=3em
-\setlength{\textfloatsep}{6pt}
-\setlength{\floatsep}{6pt}
-\setlength{\intextsep}{6pt}
-\setlength{\abovecaptionskip}{4pt}
+\setlength{\textfloatsep}{5pt}
+\setlength{\floatsep}{5pt}
+\setlength{\intextsep}{5pt}
+\setlength{\abovecaptionskip}{3pt}
 \setlength{\belowcaptionskip}{0pt}
-\setlength{\parskip}{2pt}
+\setlength{\parskip}{1pt}
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
+\setlength{\abovedisplayshortskip}{2pt}
+\setlength{\belowdisplayshortskip}{2pt}
 
-\title{Um \textit{Pipeline} de Vis\~ao Computacional para Caracteriza\c{c}\~ao de Achados Intrarrenais em Ultrassonografia}
+\renewcommand{\baselinestretch}{0.97}
+
+\title{Um \textit{Pipeline} de Vis\~ao Computacional para An\'alise de Achados Hiperecog\^enicos em Ultrassonografia Renal}
 
 \author{
   Jefferson S. dos Anjos\inst{1}, Amaro A. de Lima\inst{1},
   Gabriel M. Ara\'ujo\inst{1},\\ Jorge Luiz de C. Henriques Junior\inst{2},
-  Norderval C. Ara\'ujo\inst{2}, Jos\'e Herm\'ogenes R. Suassuna\inst{2},\\ Felipe da R. Henriques\inst{1}
+  Norderval C. Ara\'ujo\inst{2},\\ Jos\'e Herm\'ogenes R. Suassuna\inst{2}, Felipe da R. Henriques\inst{1}
 }
 
 \address{
@@ -35,8 +40,8 @@
   $^{2}$ HUPE -- UERJ -- Rio de Janeiro -- RJ -- Brasil\\
 \vspace{-0.7cm}
 \email{jefferson.anjos.1@aluno.cefet-rj.br,}\\
-\vspace{-0.7cm}  \email{\{amaro.lima,gabriel.araujo,felipe.henriques\}@cefet-rj.br},\\
-\vspace{-0.7cm}  \email{\{jorge.henriques,norderval.norderval\}@uerj.br}
+\vspace{-0.7cm}\email{\{amaro.lima,gabriel.araujo,felipe.henriques\}@cefet-rj.br},\\
+\vspace{-0.7cm}\email{\{jorgehenriquesjr,nordevalaraujo\}@gmail.com, rocco@uerj.br}
 }
 
 \begin{document}
@@ -44,200 +49,185 @@
 \maketitle
 
 \begin{abstract}
-Renal ultrasound interpretation depends on subjective visual inspection and anatomical delimitation of the kidney. This paper proposes a computer vision \textit{pipeline} that first segments the kidney and then extracts exploratory intrarenal echogenicity and texture markers. An exploratory annotated set was used to train an initial model, which generated pseudo masks accepted only above a 90\% operational confidence threshold. After data expansion, a second DeepLabV3 ResNet50 model was trained on the consolidated set and achieved Dice of 0.9235, IoU of 0.8741 and precision of 0.9301 on a fixed test set. Fibrosis, commonly assessed histologically as interstitial fibrosis and tubular atrophy (IFTA), is not a validated outcome in the current dataset.
+The interpretation of renal ultrasound images depends on subjective visual inspection and anatomical kidney delineation. This paper proposes a computer vision \textit{pipeline} that first segments the kidney and then analyzes suspicious hyperechoic regions near the renal pyramids. The models were retrained using the original \texttt{kidneyUS} images with CLAHE preprocessing. On a deduplicated test set of 70 images, U-Net achieved Dice of 0.9290, IoU of 0.8722, and precision of 0.9236, obtaining the highest Dice among the evaluated architectures. Applied to 4,479 external images, this model generated 3,534 candidate pseudomasks, which remain pending human review and are not included in the reported metrics. In the intrarenal stage, the multiclass U-Net achieved a mean Dice of 0.7594 on 50 manually annotated test images.
 \end{abstract}
 
 \begin{resumo}
-A interpreta\c{c}\~ao de ultrassonografias renais depende de inspe\c{c}\~ao visual subjetiva e da delimita\c{c}\~ao anat\^omica do rim. Este artigo prop\~oe um \textit{pipeline} de vis\~ao computacional que primeiro segmenta o rim e depois extrai marcadores explorat\'orios de ecogenicidade e textura intrarrenal. Uma base explorat\'oria anotada foi usada para treinar um modelo inicial, que gerou pseudom\'ascaras aceitas apenas acima de 90\% de confian\c{c}a operacional. Ap\'os a expans\~ao dos dados, um segundo DeepLabV3 ResNet50 foi treinado no conjunto consolidado e atingiu Dice de 0,9235, IoU de 0,8741 e precis\~ao de 0,9301 no teste fixo. Fibrose, usualmente avaliada histologicamente como fibrose intersticial e atrofia tubular (IFTA), n\~ao constitui um desfecho validado na base atual.
+A interpreta\c{c}\~ao de ultrassonografias renais depende de inspe\c{c}\~ao visual subjetiva e da delimita\c{c}\~ao anat\^omica do rim. Este artigo prop\~oe um \textit{pipeline} de vis\~ao computacional que primeiro segmenta o rim e depois analisa regi\~oes hiperecog\^enicas suspeitas pr\'oximas \`as pir\^amides renais. Os modelos foram retreinados com as imagens originais da base \texttt{kidneyUS} e aplica\c{c}\~ao de CLAHE no pr\'e-processamento. Em um teste deduplicado de 70 imagens, a U-Net atingiu Dice de 0,9290, IoU de 0,8722 e precis\~ao de 0,9236, obtendo o maior Dice entre as arquiteturas avaliadas. Aplicado a 4.479 imagens externas, esse modelo gerou 3.534 pseudom\'ascaras candidatas, ainda pendentes de revis\~ao humana e ausentes das m\'etricas apresentadas. Na etapa intrarrenal, a U-Net multiclasse alcan\c{c}ou Dice m\'edio de 0,7594 em 50 imagens de teste anotadas manualmente.
 \end{resumo}
 
-\section{Introdu\c{c}\~ao}
+\section{Introdução}
 
-A ultrassonografia renal \'e acess\'ivel, n\~ao invasiva e amplamente usada na avalia\c{c}\~ao de altera\c{c}\~oes estruturais do rim. Na pr\'atica cl\'inica, ecogenicidade cortical, dimens\~oes renais e diferencia\c{c}\~ao cortico-medular podem contribuir para avaliar altera\c{c}\~oes parenquimatosas, embora n\~ao determinem isoladamente fibrose.
+A ultrassonografia renal é acessível, não invasiva e amplamente utilizada na avaliação de alterações estruturais do rim. Na prática clínica, regiões muito claras no parênquima, especialmente próximas às pirâmides renais, podem indicar achados suspeitos que exigem análise cuidadosa.
 
-Em estudos pareados com bi\'opsia, o desfecho de fibrose \'e frequentemente operacionalizado como \textit{interstitial fibrosis and tubular atrophy} (IFTA). Moghazi et al.~\cite{Moghazi2005} mostraram que a ecogenicidade cortical correlaciona-se com achados histopatol\'ogicos, mas possui especificidade limitada quando usada isoladamente. Athavale et al.~\cite{Athavale2021} demonstraram a viabilidade de predizer classes de IFTA a partir de ultrassonografia, utilizando r\'otulos histol\'ogicos como padr\~ao de refer\^encia.
+A ecogenicidade cortical, especialmente quando comparada ao fígado, também é observada em pacientes com doença renal crônica. A razão entre a intensidade cortical renal e a intensidade de um órgão de referência pode reduzir parte da subjetividade da inspeção visual~\cite{Manley2001}.
 
-A ecogenicidade cortical, especialmente quando comparada ao fígado, também é
-observada em pacientes com doença renal crônica. A razão entre a intensidade cortical
-renal e a intensidade de um órgão de referência pode reduzir parte da subjetividade da
-inspeção visual~\cite{Manley2001}.
+Em paralelo, a literatura explora a segmentação renal e a extração de medidas quantitativas de intensidade e textura para investigar padrões associados a alterações renais~\cite{Chavhan2008}. Ainda assim, permanece uma lacuna entre segmentar o rim e examinar, dentro dele, pontos hiperecogênicos candidatos a achados suspeitos.
 
-Em paralelo, a literatura explora segmentação renal e extração de medidas
-quantitativas de intensidade e textura para investigar padr\~oes associados a altera\c{c}\~oes
-renais~\cite{Athavale2021}. Ainda assim, permanece a lacuna entre segmentar o rim e examinar, dentro dele, pontos hiperecog\^enicos candidatos a achados suspeitos.
+Esse recorte é importante porque a ultrassonografia apresenta ruído, sombras acústicas, variações de ganho e diferenças de enquadramento. Sem uma máscara renal confiável, pontos muito claros podem ser confundidos com artefatos ou estruturas externas ao rim. Por isso, este trabalho parte da delimitação semântica do rim e, somente depois, transforma achados hiperecogênicos em medidas computacionais.
 
-Esse recorte \'e importante porque a ultrassonografia apresenta ru\'ido, sombras ac\'usticas, varia\c{c}\~oes de ganho e diferen\c{c}as de enquadramento. Sem uma m\'ascara renal confi\'avel, pontos muito claros podem ser confundidos com artefatos ou estruturas externas ao rim. Por isso, este trabalho parte da delimita\c{c}\~ao sem\^antica do rim e s\'o depois transforma achados hiperecog\^enicos em medidas computacionais.
+Nesse contexto, este artigo combina segmentação renal, expansão supervisionada por pseudomáscaras e extração de atributos intrarrenais. As imagens originais da base \texttt{kidneyUS} foram usadas para retreinar, com CLAHE~\cite{Zuiderveld1994CLAHE}, quatro arquiteturas de segmentação da cápsula renal, entre as quais a U-Net apresentou o melhor \textit{Dice} no teste deduplicado. A região renal delimitada alimenta uma segunda U-Net, responsável por identificar córtex, medula e complexo ecogênico central. As contribuições são: (i) consolidação do acervo com as imagens originais e suas anotações; (ii) geração rastreável de pseudomáscaras externas para revisão; (iii) comparação de segmentadores para delimitação renal; e (iv) segmentação das estruturas intrarrenais como suporte à análise exploratória de achados hiperecogênicos.
 
-Este artigo combina segmenta\c{c}\~ao renal, expans\~ao supervisionada por pseudom\'ascaras e extra\c{c}\~ao de atributos intrarrenais. As contribui\c{c}\~oes s\~ao: consolida\c{c}\~ao de acervo expandido, gera\c{c}\~ao de pseudom\'ascaras com limiar de 90\%, treinamento de um segundo segmentador e avalia\c{c}\~ao explorat\'oria de marcadores ultrassonogr\'aficos intrarrenais.
 
 \section{Contexto e Trabalhos Relacionados}
 
-A segmenta\c{c}\~ao autom\'atica de rim em ultrassonografia \'e a primeira linha relacionada a este estudo. Arquiteturas como \mbox{U-Net}~\cite{Ronneberger2015}, DeepLabV3~\cite{Chen2018DeepLab} e SegFormer~\cite{Xie2021SegFormer} preservam bordas, capturam contexto multiescala e lidam com varia\c{c}\~oes de textura.
+A segmentação automática do rim em ultrassonografias constitui a primeira linha relacionada a este estudo. Arquiteturas como U-Net~\cite{Ronneberger2015}, DeepLabV3~\cite{Chen2018DeepLab} e SegFormer~\cite{Xie2021SegFormer} empregam diferentes estratégias para preservar bordas, capturar contexto multiescala e lidar com variações de textura. Neste trabalho, essas arquiteturas são comparadas na delimitação da cápsula renal, etapa que restringe as análises posteriores ao interior do rim.
 
-A segunda linha é a quantificação da ecogenicidade renal relativa, em que medidas
-entre rim e fígado aproximam critérios usados por especialistas~\cite{Manley2001}.A terceira
-é a extração de atributos quantitativos relacionados à textura e intensidade da imagem
-para investigacao de alteracoes renais~\cite{Athavale2021}.
+A segunda linha envolve a quantificação da ecogenicidade renal relativa. Medidas entre a intensidade do córtex renal e a de um órgão de referência, como o fígado, podem aproximar critérios empregados por especialistas e reduzir parte da subjetividade da inspeção visual~\cite{Manley2001}.
 
-Estruturas intrarrenais candidatas s\~ao mantidas apenas como refer\^encias espaciais explorat\'orias; elas n\~ao s\~ao tratadas, neste estudo, como marcador direto de IFTA.
+A terceira linha compreende a extração de atributos quantitativos de intensidade e textura para investigar alterações renais~\cite{Chavhan2008}. As pirâmides renais estão localizadas na medula, entre o córtex e o sistema coletor, e constituem referências anatômicas internas na ultrassonografia. Alterações de ecogenicidade nessa região foram associadas à função renal em cenários clínicos específicos~\cite{Chavhan2008}, motivando a análise de regiões hiperecogênicas próximas às pirâmides.
 
-Em segmenta\c{c}\~ao, Dice e IoU medem a sobreposi\c{c}\~ao entre m\'ascara prevista e refer\^encia. Ambas variam de 0 a 1: valores pr\'oximos de 0 indicam baixa concord\^ancia, e valores pr\'oximos de 1 indicam maior proximidade entre predi\c{c}\~ao e anota\c{c}\~ao esperada.
+Além da delimitação externa do rim, este trabalho identifica córtex, medula e complexo ecogênico central. Essa representação não segmenta individualmente cada pirâmide renal, mas fornece uma localização anatômica mais específica para restringir a busca por achados hiperecogênicos.
+
+A qualidade das segmentações é avaliada pela comparação entre a máscara produzida pelo modelo e a anotação manual. O coeficiente \textit{Dice} mede a semelhança entre essas duas regiões, considerando duas vezes a área de interseção em relação à soma de suas áreas. A \textit{Intersection over Union} (IoU) corresponde à razão entre a interseção e a união das regiões. Ambas variam de 0 a 1: valores próximos de 1 indicam maior concordância entre predição e referência. A precisão indica a proporção da região prevista que pertence à referência, enquanto o \textit{recall} indica quanto da estrutura anotada foi recuperado.
+
+Trabalhos também discutem a organização de dados de saúde para aprendizagem computacional~\cite{Lima2021DataLakeSaude} e o uso de aprendizado ativo para reduzir o custo de rotulação~\cite{Constantino2022SBBD}. Este estudo aproxima essas linhas em um \textit{pipeline} no qual imagens e anotações são organizadas segundo sua proveniência, a cápsula delimita o rim e as estruturas intrarrenais fornecem referências para a análise exploratória de regiões hiperecogênicas.
 
 \section{Metodologia}
 
-A metodologia foi organizada para transformar uma imagem de ultrassonografia renal em uma regi\~ao anat\^omica delimitada e, em seguida, extrair marcadores explorat\'orios de intensidade e textura intrarrenal.
-
-Para isso, o \textit{pipeline} primeiro prepara a entrada, segmenta o rim, restringe a an\'alise \`a m\'ascara renal, procura regi\~oes claras intrarrenais e, por fim, produz marcadores quantitativos. Uma eventual predi\c{c}\~ao de IFTA exige dados associados a bi\'opsia ou refer\^encia cl\'inica validada e fica fora do escopo demonstrado. A Figura~\ref{fig:tikz_pipeline} apresenta essa organiza\c{c}\~ao geral.
+A metodologia organiza o processamento em três etapas encadeadas: localização da cápsula renal, verificação da segmentação pelo consenso entre modelos e identificação das estruturas intrarrenais. Essa organização delimita progressivamente a região analisada e reduz a influência de tecidos externos ao rim. A Figura~\ref{fig:tikz_pipeline} apresenta o fluxo geral.
 
 \begin{figure}[htb!]
 \centering
 \begin{tikzpicture}[
-    node distance=0.45cm and 0.45cm,
-    >=Latex,
-    every node/.style={font=\footnotesize, align=center},
-    block/.style={draw, rounded corners=2pt, minimum width=2.35cm, minimum height=0.72cm, fill=gray!8}
+node distance=0.45cm and 0.45cm,
+>=Latex,
+every node/.style={font=\footnotesize, align=center},
+block/.style={draw, rounded corners=2pt, minimum width=2.35cm, minimum height=0.72cm, fill=gray!8}
 ]
 \node[block] (input) {Imagem de\\ultrassom};
 \node[block, right=of input] (prep) {Preparo da\\entrada};
-\node[block, right=of prep] (seg) {Segmenta\c{c}\~ao\\renal};
-\node[block, right=of seg] (feat) {Regi\~oes claras\\intrarrenais};
-\node[block, right=of feat] (clf) {Marcadores\\explorat\'orios};
+\node[block, right=of prep] (seg) {Segmentação\\renal};
+\node[block, right=of seg] (feat) {Estruturas\\intrarrenais};
+\node[block, right=of feat] (clf) {Achados\\hiperecogênicos};
 \draw[->, thick] (input) -- (prep);
 \draw[->, thick] (prep) -- (seg);
 \draw[->, thick] (seg) -- (feat);
 \draw[->, thick] (feat) -- (clf);
 \end{tikzpicture}
-\caption{\textit{Pipeline} metodol\'ogico: a segmenta\c{c}\~ao renal isola o rim para extra\c{c}\~ao explorat\'oria de marcadores intrarrenais.}
+\caption{\textit{Pipeline} metodológico: a cápsula delimita o rim, cujas estruturas internas orientam a análise de achados hiperecogênicos.}
 \label{fig:tikz_pipeline}
 \end{figure}
 
-Como indicado na Figura~\ref{fig:tikz_pipeline}, a primeira etapa recebe a imagem de ultrassonografia, aplica normalização e redimensionamento e prepara a entrada para o segmentador. A segunda etapa segmenta o rim e usa a máscara resultante como janela anatômica, reduzindo falsos candidatos fora do órgão.
+O estudo utiliza o \texttt{kidneyUS} (\textit{Open Kidney Ultrasound Data Set})~\cite{Singla2023KidneyUS}, que contém anotações de dois observadores para cápsula, córtex, medula e complexo ecogênico central. A Tabela~\ref{tab:data} resume os acervos utilizados e suas finalidades.
 
-Na terceira etapa, a imagem em tons de cinza é examinada apenas dentro dessa região, buscando concentra\c{c}\~oes locais de pixels de alta intensidade próximas a regiões internas candidatas às pir\^amides.Em seguida, são extraídos atributos de intensidade,
-dispersão, percentis, proporção de pixels brilhantes e textura por matrizes de coocorrência de níveis de cinza~\cite{Haralick1973}.
-
-Quando h\'a ROI manual do f\'igado, tamb\'em s\~ao calculadas raz\~oes entre rim e f\'igado. A etapa final usa um Random Forest~\cite{Breiman2001} apenas como prova de conceito de separa\c{c}\~ao de marcadores imag\'eticos; os r\'otulos dispon\'iveis n\~ao representam IFTA confirmada.
-
-O desenvolvimento foi organizado em duas fases. Na primeira, a base explorat\'oria derivada do Open Kidney Ultrasound Data Set~\cite{Singla2023KidneyUS} reuniu 513 pares imagem e m\'ascara, distribu\'idos em 360 imagens de treino, 51 de valida\c{c}\~ao e 102 de teste. Esse conjunto treinou o modelo inicial, respons\'avel por aprender o contorno renal.
-
-Na segunda fase, o acervo foi ampliado com imagens locais e externas. O maior acr\'escimo veio do MONAI Clinical Ultrasound Image Repository: como o reposit\'orio completo \'e amplo e heterog\^eneo, foram filtrados nos metadados apenas estudos renais ou retroperitoneais. Os DICOMs selecionados foram convertidos para PNG, com descarte de quadros RGB ou coloridos para evitar Doppler e imagens fora do padr\~ao B-mode. A curadoria gerou 4.487 PNGs; ap\'os deduplica\c{c}\~ao, 4.479 entraram no \texttt{dataset\_geral}.
-
-Para explicitar essa constru\c{c}\~ao do acervo, a Tabela~\ref{tab:data_evolution} resume os blocos que alimentaram o conjunto consolidado usado no segundo treinamento.
-
-\begin{table}[H]
+\begin{table}[htb!]
 \centering
-\caption{Composi\c{c}\~ao do acervo consolidado para segmenta\c{c}\~ao renal.}
-\label{tab:data_evolution}
-\begin{tabular}{lcc}
+\caption{Acervos auditados e finalidade no estudo.}
+\label{tab:data}
+\small
+\begin{tabular}{lrrp{0.38\textwidth}}
 \hline
-\textbf{Origem} & \textbf{Imagens} & \textbf{Papel no acervo} \\
+\textbf{Acervo} & \textbf{Reg.} & \textbf{Únicas} & \textbf{Finalidade} \\
 \hline
-Open Kidney / \texttt{kidneyUS} & 513 & base inicial manual \\
-Subconjuntos locais & 1.002 & complemento organizado \\
-MONAI renal curado & 4.479 & expans\~ao externa \\
-\textbf{Total} & \textbf{5.994} & \texttt{dataset\_geral} \\
+\texttt{kidneyUS} -- cápsula & 486 & 468 & 328 treino, 70 validação e 70 teste \\
+\texttt{kidneyUS} -- regiões internas & 335 & 335 & 235 treino, 50 validação e 50 teste \\
+MONAI & 4.479 & 4.479 & 3.534 pseudomáscaras para revisão \\
 \hline
 \end{tabular}
 \end{table}
 
-Como mostrado na Tabela~\ref{tab:data_evolution}, o \texttt{dataset\_geral} combina a base Open Kidney/\texttt{kidneyUS}, subconjuntos locais e o subconjunto MONAI curado. As imagens sem m\'ascara manual foram pseudorrotuladas~\cite{Lee2013PseudoLabel}, e as novas m\'ascaras s\'o foram aceitas quando a predi\c{c}\~ao atingiu confian\c{c}a operacional de pelo menos 90\% e passou por filtros de \'area, componentes conectados e pixels de primeiro plano.
+Para a cápsula renal, foram usados 486 registros do primeiro anotador, correspondentes a 468 imagens únicas. A auditoria por \textit{hash} identificou 18 registros redundantes em nove grupos, cinco deles atravessando partições originais. Após deduplicação e agrupamento por exame, obtiveram-se 328 imagens de treino, 70 de validação e 70 de teste. Para a tarefa intrarrenal, 335 imagens foram divididas por paciente em 235, 50 e 50 imagens. O MONAI foi utilizado apenas para geração de pseudomáscaras, sem participação nas métricas manuais.
 
-Na vers\~ao usada nos experimentos relatados, 3.962 imagens tinham m\'ascaras aceitas: 1.001 originais e 2.961 pseudom\'ascaras geradas pelo modelo de segmenta\c{c}\~ao 1. Essas pseudom\'ascaras foram mantidas apenas quando atingiram confian\c{c}a m\'inima de 90\% e passaram por filtros geom\'etricos; as demais imagens permaneceram no manifesto apenas para rastreabilidade.
-
-No segundo treinamento, 30\% das 3.962 imagens com m\'ascara foram reservadas para teste fixo, e os 70\% restantes foram usados em valida\c{c}\~ao cruzada com 5 folds. Foram avaliadas as fam\'ilias \mbox{U-Net}, UNet++, DeepLabV3 e SegFormer.
-
-A classifica\c{c}\~ao explorat\'oria de padr\~oes intrarrenais usa apenas 50 imagens rotuladas, com 44 para treino e valida\c{c}\~ao e 6 para teste. Esses r\'otulos n\~ao constituem refer\^encia histol\'ogica de IFTA e, portanto, n\~ao permitem avaliar detec\c{c}\~ao de fibrose.
-
-Essa separa\c{c}\~ao entre segmenta\c{c}\~ao e decis\~ao cl\'inica foi adotada deliberadamente. O primeiro problema exige aprender o contorno renal com boa estabilidade; o segundo exige imagens vinculadas a IFTA por bi\'opsia ou a refer\^encia cl\'inica definida. Neste est\'agio, portanto, o artigo prioriza a etapa que j\'a pode ser avaliada de forma consistente.
-
-Para exemplificar a aplica\c{c}\~ao do \textit{pipeline} em uma imagem concreta, a Figura~\ref{fig:reference_example} mostra, em sequ\^encia, o exame original, a m\'ascara renal, a regi\~ao intrarrenal analisada, as pir\^amides candidatas e as ROIs de refer\^encia quando h\'a compara\c{c}\~ao com f\'igado.
-
-\begin{figure}[htb!]
-\centering
-\includegraphics[width=0.5\textwidth]{figures/example_reference_high_ratio_1.png}
-\caption{Exemplo de an\'alise com \'org\~ao de refer\^encia: imagem original, m\'ascara renal, regi\~ao intrarrenal, pir\^amides candidatas e ROIs de refer\^encia para compara\c{c}\~ao de ecogenicidade.}
-\label{fig:reference_example}
-\end{figure}
-
-Na Figura~\ref{fig:reference_example}, a m\'ascara renal delimita a \'area em que os achados claros ser\~ao procurados. A regi\~ao intrarrenal e as pir\^amides candidatas organizam a busca espacial, enquanto as ROIs de refer\^encia permitem comparar a ecogenicidade do rim com o f\'igado quando essa informa\c{c}\~ao est\'a dispon\'ivel. Esse exemplo ilustra que a an\'alise n\~ao parte da imagem inteira, mas de uma regi\~ao anat\^omica segmentada.
-
-\section{Resultados}
-
-Para avaliar o efeito da expans\~ao do acervo no desempenho do segmentador, a Tabela~\ref{tab:segmentation_main} compara os resultados obtidos antes e depois da pseudorrotula\c{c}\~ao. Na etapa anterior, a escolha do DeepLabV3 R50 no \texttt{dataset\_augmented} foi orientada pela maior precis\~ao entre os modelos avaliados, com valor de \textbf{0,8426}.
-
-\begin{table}[H]
-\centering
-\caption{Resultados de segmenta\c{c}\~ao antes e depois da expans\~ao do acervo.}
-\label{tab:segmentation_main}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lllccccc}
-\hline
-\textbf{Etapa} & \textbf{Modelo} & \textbf{Dataset} & \textbf{Dice} & \textbf{IoU} & \textbf{Prec.} & \textbf{Recall} & \textbf{FPS} \\
-\hline
-\multirow{4}{*}{Antes} & DeepLabV3 R50 & \multirow{4}{*}{\texttt{dataset\_augmented}} & 0,8472 & 0,7732 & \textbf{0,8426} & 0,8718 & 28,98 \\
- & SegFormer B2 &  & 0,8372 & 0,7700 & 0,8294 & 0,8782 & 35,66 \\
- & \mbox{U-Net} &  & 0,8119 & 0,7309 & 0,8039 & 0,8545 & 26,43 \\
- & UNet++ &  & 0,7924 & 0,6958 & 0,8189 & 0,7968 & 20,88 \\
-\hline
-Depois & DeepLabV3 R50 & \texttt{dataset\_geral} & \textbf{0,9235} & \textbf{0,8741} & \textbf{0,9301} & \textbf{0,9248} & 27,61 \\
-\hline
-\end{tabular}
-}
-\end{table}
-
-Como mostra a Tabela~\ref{tab:segmentation_main}, depois da gera\c{c}\~ao de pseudom\'ascaras, da filtragem por confian\c{c}a de 90\% e do treinamento no \texttt{dataset\_geral}, o DeepLabV3 ResNet50 atingiu Dice m\'edio de 0,9235, IoU de 0.8741, precis\~ao de 0,9301 e recall de 0,9248 no teste fixo.
-
-No \textit{pipeline} completo, essa melhora reduz a inclus\~ao de fundo, legenda e tecidos adjacentes, aumentando a confiabilidade das medidas intrarrenais. Esse ganho \'e relevante porque a busca por estruturas hiperecog\^enicas depende diretamente da qualidade da m\'ascara renal.
-
-Para complementar a avalia\c{c}\~ao quantitativa, a Figura~\ref{fig:quality_good} mostra um exemplo qualitativo em um caso com contorno renal mais definido.
+Na primeira etapa, U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 foram treinados para segmentar a cápsula, com CLAHE, aumento de dados apenas no treino, AdamW, taxa inicial $10^{-4}$ e perda BCE+Dice. A U-Net, selecionada pelo maior Dice, foi aplicada ao MONAI. A inferência combinou a imagem original e seu espelhamento horizontal; após binarização pelo limiar 0,35, manteve-se o maior componente conectado e a máscara foi restaurada à resolução original. As pseudomáscaras foram ordenadas pela confiança média dos pixels positivos, definida na Equação~\ref{eq:confidence}:
+\begin{equation}
+\label{eq:confidence}
+C=\frac{1}{|M|}\sum_{i\in M}p_i,
+\end{equation}
+em que $M$ é a pseudomáscara e $p_i$ a probabilidade prevista para o pixel $i$. Esse valor auxilia a priorização da revisão, mas não valida automaticamente a máscara~\cite{Lee2013PseudoLabel}. Para controlar as pseudomáscaras externas, as mesmas imagens foram processadas pela DeepLabV3-ResNet50. A concordância entre modelos foi estimada pelo Dice entre a máscara da U-Net, $M_U$, e a máscara da DeepLabV3, $M_D$:
+ \begin{equation}
+\label{eq:consensus}
+S(M_U,M_D)=\frac{2|M_U\cap M_D|}{|M_U|+|M_D|}.
+\end{equation}
+O escore da Equação~\ref{eq:consensus} foi usado como medida complementar de consenso entre arquiteturas.
+Os limiares foram calibrados por validação cruzada em cinco \textit{folds} agrupados por exame, de modo que cada uma das 468 imagens manuais fosse avaliada apenas por modelos que não a utilizaram no treino. Os percentis 10 e 25, arredondados, definiram concordância baixa ($<0{,}89$), intermediária ($0{,}89$ a $0{,}94$) e alta ($\geq0{,}94$). Predições isoladas também receberam prioridade de revisão. A Figura~\ref{fig:consensus} mostra as máscaras individuais e a sobreposição dos contornos da U-Net, em verde, e da DeepLabV3, em vermelho.
 
 \begin{figure}[htb!]
 \centering
-\includegraphics[width=0.45\textwidth]{figures/quality_good_comparison.png}
-\caption{Caso qualitativo favor\'avel: imagem original, m\'ascara de refer\^encia, predi\c{c}\~ao do \texttt{kidneyUS} e predi\c{c}\~ao do DeepLab local.}
-\label{fig:quality_good}
+\includegraphics[width=0.78\textwidth]{figures/capsule_model_consensus.png}
+\caption{Consenso entre U-Net (verde) e DeepLabV3 (vermelho): concordância alta, intermediária e baixa.}
+\label{fig:consensus}
 \end{figure}
 
-Na Figura~\ref{fig:quality_good}, as colunas mostram a imagem original, a m\'ascara de refer\^encia, a predi\c{c}\~ao do modelo \texttt{kidneyUS} e a predi\c{c}\~ao do DeepLab treinado localmente. Com contorno renal mais definido, o modelo local recupera a geometria do rim com alta ader\^encia \`a refer\^encia. Essa estabilidade \'e importante porque a etapa seguinte depende de examinar apenas a regi\~ao renal, evitando que pontos brilhantes fora do rim sejam tratados como suspeitos.
+O consenso não gera uma terceira máscara: ele verifica se arquiteturas distintas localizaram uma região semelhante e organiza a revisão das pseudomáscaras externas. Na cascata proposta, uma cápsula considerada adequada forma a região de interesse (ROI) da terceira etapa.
 
-Para ilustrar o uso do modelo de segmenta\c{c}\~ao 2 como entrada da prova de conceito, a Figura~\ref{fig:model2_proof} apresenta um caso em que a m\'ascara renal delimita a regi\~ao interna examinada e organiza as pir\^amides candidatas.
+Para a segmentação intrarrenal, U-Net e DeepLabV3-ResNet50 foram retreinadas na mesma divisão de 235 imagens de treino, 50 de validação e 50 de teste. Ambas recebem três canais --- ROI em tons de cinza, ROI com a região externa zerada e máscara da cápsula --- e predizem córtex, medula e complexo ecogênico central, com CLAHE, AdamW, taxa de $10^{-4}$ e perda entropia cruzada+\textit{Dice}. A U-Net constitui o modelo da cascata e a DeepLabV3, a referência comparativa.
+
+A Figura~\ref{fig:intrarenal} exemplifica a saída da etapa intrarrenal.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.40\textwidth]{figures/example_predicted_diseased_1.png}
-\caption{Prova de conceito com o modelo de segmenta\c{c}\~ao 2: imagem original, m\'ascara renal, regi\~ao interna, pir\^amides candidatas e refer\^encias usadas na an\'alise.}
-\label{fig:model2_proof}
+\includegraphics[width=0.72\textwidth]{figures/intrarenal_multiclass_example.png}
+\caption{Encadeamento da etapa intrarrenal: imagem original, anotação manual e predição multiclasse da U-Net.}
+\label{fig:intrarenal}
 \end{figure}
 
-Na Figura~\ref{fig:model2_proof}, a sa\'ida do segundo segmentador n\~ao \'e tratada como diagn\'ostico final. Ela define a janela anat\^omica para extrair atributos de intensidade, textura e rela\c{c}\~ao espacial. Assim, a etapa posterior permanece uma caracteriza\c{c}\~ao explorat\'oria de marcadores ultrassonogr\'aficos; avaliar IFTA exigiria imagens associadas a bi\'opsia ou padr\~ao cl\'inico definido.
+A Figura~\ref{fig:intrarenal} apresenta, da esquerda para a direita, a ultrassonografia, a referência manual e a predição da U-Net multiclasse. Ciano representa o córtex, amarelo a medula e laranja o complexo ecogênico central. O exemplo mostra que, após a delimitação da cápsula, as classes ficam restritas à região renal e reproduzem sua organização anatômica geral, embora existam diferenças nos limites de cada compartimento. A classe \textit{Medulla} segue a anotação do \texttt{kidneyUS} e não representa pirâmides individualmente segmentadas.
+
+\section{Resultados}
+
+A primeira etapa avaliou a segmentação da cápsula renal. Conforme a Tabela~\ref{tab:capsule}, nas 70 imagens do teste deduplicado, a U-Net apresentou os melhores valores de \textit{Dice} (0,9290), IoU (0,8722), precisão (0,9236) e \textit{recall} (0,9440), sendo selecionada para localizar o rim na cascata. O SegFormer-B0, embora ligeiramente inferior nas métricas de sobreposição, obteve a maior velocidade média de inferência (FPS médio, \textit{Frames Per Second}).
+
+\begin{table}[htb!]
+\centering
+\caption{Segmentação da cápsula no teste deduplicado.}
+\label{tab:capsule}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Precisão} & \textbf{Recall} & \textbf{FPS médio} \\
+\hline
+\mbox{U-Net} & \textbf{0,9290} & \textbf{0,8722} & \textbf{0,9236} & \textbf{0,9440} & 18,11 \\
+SegFormer-B0 & 0,9223 & 0,8598 & 0,9117 & 0,9426 & \textbf{31,34} \\
+DeepLabV3 R50 & 0,9203 & 0,8606 & 0,9219 & 0,9338 & 22,26 \\
+UNet++ & 0,9099 & 0,8419 & 0,8910 & 0,9419 & 16,57 \\
+\hline
+\end{tabular}
+\end{table}
+
+O controle por consenso foi calibrado nas 468 imagens manuais por validação cruzada em cinco \textit{folds}. O consenso médio foi 0,9416, com mediana de 0,9627, e apresentou correlação de 0,840 com o menor \textit{Dice} frente à anotação manual. Os \textit{Dices} médios fora da amostra foram 0,9150 para a U-Net e 0,9243 para a DeepLabV3. Assim, o consenso foi usado como indicador operacional de qualidade e priorização, não como substituto da validação manual.
+
+Nas 4.479 imagens externas, 1.529 (34,1\%) apresentaram concordância alta entre os modelos, correspondente a \textit{Dice} de consenso igual ou superior a 94\%, e 699 (15,6\%) ficaram na faixa intermediária, entre 89\% e 94\%. A revisão prioritária reuniu 1.741 imagens (38,9\%): 1.204 com concordância inferior a 89\% e 537 segmentadas por apenas um modelo, das quais 435 somente pela DeepLabV3 e 102 somente pela U-Net. Em 510 imagens (11,4\%), nenhum modelo delimitou o rim. Assim, a U-Net gerou 3.534 pseudomáscaras entre as 4.479 imagens processadas. Como o subconjunto externo não possui anotação manual neste estudo, essas porcentagens expressam concordância e cobertura da triagem, e não probabilidade de acerto ou acurácia externa.
+
+Por fim, U-Net e DeepLabV3 foram comparadas na segmentação intrarrenal usando as mesmas 50 imagens de teste com referência manual. Conforme a Tabela~\ref{tab:intrarenal}, a U-Net obteve os maiores valores de \textit{Dice} para córtex (0,7075) e medula (0,7237), enquanto a DeepLabV3 foi ligeiramente superior no complexo ecogênico central (0,8497). Na média das três classes, a U-Net alcançou \textit{Dice} de 0,7594 e IoU de 0,6163, superando os valores de 0,7492 e 0,6045 da DeepLabV3.
+
+\begin{table}[htb!]
+\centering
+\caption{Comparação intrarrenal no teste manual de 50 imagens.}
+\label{tab:intrarenal}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Modelo} & \textbf{Córtex} & \textbf{Medula} & \textbf{CEC} & \textbf{Dice médio} & \textbf{IoU médio} \\
+\hline
+U-Net & \textbf{0,7075} & \textbf{0,7237} & 0,8469 & \textbf{0,7594} & \textbf{0,6163} \\
+DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
+\hline
+\end{tabular}
+\end{table}
+
+Embora a diferença média seja pequena, a U-Net foi mantida como modelo intrarrenal da cascata por apresentar o melhor resultado agregado e maior \textit{Dice} em duas das três estruturas. O melhor desempenho de ambas as arquiteturas ocorreu no complexo ecogênico central, enquanto o córtex permaneceu como a classe mais difícil de delimitar.
 
 \section{Discussão}
 
-Os resultados indicam que a principal contribuição do pipeline está na integração
-entre segmentação anatômica e extração de atributos intrarrenais. A máscara renal
-restringe a análise computacional ao órgão, reduzindo interferências externas e falsos
-achados fora da anatomia renal.
+A qualidade das imagens foi um dos fatores observados nas falhas de segmentação da cápsula. Baixo contraste, sombras acústicas, ru\'ido e perda de detalhes dificultam a identificação dos limites renais. A Figura~\ref{fig:capsule_quality} apresenta um contraste qualitativo entre dois exemplos externos.
 
-A melhora observada após a expansão do acervo sugere que a pseudorrotulação pode ser útil em cenários médicos com poucas anotações especializadas. Embora o limiar de 90\% não substitua a validação clínica, ele funcionou como um mecanismo automático de controle de qualidade para a seleção das máscaras mais consistentes.
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.84\textwidth]{figures/capsule_quality_comparison.png}
+\caption{Contraste qualitativo no conjunto externo: (a) ausência de predição; (b) imagem com limites renais mais nítidos; e (c) contornos da U-Net (verde) e da DeepLabV3 (vermelho), com consenso Dice de 0,9888.}
+\label{fig:capsule_quality}
+\end{figure}
 
-O pipeline também preserva a separação entre evidência computacional e interpretação clínica. Regiões hiperecogênicas não são tratadas como diagnóstico automático de fibrose, mas como achados candidatos para investigação quantitativa e validação posterior.
+No primeiro caso, a baixa diferenciação visual da cápsula coincide com a ausência de predição pelos dois modelos; no segundo, os limites são mais evidentes e as segmentações apresentam elevada concordância. Sem referência manual para essas imagens, o exemplo não demonstra isoladamente uma relação causal.
 
-A comparação com resultados externos, como reproduções associadas ao
-kidneyUS, deve ser feita com cautela devido a diferenças de resolução, anotação e distribuição dos exames. Ainda assim, os resultados preliminares indicam que o ajuste aos dados locais foi importante para aumentar a estabilidade das máscaras renais.
+A cascata permanece dependente da primeira segmentação: uma máscara incompleta ou com tecido adjacente altera a ROI e pode comprometer a identificação das estruturas internas. As métricas intrarrenais também devem ser interpretadas considerando o tamanho do teste e a variabilidade entre anotadores.
 
-As principais limitações envolvem a ausência de um conjunto clínico robusto de fibrose, o pequeno número de exemplos rotulados e a falta de anotações manuais das pirâmides renais. Apesar disso, os resultados obtidos mostram que o pipeline já fornece uma base consistente para futuras investigações em análise ultrassonográfica renal.
+A pseudorrotulação MONAI constitui engenharia de dados, não resultado clínico. O consenso prioriza a revisão, mas somente uma refer\^encia manual confirma a localização correta do rim. Experimentos futuros devem incorporar apenas m\'ascaras revisadas, manter validação e teste manuais invariantes e usar referência clínica ou histol\'ogica para investigar fibrose.
 
-\section{Conclus\~ao}
+\section{Conclusão}
 
-Este artigo prop\^os um \textit{pipeline} para isolar o rim e extrair marcadores ultrassonogr\'aficos intrarrenais explorat\'orios. A segmenta\c{c}\~ao foi constru\'ida em duas fases: modelo explorat\'orio inicial, gera\c{c}\~ao de pseudom\'ascaras com 90\% de confian\c{c}a e treinamento de um segundo modelo no \texttt{dataset\_geral}. Esse modelo alcan\c{c}ou Dice m\'edio de 0,9235 e sustenta a an\'alise intrarrenal.
+Este trabalho apresentou um \textit{pipeline} rastreável para análise de ultrassonografias renais em três etapas: segmentação da cápsula, verificação por consenso entre modelos e segmentação das estruturas intrarrenais. Na delimitação da cápsula, a U-Net obteve \textit{Dice} de 0,9290 e IoU de 0,8722 no teste deduplicado de 70 imagens. O consenso com a DeepLabV3 priorizou a revisão das 3.534 pseudomáscaras externas sem substituir a validação por especialistas. Na etapa intrarrenal, a U-Net alcançou \textit{Dice} médio de 0,7594 nas 50 imagens de teste.
 
-Os resultados mostram que a segmentação pode restringir a análise computacional à anatomia renal, reduzindo interferências externas e aumentando a confiabilidade das medidas extraídas. A expansão supervisionada por pseudomáscaras também demonstrou potencial para ampliar o acervo de treinamento mesmo em cenários com limitação de
-anotações manuais.
-
-Al\'em do desempenho quantitativo, o \textit{pipeline} preserva a separa\c{c}\~ao entre evid\^encia computacional e interpreta\c{c}\~ao cl\'inica. Nesse contexto, as regi\~oes hiperecog\^enicas s\~ao tratadas como achados candidatos para investiga\c{c}\~ao, e n\~ao como diagn\'ostico autom\'atico. Uma etapa de predi\c{c}\~ao de IFTA depende de casos vinculados a padr\~ao histol\'ogico ou cl\'inico validado.
-
-Como trabalhos futuros, pretende-se ampliar o conjunto anotado, incluir marcações específicas das pirâmides renais e validar os atributos extraídos em cenários clínicos reais. Também se pretende investigar estratégias semi-supervisionadas e avaliar a integração de informações clínicas e medidas relativas de ecogenicidade para aumentar a robustez da análise.
-
+Como limitações, as diferenças entre arquiteturas não foram submetidas a testes de significância, e a avaliação de ponta a ponta permanece como trabalho futuro. Pretende-se incorporar apenas pseudomáscaras revisadas e estabelecer referência clínica ou histológica para investigar a associação entre regiões hiperecogênicas e alterações funcionais do rim.
 
 \newpage
 \bibliographystyle{sbc}

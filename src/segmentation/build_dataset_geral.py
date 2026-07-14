@@ -26,10 +26,17 @@ KIDNEYUS_CAPSULE_ROOT = (
     DATASET_AUMENTADO_ROOT
     / "dataset_intrarrenal"
     / "supervisionado"
-    / "capsule_annotator_1"
+    / "capsule_annotator_1_deduplicated"
 )
-DEFAULT_OUTPUT_ROOT = DATASET_AUMENTADO_ROOT / "dataset_geral"
-DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "augmented_deeplab_resnet50_baseline.pth"
+DEFAULT_OUTPUT_ROOT = DATASET_AUMENTADO_ROOT / "dataset_geral_v2"
+DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "kidneyus_capsule_dedup_unet.pth"
+DEFAULT_REVIEW_CALIBRATION = (
+    PROJECT_ROOT
+    / "results"
+    / "segmentation_experiments"
+    / "kidneyus_capsule_deduplicated_benchmark"
+    / "pseudomask_review_calibration.json"
+)
 
 
 @dataclass
@@ -49,14 +56,33 @@ def parse_args():
         )
     )
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
-    parser.add_argument("--model", choices=["unet", "unetplusplus", "deeplab", "segformer"], default="deeplab")
+    parser.add_argument("--model", choices=["unet", "unetplusplus", "deeplab", "segformer"], default="unet")
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
     parser.add_argument("--img-size", type=int, default=256)
-    parser.add_argument("--confidence-threshold", type=float, default=0.90)
-    parser.add_argument("--min-area-ratio", type=float, default=0.03)
-    parser.add_argument("--max-area-ratio", type=float, default=0.75)
-    parser.add_argument("--min-foreground-pixels", type=int, default=800)
-    parser.add_argument("--max-components", type=int, default=3)
+    parser.add_argument(
+        "--clahe",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Replica o CLAHE utilizado no treinamento da U-Net.",
+    )
+    parser.add_argument(
+        "--tta-horizontal-flip",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Combina a predicao original com a predicao da imagem espelhada e "
+            "registra a concordancia entre elas para priorizar revisao."
+        ),
+    )
+    parser.add_argument(
+        "--review-calibration",
+        type=Path,
+        default=DEFAULT_REVIEW_CALIBRATION,
+        help=(
+            "Distribuicao de referencia calculada em imagens manuais. Os "
+            "limiares servem apenas para ordenar revisao, nao para aceitar."
+        ),
+    )
     parser.add_argument("--clear-output", action="store_true")
     parser.add_argument(
         "--inventory-only",
@@ -71,8 +97,12 @@ def parse_args():
     )
     parser.add_argument(
         "--include-256x256",
-        action="store_true",
-        help="Inclui imagens 256x256 antigas. Por padrao elas sao excluidas por duplicidade/preprocessamento.",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Mantem imagens 256x256. O padrao e inclui-las porque a base "
+            "canonica kidneyUS Capsule usa essa resolucao."
+        ),
     )
     return parser.parse_args()
 
@@ -123,35 +153,14 @@ def collect_flat_pair(image_dir, mask_dir, source_name, label_source):
 
 
 def collect_all_candidates(include_monai):
+    """Collect only the canonical manual base and approved external sources.
+
+    Legacy DeepLab outputs (identificada, pseudo_labels and the old expanded
+    dataset) are intentionally excluded. Candidate order is significant:
+    kidneyUS comes first so its manual mask wins any hash deduplication.
+    """
     candidates = []
     candidates.extend(collect_split_dataset(KIDNEYUS_CAPSULE_ROOT, "kidneyus_capsule", "kidneyus_capsule"))
-    candidates.extend(
-        collect_split_dataset(
-            DATASET_AUMENTADO_ROOT / "expansao_pseudorrotulada",
-            "dataset_augmented",
-            "mixed_existing_or_pseudo",
-        )
-    )
-    candidates.extend(
-        collect_flat_pair(
-            FONTES_ROOT / "identificada" / "image",
-            FONTES_ROOT / "identificada" / "mask",
-            "identificada",
-            "legacy_identificada",
-        )
-    )
-    candidates.extend(
-        collect_flat_pair(
-            DATASET_AUMENTADO_ROOT / "pseudo_labels" / "accepted" / "image",
-            DATASET_AUMENTADO_ROOT / "pseudo_labels" / "accepted" / "mask",
-            "pseudo_labels_accepted",
-            "pseudo_existing",
-        )
-    )
-    for image_path in iter_images(FONTES_ROOT / "dataset_loader"):
-        candidates.append(ImageCandidate("dataset_loader", image_path, None, "unlabeled"))
-    for image_path in iter_images(FONTES_ROOT / "kidneyUS_images_25_june_2025"):
-        candidates.append(ImageCandidate("kidneyus_external_png", image_path, None, "unlabeled"))
     if include_monai:
         processed_root = FONTES_ROOT / "external_data" / "processed"
         for image_dir in sorted(processed_root.glob("*/images")):
@@ -222,8 +231,10 @@ def copy_existing_mask(mask_path, image_shape, image_id, output_mask_dir):
     return output_path, "existing_mask_copied"
 
 
-def prepare_tensor(image, img_size, device):
+def prepare_tensor(image, img_size, device, clahe=False):
     resized = cv2.resize(image, (img_size, img_size), interpolation=cv2.INTER_LINEAR)
+    if clahe:
+        resized = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(resized)
     normalized = resized.astype(np.float32) / 255.0
     stacked = np.stack([normalized, normalized, normalized], axis=0)
     return torch.tensor(stacked, dtype=torch.float32).unsqueeze(0).to(device)
@@ -256,7 +267,37 @@ def keep_largest_component(mask):
     return (labels == largest_label).astype(np.uint8)
 
 
-def analyze_mask(probability, threshold, original_shape, config):
+def binary_dice(first, second):
+    first = np.asarray(first, dtype=bool)
+    second = np.asarray(second, dtype=bool)
+    denominator = int(first.sum() + second.sum())
+    if denominator == 0:
+        return 1.0
+    return float((2.0 * np.logical_and(first, second).sum()) / denominator)
+
+
+def load_review_reference(path):
+    path = Path(path)
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as file:
+        payload = json.load(file)
+    reference = payload.get("review_reference", {})
+    return {
+        "confidence": reference.get("confidence_p05"),
+        "tta_consistency_dice": reference.get("tta_consistency_dice_p05"),
+        "source": str(path),
+    }
+
+
+def analyze_mask(probability, threshold, original_shape, config=None):
+    """Describe a prediction without treating image resolution as quality.
+
+    A non-empty prediction is always saved as an unvalidated pseudomask.
+    Pixel count, relative area and confidence are descriptive fields used to
+    order human review; they are not acceptance criteria.
+    """
+    config = config or {}
     probability = cv2.resize(
         probability,
         (original_shape[1], original_shape[0]),
@@ -281,27 +322,16 @@ def analyze_mask(probability, threshold, original_shape, config):
         if area > 0:
             components.append(area)
 
-    accepted = True
-    rejection_reasons = []
-    if confidence < config["confidence_threshold"]:
-        accepted = False
-        rejection_reasons.append("low_confidence")
-    if foreground_pixels < config["min_foreground_pixels"]:
-        accepted = False
-        rejection_reasons.append("too_few_foreground_pixels")
-    if area_ratio < config["min_area_ratio"]:
-        accepted = False
-        rejection_reasons.append("area_ratio_too_low")
-    if area_ratio > config["max_area_ratio"]:
-        accepted = False
-        rejection_reasons.append("area_ratio_too_high")
-    if len(components) > config["max_components"]:
-        accepted = False
-        rejection_reasons.append("too_many_components")
+    prediction_available = foreground_pixels > 0
+    review_flags = []
+    if not prediction_available:
+        review_flags.append("empty_prediction")
 
     return {
-        "accepted": accepted,
-        "rejection_reason": ";".join(rejection_reasons),
+        "accepted": prediction_available,
+        "prediction_available": prediction_available,
+        "rejection_reason": "" if prediction_available else "empty_prediction",
+        "review_flags": review_flags,
         "mask": mask,
         "confidence": confidence,
         "foreground_pixels": foreground_pixels,
@@ -311,27 +341,71 @@ def analyze_mask(probability, threshold, original_shape, config):
     }
 
 
-def generate_mask(bundle, image_path, image_shape, image_id, output_mask_dir, args, device):
+def generate_mask(
+    bundle,
+    image_path,
+    image_shape,
+    image_id,
+    output_mask_dir,
+    args,
+    device,
+    review_reference,
+):
     image = read_grayscale_image(image_path)
-    tensor = prepare_tensor(image, args.img_size, device)
+    tensor = prepare_tensor(image, args.img_size, device, clahe=args.clahe)
     threshold = float(bundle["threshold"])
     with torch.no_grad():
         probability = predict_probability(bundle, tensor, args.img_size)
+        if args.tta_horizontal_flip:
+            flipped = cv2.flip(image, 1)
+            flipped_tensor = prepare_tensor(
+                flipped,
+                args.img_size,
+                device,
+                clahe=args.clahe,
+            )
+            flipped_probability = predict_probability(
+                bundle,
+                flipped_tensor,
+                args.img_size,
+            )
+            flipped_probability = np.fliplr(flipped_probability)
+        else:
+            flipped_probability = probability.copy()
+
+    original_binary = probability >= threshold
+    flipped_binary = flipped_probability >= threshold
+    tta_consistency_dice = binary_dice(original_binary, flipped_binary)
+    probability = (probability + flipped_probability) / 2.0
 
     analysis = analyze_mask(
         probability,
         threshold,
         image_shape,
-        {
-            "confidence_threshold": args.confidence_threshold,
-            "min_area_ratio": args.min_area_ratio,
-            "max_area_ratio": args.max_area_ratio,
-            "min_foreground_pixels": args.min_foreground_pixels,
-            "max_components": args.max_components,
-        },
     )
+    analysis["tta_consistency_dice"] = tta_consistency_dice
+    confidence_reference = review_reference.get("confidence")
+    consistency_reference = review_reference.get("tta_consistency_dice")
+    if (
+        confidence_reference is not None
+        and analysis["confidence"] < float(confidence_reference)
+    ):
+        analysis["review_flags"].append("confidence_below_manual_reference_p05")
+    if (
+        consistency_reference is not None
+        and tta_consistency_dice < float(consistency_reference)
+    ):
+        analysis["review_flags"].append("tta_below_manual_reference_p05")
+    if not analysis["prediction_available"]:
+        analysis["review_priority"] = "high"
+    elif len(analysis["review_flags"]) >= 2:
+        analysis["review_priority"] = "high"
+    elif analysis["review_flags"]:
+        analysis["review_priority"] = "medium"
+    else:
+        analysis["review_priority"] = "routine"
 
-    if analysis["accepted"]:
+    if analysis["prediction_available"]:
         output_path = output_mask_dir / f"{image_id}.png"
         cv2.imwrite(str(output_path), analysis["mask"].astype(np.uint8) * 255)
         analysis["mask_path"] = output_path
@@ -356,8 +430,20 @@ def summarize(rows):
         "with_mask": sum(1 for row in rows if row["has_mask"] == "true"),
         "without_mask": sum(1 for row in rows if row["has_mask"] == "false"),
         "existing_masks": sum(1 for row in rows if row["mask_status"] == "existing"),
-        "generated_masks_accepted": sum(1 for row in rows if row["mask_status"].startswith("generated_accepted")),
-        "generated_masks_rejected": sum(1 for row in rows if row["mask_status"].startswith("generated_rejected")),
+        "generated_pseudomasks": sum(1 for row in rows if row["mask_status"] == "generated_unvalidated"),
+        "empty_predictions": sum(1 for row in rows if row["mask_status"] == "empty_prediction"),
+        "pending_human_review": sum(
+            1 for row in rows if row["validation_status"] == "pending_human_review"
+        ),
+        "pseudomask_review_priority": {
+            priority: sum(
+                1
+                for row in rows
+                if row["validation_status"] == "pending_human_review"
+                and row["review_priority"] == priority
+            )
+            for priority in ("high", "medium", "routine")
+        },
         "missing_not_generated": sum(1 for row in rows if row["mask_status"] == "missing_not_generated"),
         "by_source": {},
     }
@@ -409,6 +495,7 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     bundle = None
+    review_reference = load_review_reference(args.review_calibration)
     if not args.inventory_only:
         bundle = load_model_bundle(
             args.model,
@@ -441,6 +528,9 @@ def main():
             "area_ratio": "",
             "components": "",
             "largest_component_pixels": "",
+            "tta_consistency_dice": "",
+            "review_flags": "",
+            "review_priority": "",
             "rejection_reason": "",
         }
 
@@ -466,6 +556,7 @@ def main():
                 mask_dir,
                 args,
                 device,
+                review_reference,
             )
             mask_quality = {
                 "confidence": f"{analysis['confidence']:.6f}",
@@ -473,15 +564,26 @@ def main():
                 "area_ratio": f"{analysis['area_ratio']:.6f}",
                 "components": analysis["components"],
                 "largest_component_pixels": analysis["largest_component_pixels"],
+                "tta_consistency_dice": f"{analysis['tta_consistency_dice']:.6f}",
+                "review_flags": ";".join(analysis["review_flags"]),
+                "review_priority": analysis["review_priority"],
                 "rejection_reason": analysis["rejection_reason"],
             }
-            if analysis["accepted"]:
+            if analysis["prediction_available"]:
                 output_mask_path = str(analysis["mask_path"])
-                mask_status = "generated_accepted"
+                mask_status = "generated_unvalidated"
             else:
-                mask_status = "generated_rejected"
+                mask_status = "empty_prediction"
 
         has_mask = output_mask_path != ""
+        if mask_status == "existing":
+            validation_status = "manual_reference"
+        elif mask_status == "generated_unvalidated":
+            validation_status = "pending_human_review"
+        elif mask_status == "empty_prediction":
+            validation_status = "no_prediction"
+        else:
+            validation_status = "not_available"
         rows.append(
             {
                 "image_id": image_id,
@@ -494,7 +596,8 @@ def main():
                 "dataset_mask_path": output_mask_path,
                 "has_mask": str(has_mask).lower(),
                 "mask_status": mask_status,
-                "mask_confidence_threshold": args.confidence_threshold,
+                "validation_status": validation_status,
+                "mask_confidence_threshold": "",
                 **mask_quality,
             }
         )
@@ -506,7 +609,30 @@ def main():
     write_csv(report_dir / "duplicadas_por_hash.csv", duplicate_rows)
     write_csv(report_dir / "excluidas_256x256.csv", excluded_256_rows)
     write_csv(report_dir / "faltando_mascara.csv", [row for row in rows if row["has_mask"] == "false"])
-    write_csv(report_dir / "mascaras_geradas.csv", [row for row in rows if row["mask_status"].startswith("generated")])
+    write_csv(
+        report_dir / "pseudomascaras_nao_validadas.csv",
+        [row for row in rows if row["mask_status"] == "generated_unvalidated"],
+    )
+    write_csv(
+        report_dir / "predicoes_vazias.csv",
+        [row for row in rows if row["mask_status"] == "empty_prediction"],
+    )
+    review_rows = sorted(
+        [
+            row
+            for row in rows
+            if row["validation_status"] in {"pending_human_review", "no_prediction"}
+        ],
+        key=lambda row: (
+            {"high": 0, "medium": 1, "routine": 2}.get(
+                row["review_priority"],
+                3,
+            ),
+            float(row["tta_consistency_dice"] or 0.0),
+            float(row["confidence"] or 0.0),
+        ),
+    )
+    write_csv(report_dir / "fila_revisao.csv", review_rows)
 
     summary = summarize(rows)
     summary.update(
@@ -517,7 +643,14 @@ def main():
             "model": args.model,
             "checkpoint": str(args.checkpoint),
             "device": device,
-            "confidence_threshold": args.confidence_threshold,
+            "model_threshold": float(bundle["threshold"]) if bundle is not None else None,
+            "clahe": args.clahe,
+            "tta_horizontal_flip": args.tta_horizontal_flip,
+            "review_reference": review_reference,
+            "quality_policy": (
+                "all non-empty predictions are stored as unvalidated pseudomasks; "
+                "no absolute pixel-count or area threshold is used for acceptance"
+            ),
             "duplicates_skipped": len(duplicate_rows),
             "excluded_256x256": len(excluded_256_rows),
         }
