@@ -186,7 +186,7 @@ pseudomascaras, enquanto o consenso entre modelos foi usado como indicador
 operacional de qualidade e priorizacao, nao como substituto da validacao
 manual.
 
-![Consenso entre modelos](D:/kidney/artigo/SBBD_2026___Jefferson/figures/capsule_model_consensus.png)
+![Consenso entre modelos](https://raw.githubusercontent.com/0rakul0/kidney/main/artigo/SBBD_2026___Jefferson/figures/capsule_model_consensus.png)
 
 **Figura 2.** Consenso entre U-Net e DeepLabV3: exemplos de concordancia alta,
 intermediaria e baixa entre os contornos previstos.
@@ -208,13 +208,13 @@ Embora a diferenca media seja pequena, a U-Net foi mantida como modelo
 intrarrenal da cascata por apresentar o melhor resultado agregado e maior Dice
 em duas das tres estruturas.
 
-![Exemplo intrarrenal](D:/kidney/artigo/SBBD_2026___Jefferson/figures/intrarenal_multiclass_example.png)
+![Exemplo intrarrenal](https://raw.githubusercontent.com/0rakul0/kidney/main/artigo/SBBD_2026___Jefferson/figures/intrarenal_multiclass_example.png)
 
 **Figura 3.** Exemplo da etapa intrarrenal: imagem original, anotacao manual e
 predicao multiclasse da U-Net para cortex, medula e complexo ecogenico
 central.
 
-![Comparacao qualitativa da capsula](D:/kidney/artigo/SBBD_2026___Jefferson/figures/capsule_quality_comparison.png)
+![Comparacao qualitativa da capsula](https://raw.githubusercontent.com/0rakul0/kidney/main/artigo/SBBD_2026___Jefferson/figures/capsule_quality_comparison.png)
 
 **Figura 4.** Contraste qualitativo no conjunto externo: exemplo sem predicao
 e exemplo com limites renais mais nitidos, acompanhado dos contornos previstos
