@@ -1,5 +1,31 @@
 # Um Pipeline de Visao Computacional para Analise de Achados Hiperecogenicos em Ultrassonografia Renal
 
+## Autoria
+
+**Autor principal**
+
+Jefferson S. dos Anjos
+
+**Coautores**
+
+Amaro A. de Lima, Gabriel M. Araujo, Jorge Luiz de C. Henriques Junior,
+Nordeval C. Araujo, Jose Hermogenes R. Suassuna e Felipe da R. Henriques
+
+**Afiliacoes**
+
+`1` CEFET/RJ - Rio de Janeiro - RJ - Brasil  
+`2` HUPE-UERJ - Rio de Janeiro - RJ - Brasil
+
+**Contatos**
+
+- `jefferson.anjos.1@aluno.cefet-rj.br`
+- `amaro.lima@cefet-rj.br`
+- `gabriel.araujo@cefet-rj.br`
+- `felipe.henriques@cefet-rj.br`
+- `jorgehenriquesjr@gmail.com`
+- `nordevalaraujo@gmail.com`
+- `rocco@uerj.br`
+
 ## Resumo
 
 A interpretacao de ultrassonografias renais depende de inspecao visual subjetiva
