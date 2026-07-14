@@ -51,12 +51,18 @@ achados suspeitos que exigem analise cuidadosa.
 A ecogenicidade cortical, especialmente quando comparada ao figado, tambem e
 observada em pacientes com doenca renal cronica. A razao entre a intensidade
 cortical renal e a intensidade de um orgao de referencia pode reduzir parte da
-subjetividade da inspecao visual.
+subjetividade da inspecao visual. Esse tipo de comparacao e relevante porque a
+ultrassonografia, apesar de amplamente disponivel, depende fortemente da
+experiencia do observador e das condicoes de aquisicao, como ganho, posicao do
+transdutor e presenca de ruido.
 
 Em paralelo, a literatura explora a segmentacao renal e a extracao de medidas
 quantitativas de intensidade e textura para investigar padroes associados a
 alteracoes renais. Ainda assim, permanece uma lacuna entre segmentar o rim e
 examinar, dentro dele, pontos hiperecogenicos candidatos a achados suspeitos.
+Em outras palavras, a localizacao automatica do orgao ja e um problema
+conhecido, mas o aproveitamento dessa segmentacao como base para analise
+intrarrenal ainda exige maior consolidacao metodologica.
 
 Esse recorte e importante porque a ultrassonografia apresenta ruido, sombras
 acusticas, variacoes de ganho e diferencas de enquadramento. Sem uma mascara
@@ -72,6 +78,12 @@ arquiteturas de segmentacao da capsula renal, entre as quais a U-Net apresentou
 o melhor Dice no teste deduplicado. A regiao renal delimitada alimenta uma
 segunda U-Net, responsavel por identificar `Cortex`, `Medulla` e
 `Central Echo Complex`.
+
+Esse encadeamento e importante porque transforma a segmentacao renal em uma
+etapa de preparacao anatomica para as analises seguintes. Em vez de tentar
+detectar diretamente achados em toda a imagem, o pipeline primeiro restringe a
+atencao ao rim e depois organiza a observacao das estruturas internas em uma
+ROI mais controlada.
 
 As contribuicoes principais sao:
 
@@ -93,24 +105,35 @@ restringe as analises posteriores ao interior do rim.
 A segunda linha envolve a quantificacao da ecogenicidade renal relativa.
 Medidas entre a intensidade do cortex renal e a de um orgao de referencia, como
 o figado, podem aproximar criterios empregados por especialistas e reduzir
-parte da subjetividade da inspecao visual.
+parte da subjetividade da inspecao visual. Essa linha de pesquisa e importante
+porque tenta aproximar a observacao computacional de comparacoes feitas
+rotineiramente na pratica clinica, ainda que o presente trabalho nao realize
+uma validacao diagnostica final.
 
 A terceira linha compreende a extracao de atributos quantitativos de
 intensidade e textura para investigar alteracoes renais. As piramides renais
 estao localizadas na medula, entre o cortex e o sistema coletor, e constituem
-referencias anatomicas internas na ultrassonografia.
+referencias anatomicas internas na ultrassonografia. Alteracoes visuais nessas
+regioes podem se relacionar a achados relevantes, mas a analise automatica
+depende de uma localizacao interna mais precisa do que a simples mascara
+externa do rim.
 
 Alem da delimitacao externa do rim, este trabalho identifica `Cortex`,
 `Medulla` e `Central Echo Complex`. Essa representacao nao segmenta
 individualmente cada piramide renal, mas fornece uma localizacao anatomica mais
-especifica para restringir a busca por achados hiperecogenicos.
+especifica para restringir a busca por achados hiperecogenicos. Esse ponto
+diferencia o trabalho de abordagens focadas apenas na segmentacao binaria do
+rim, porque introduz uma camada adicional de organizacao anatomica antes da
+analise exploratoria.
 
 A qualidade das segmentacoes e avaliada pela comparacao entre a mascara
 produzida pelo modelo e a anotacao manual. O coeficiente Dice mede a semelhanca
 entre essas duas regioes, enquanto a `Intersection over Union` (`IoU`)
 corresponde a razao entre a intersecao e a uniao das regioes. Ambas variam de
 0 a 1: valores proximos de 1 indicam maior concordancia entre predicao e
-referencia.
+referencia. Alem dessas metricas de sobreposicao, a leitura dos resultados
+tambem considera precisao, recall e velocidade media de inferencia, de modo a
+equilibrar qualidade segmentacional e custo operacional.
 
 ## Metodologia
 
@@ -135,6 +158,11 @@ O estudo utiliza o `Open Kidney Ultrasound Data Set` (`kidneyUS`), que contem
 anotacoes de dois observadores para capsula, cortex, medula e complexo
 ecogenico central. A Tabela 1 resume os acervos utilizados e suas finalidades.
 
+O desenho metodologico parte da ideia de que bases com papeis diferentes nao
+devem ser misturadas na avaliacao. Por isso, o `kidneyUS` sustenta treino,
+validacao e teste com referencia manual, enquanto o MONAI aparece somente como
+fonte externa para geracao de pseudomascaras e ampliacao controlada do acervo.
+
 | Acervo | Registros | Imagens unicas | Finalidade |
 | --- | ---: | ---: | --- |
 | `kidneyUS` - capsula | 486 | 468 | 328 treino, 70 validacao e 70 teste |
@@ -148,7 +176,10 @@ correspondentes a 468 imagens unicas. Apos deduplicacao e agrupamento por
 exame, obtiveram-se 328 imagens de treino, 70 de validacao e 70 de teste. Para
 a tarefa intrarrenal, 335 imagens foram divididas por paciente em 235, 50 e 50
 imagens. O MONAI foi utilizado apenas para geracao de pseudomascaras, sem
-participacao nas metricas manuais.
+participacao nas metricas manuais. Essa separacao por paciente e importante
+para reduzir vazamento de contexto entre treino e teste, especialmente em um
+dominio no qual imagens de um mesmo exame podem compartilhar padroes muito
+semelhantes.
 
 Na primeira etapa, U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 foram
 treinados para segmentar a capsula, com `CLAHE`, aumento de dados apenas no
@@ -156,7 +187,9 @@ treino, `AdamW`, taxa inicial de `10^-4` e perda `BCE + Dice`. A U-Net,
 selecionada pelo maior Dice, foi aplicada ao MONAI. A inferencia combinou a
 imagem original e seu espelhamento horizontal. Apos binarizacao pelo limiar
 `0,35`, manteve-se o maior componente conectado e a mascara foi restaurada a
-resolucao original.
+resolucao original. Essa etapa nao teve apenas funcao comparativa entre
+arquiteturas: ela definiu qual modelo seria o responsavel por produzir a ROI
+renal usada no restante da cascata.
 
 As pseudomascaras foram ordenadas pela confianca media dos pixels positivos,
 definida por:
@@ -179,13 +212,18 @@ S(M_U, M_D) = 2 * |M_U intersecao M_D| / (|M_U| + |M_D|)
 
 Esse escore foi usado como medida complementar de consenso entre arquiteturas e
 como criterio operacional para priorizar a revisao humana das pseudomascaras.
+Assim, em vez de assumir que toda pseudomascara com alta confianca esta correta,
+o pipeline usa duas visoes arquiteturais distintas para organizar melhor a fila
+de revisao.
 
 Para a segmentacao intrarrenal, U-Net e DeepLabV3-ResNet50 foram retreinadas na
 mesma divisao de 235 imagens de treino, 50 de validacao e 50 de teste. Ambas
 recebem tres canais: ROI em tons de cinza, ROI com a regiao externa zerada e
 mascara da capsula. A saida multiclasse prediz `Cortex`, `Medulla` e
 `Central Echo Complex`, com `CLAHE`, `AdamW`, taxa de `10^-4` e perda
-entropia cruzada + Dice.
+entropia cruzada + Dice. Essa formulacao explicita que a etapa intrarrenal nao
+opera no vazio: ela depende da organizacao espacial imposta pela capsula e usa
+essa informacao como parte da entrada do modelo.
 
 ## Resultados
 
@@ -193,7 +231,9 @@ A primeira etapa avaliou a segmentacao da capsula renal. Nas 70 imagens do
 teste deduplicado, a U-Net apresentou os melhores valores de Dice, IoU,
 precisao e recall, sendo selecionada para localizar o rim na cascata. O
 SegFormer-B0, embora ligeiramente inferior nas metricas de sobreposicao,
-obteve a maior velocidade media de inferencia.
+obteve a maior velocidade media de inferencia. Esse resultado mostra que a
+escolha do modelo da cascata nao dependeu apenas de preferencia arquitetural,
+mas de um criterio objetivo centrado na qualidade da delimitacao renal.
 
 | Modelo | Dice | IoU | Precisao | Recall | FPS medio |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -210,7 +250,9 @@ cruzada em cinco folds. O consenso medio foi `0,9416`, com mediana de
 anotacao manual. Nas `4.479` imagens externas, a U-Net gerou `3.534`
 pseudomascaras, enquanto o consenso entre modelos foi usado como indicador
 operacional de qualidade e priorizacao, nao como substituto da validacao
-manual.
+manual. Em termos praticos, isso significa que o consenso foi tratado como um
+instrumento de triagem: ele ajuda a identificar exemplos mais estaveis ou mais
+duvidosos, mas nao elimina a necessidade de verificacao por especialistas.
 
 ![Consenso entre modelos](https://raw.githubusercontent.com/0rakul0/kidney/main/artigo/SBBD_2026___Jefferson/figures/capsule_model_consensus.png)
 
@@ -221,7 +263,9 @@ Por fim, U-Net e DeepLabV3 foram comparadas na segmentacao intrarrenal usando
 as mesmas 50 imagens de teste com referencia manual. A U-Net obteve os maiores
 valores de Dice para cortex e medula, enquanto a DeepLabV3 foi ligeiramente
 superior no complexo ecogenico central. Na media das tres classes, a U-Net
-apresentou o melhor resultado agregado.
+apresentou o melhor resultado agregado. Esse comportamento sugere que a tarefa
+intrarrenal tem dificuldade diferente por compartimento anatomico e que ganhos
+globais podem coexistir com vantagens pontuais de arquiteturas concorrentes.
 
 | Modelo | Cortex | Medula | CEC | Dice medio | IoU medio |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -251,24 +295,36 @@ pela U-Net e pela DeepLabV3.
 A qualidade das imagens foi um dos fatores mais associados as falhas de
 segmentacao da capsula. Baixo contraste, sombras acusticas, ruido e perda de
 detalhes dificultam a identificacao dos limites renais e reduzem a estabilidade
-da segmentacao no conjunto externo.
+da segmentacao no conjunto externo. A Figura 4 reforca esse ponto ao contrastar
+um caso sem predicao confiavel com outro em que os contornos do rim aparecem de
+forma mais nitida e favorecem a concordancia entre modelos.
 
 A cascata tambem permanece dependente da primeira etapa: uma mascara renal
 incompleta, deslocada ou com tecido adjacente altera a ROI e pode comprometer a
 identificacao das estruturas internas. Por isso, o consenso entre modelos foi
 tratado como mecanismo de triagem e priorizacao de revisao, e nao como
-substituto da validacao humana.
+substituto da validacao humana. Essa dependencia estrutural e uma das razoes
+pelas quais o trabalho enfatiza rastreabilidade do pipeline, em vez de vender a
+cascata como um sistema diagnostico pronto.
 
 As pseudomascaras externas representam uma estrategia de engenharia de dados,
 nao um resultado clinico final. O repositorio documenta essa etapa de forma
 rastreavel, mas a confirmacao da qualidade das mascaras ainda depende de
-curadoria especializada.
+curadoria especializada. Do ponto de vista cientifico, isso delimita bem o
+alcance do estudo: o artigo avanca na organizacao do problema, na segmentacao e
+na preparacao da analise intrarrenal, mas nao afirma deteccao clinica de
+fibrose ou classificacao final de doenca renal.
 
 ## Conclusao
 
 Este trabalho apresentou um pipeline rastreavel para analise de
 ultrassonografias renais em tres etapas: segmentacao da capsula, verificacao
 por consenso entre modelos e segmentacao das estruturas intrarrenais.
+
+Mais do que uma comparacao isolada de arquiteturas, o estudo organiza uma
+sequencia metodologica em que a delimitacao anatomica do rim serve de base para
+as etapas posteriores. Isso fortalece o repositorio como registro de um fluxo
+experimental coerente, e nao apenas como colecao de treinos independentes.
 
 Na delimitacao da capsula, a U-Net obteve Dice de `0,9290` e IoU de `0,8722`
 no teste deduplicado de 70 imagens. O consenso com a DeepLabV3 ajudou a
@@ -279,7 +335,9 @@ de `0,7594` nas 50 imagens de teste.
 Como proximo passo cientifico, a evolucao natural do trabalho e incorporar
 apenas pseudomascaras revisadas e estabelecer referencia clinica ou histologica
 para investigar a associacao entre regioes hiperecogenicas e alteracoes
-funcionais do rim.
+funcionais do rim. Com isso, a contribuicao atual permanece bem delimitada:
+segmentacao confiavel da capsula, organizacao de pseudomascaras para curadoria
+e segmentacao intrarrenal como apoio a analise exploratoria.
 
 ## Referencias
 
