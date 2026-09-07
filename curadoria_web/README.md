@@ -27,6 +27,20 @@ Na raiz do projeto:
 
 Abra `http://127.0.0.1:8765`.
 
+## Inferência em nova imagem
+
+Use `http://127.0.0.1:8765/inferencia.html` (ou o botão **Inferir imagem** na
+tela principal) para enviar uma imagem PNG, JPG ou JPEG de até 20 MB. A página
+executa localmente a cascata U-Net de cápsula renal e U-Net multiclasse
+intrarrenal, gerando máscaras candidatas de rim, córtex, medula e CEC, além do
+painel de ecogenicidade. Os resultados são gravados em
+`dataset_aumentado/curadoria/respostas/inferencias/` e não entram
+automaticamente na fila de curadoria nem constituem diagnóstico clínico.
+
+Essa função requer o ambiente local do projeto com PyTorch e os checkpoints em
+`models/`; a imagem Docker de curadoria, destinada apenas à revisão de
+máscaras pré-computadas, não inclui os pesos de inferência.
+
 ## Dados gerados
 
 As respostas sao persistidas em:
@@ -35,8 +49,12 @@ As respostas sao persistidas em:
 dataset_aumentado/curadoria/respostas/curadoria.sqlite3
 ```
 
-A ferramenta `Poligono` permite selecionar `Rim`, `Cortex`, `Medulla` ou
-`Central Echo Complex` e substituir, adicionar ou apagar uma regiao. As
+A ferramenta `Poligono` permite selecionar `Rim`, `Cortex`, `Medulla`,
+`Central Echo Complex` ou o `Marcador de anomalia` e substituir, adicionar
+ou apagar uma regiao. O marcador de anomalia e uma anotacao visual exploratoria.
+O painel direito tambem exibe a diferenca de brilho medio, calculada na imagem
+original sem CLAHE, entre cortex e CEC:
+quanto mais a direita, mais proximo o brilho cortical esta do CEC. As
 mascaras editadas sao salvas separadamente por revisor em:
 
 ```text
@@ -45,9 +63,11 @@ dataset_aumentado/curadoria/respostas/mascaras_corrigidas/
 
 A interface oferece exportacao dos registros para `JSON` e `CSV`. Cada
 revisor mantem a propria avaliacao da imagem; uma nova gravacao do mesmo
-revisor atualiza sua resposta anterior, preservando os horarios. As
+revisor atualiza sua resposta anterior, preservando os horarios. Cada
+salvamento manual tambem preserva uma versao imutavel em `historico/`, para
+auditoria. As
 exportacoes incluem os caminhos e as operacoes das mascaras corrigidas de
-`Rim`, `Cortex`, `Medulla` e `Central Echo Complex`.
+`Rim`, `Cortex`, `Medulla`, `Central Echo Complex` e `Anomalia`.
 
 ## Fluxo recomendado
 
@@ -55,9 +75,10 @@ exportacoes incluem os caminhos e as operacoes das mascaras corrigidas de
 2. Revise os contornos sobrepostos na imagem; use zoom e desligue camadas para
    examinar bordas.
 3. Se necessario, escolha `Poligono`, a classe e a acao para corrigir a
-   mascara exibida; a proposta original nao e sobrescrita.
+   mascara exibida; a proposta original nao e sobrescrita. Para registrar uma
+   regiao sugestiva, selecione `Marcador de anomalia` (roxo).
 4. Classifique cada mascara como aceita, corrigir, rejeitada ou indisponivel.
-5. Registre fibrose somente quando existir referencia clinica rastreavel.
+5. Consulte o medidor de brilho cortex × CEC como marcador exploratorio.
 6. Salve e avance para o proximo caso.
 
 ## Compartilhamento

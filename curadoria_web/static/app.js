@@ -6,10 +6,17 @@ const state = {
   drawingTool: "polygon",
   pointerDown: false,
   points: [],
+  saving: false,
   segmentationModel: "unet",
   originalWidth: 0,
   originalHeight: 0,
   imageUrl: "",
+  roiPairs: [],
+  roiDirty: false,
+  roiDragging: null,
+  comparing: false,
+  comparatorStart: null,
+  comparatorEnd: null,
 };
 const $ = (id) => document.getElementById(id);
 const form = $("review-form");
@@ -38,6 +45,13 @@ function showMessage(text, error = false) {
 function showDatabaseMessage(text, error = false) {
   $("database-message").textContent = text;
   $("database-message").classList.toggle("error", error);
+}
+function setFocusMode(enabled) {
+  $("workspace").classList.toggle("focus-mode", enabled);
+  const button = $("toggle-panels");
+  button.setAttribute("aria-expanded", String(!enabled));
+  button.title = enabled ? "Mostrar paineis laterais" : "Ocultar paineis laterais";
+  localStorage.setItem("curadoria_focus_mode", enabled ? "1" : "0");
 }
 function viewMode() {
   const superres = $("toggle-superres").checked;
@@ -145,15 +159,13 @@ function fillReview(review, available) {
     status_cortex: available.cortex ? "pendente" : "indisponivel",
     status_medulla: available.medulla ? "pendente" : "indisponivel",
     status_central_echo_complex: available.central_echo_complex ? "pendente" : "indisponivel",
-    fibrose: "",
-    fonte_fibrose: "",
     observacao: "",
     ...(review || {}),
   };
-  ["status_rim", "status_cortex", "status_medulla", "status_central_echo_complex", "fibrose"].forEach((field) => chooseButton(field, values[field]));
-  form.elements.fonte_fibrose.value = values.fonte_fibrose;
+  ["status_rim", "status_cortex", "status_medulla", "status_central_echo_complex"].forEach((field) => chooseButton(field, values[field]));
   form.elements.observacao.value = values.observacao;
-  Object.entries(available).forEach(([layer, exists]) => {
+  ["rim", "cortex", "medulla", "central_echo_complex"].forEach((layer) => {
+    const exists = available[layer];
     const field = layer === "rim" ? "status_rim" : `status_${layer}`;
     const group = document.querySelector(`[data-field="${field}"]`);
     group.classList.toggle("unavailable", !exists);
@@ -200,8 +212,156 @@ function showModelMetrics(item) {
     $("agreement-card").style.display = agreement.dice ? "block" : "none";
   }
 }
+function showBrightnessMeter(meter, options = {}) {
+  const available = Boolean(meter && meter.disponivel);
+  const track = document.querySelector(".brightness-track");
+  const indicator = $("brightness-indicator");
+  const metrics = $("brightness-metrics");
+  const distribution = $("brightness-distribution");
+  const unavailable = $("brightness-unavailable");
+  const roiActions = $("brightness-roi-actions");
+  if (!available) {
+    $("brightness-value").textContent = "Indisponível";
+    unavailable.style.display = "block";
+    metrics.style.display = "none";
+    distribution.style.display = "none";
+    $("brightness-quality").textContent = "";
+    $("brightness-pairs").textContent = "";
+    roiActions.style.display = "none";
+    state.roiPairs = [];
+    state.roiDirty = false;
+    indicator.style.left = "0%";
+    track.setAttribute("aria-valuenow", "0");
+    renderBrightnessRois([]);
+    return;
+  }
+  const paired = meter.percentual_pares_mediana;
+  const displayedPercent = paired ?? meter.percentual;
+  const freeComparison = meter.modo_metrica === "pontos_livres";
+  const freePair = meter.pares?.find((pair) => pair.modo === "livre");
+  const pointAName = freePair?.regiao_a || "ponto A";
+  const pointBName = freePair?.regiao_b || "ponto B";
+  state.roiPairs = (meter.pares || []).map((pair) => ({ ...pair, cortex_centro: [...pair.cortex_centro], cec_centro: [...pair.cec_centro] }));
+  if (!options.keepDirty) state.roiDirty = false;
+  $("brightness-meter-title").textContent = freeComparison ? `Brilho de ${pointAName} (A) em relação a ${pointBName} (B)` : "Ecogenicidade cortical";
+  $("brightness-reference").textContent = freeComparison ? `Referência: ${pointBName} (B)` : "Referência: CEC";
+  $("brightness-right-label").textContent = freeComparison ? `Brilho de ${pointBName}` : "Brilho do CEC";
+  $("brightness-difference-label").textContent = freeComparison ? `Δ ${pointBName} − ${pointAName}` : "Δ CEC − córtex";
+  $("brightness-value").textContent = `${displayedPercent.toFixed(1)}% do ${freeComparison ? pointBName : "CEC"}`;
+  $("brightness-pairs").textContent = meter.pares?.length
+    ? `Mediana de ${meter.pares.length} pares: ${meter.pares.map((pair) => `${pair.faixa} ${pair.percentual.toFixed(1)}%${pair.modo === "livre" ? ` (${pair.regiao_a} / ${pair.regiao_b})` : ""}${pair.diferenca_profundidade_px ? ` · Δprof. ${pair.diferenca_profundidade_px} px` : ""}`).join(" · ")} · IQR ${meter.percentual_pares_iqr.toFixed(1)}%.`
+    : "Amostragem pareada indisponível; exibindo descritor global.";
+  unavailable.style.display = "none";
+  roiActions.style.display = meter.pares?.length ? "flex" : "none";
+  $("save-brightness-rois").disabled = !state.roiDirty;
+  $("restore-brightness-rois").disabled = meter.origem_pares !== "manual";
+  metrics.style.display = "grid";
+  distribution.style.display = "grid";
+  $("brightness-difference").textContent = `${meter.diferenca_cec_cortex >= 0 ? "+" : ""}${meter.diferenca_cec_cortex.toFixed(1)}`;
+  $("brightness-contrast").textContent = `${meter.contraste_normalizado.toFixed(1)}%`;
+  $("brightness-cortex-medulla").parentElement.style.display = "";
+  $("brightness-cortex-medulla-difference").parentElement.style.display = "";
+  $("brightness-ratio-label").textContent = freeComparison ? `${pointAName} (A) / ${pointBName} (B)` : "Córtex / medula";
+  $("brightness-secondary-difference-label").textContent = freeComparison ? `Diferença ${pointAName} − ${pointBName}` : "Diferença C − M";
+  $("brightness-cortex-label").textContent = freeComparison ? `${pointAName} (A)` : "Córtex";
+  $("brightness-cec-label").textContent = freeComparison ? `${pointBName} (B)` : "CEC";
+  $("brightness-cortex-medulla").textContent = meter.cortex_medulla_percentual === undefined ? "—" : `${meter.cortex_medulla_percentual.toFixed(1)}%`;
+  $("brightness-cortex-medulla-difference").textContent = meter.diferenca_cortex_medulla === undefined ? "—" : `${meter.diferenca_cortex_medulla >= 0 ? "+" : ""}${meter.diferenca_cortex_medulla.toFixed(1)}`;
+  $("brightness-cortex-distribution").textContent = `Med. ${meter.cortex_mediana.toFixed(1)} · IQR ${meter.cortex_iqr.toFixed(1)}`;
+  $("brightness-cec-distribution").textContent = `Med. ${meter.cec_mediana.toFixed(1)} · IQR ${meter.cec_iqr.toFixed(1)}`;
+  $("brightness-quality").textContent = freeComparison ? `Amostra: A ${meter.cortex_pixels.toLocaleString("pt-BR")} px; B ${meter.cec_pixels.toLocaleString("pt-BR")} px. Saturação: ${meter.cortex_saturacao.toFixed(1)}% / ${meter.cec_saturacao.toFixed(1)}%. Calculado nas ROIs marcadas, sem CLAHE.` : `Amostra: córtex ${meter.cortex_pixels.toLocaleString("pt-BR")} px; CEC ${meter.cec_pixels.toLocaleString("pt-BR")} px. Saturação: ${meter.cortex_saturacao.toFixed(1)}% / ${meter.cec_saturacao.toFixed(1)}%.`;
+  const displayedPosition = Math.max(0, Math.min(100, displayedPercent));
+  indicator.style.left = `${displayedPosition}%`;
+  track.setAttribute("aria-valuenow", String(displayedPosition));
+  renderBrightnessRois(state.roiPairs);
+}
+function renderBrightnessRois(pairs) {
+  const layer = $("brightness-roi-layer");
+  layer.replaceChildren();
+  const width = state.originalWidth;
+  const height = state.originalHeight;
+  layer.setAttribute("viewBox", `0 0 ${width || 1} ${height || 1}`);
+  if (!pairs.length) return;
+  const namespace = "http://www.w3.org/2000/svg";
+  const create = (tag, attributes = {}) => {
+    const element = document.createElementNS(namespace, tag);
+    Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, String(value)));
+    return element;
+  };
+  layer.classList.toggle("adjusting", $("adjust-brightness-rois").checked);
+  pairs.forEach((pair, index) => {
+    const [cortexX, cortexY] = pair.cortex_centro;
+    const [cecX, cecY] = pair.cec_centro;
+    const radius = pair.raio;
+    const group = create("g", { "data-pair": index });
+    group.append(create("line", { x1: cortexX, y1: cortexY, x2: cecX, y2: cecY, class: "roi-link" }));
+    const cortexCircle = create("circle", { cx: cortexX, cy: cortexY, r: radius, class: "roi-cortex", "data-region": "cortex" });
+    const cecCircle = create("circle", { cx: cecX, cy: cecY, r: radius, class: "roi-cec", "data-region": "cec" });
+    cortexCircle.addEventListener("pointerdown", (event) => beginRoiDrag(event, index, "cortex"));
+    cecCircle.addEventListener("pointerdown", (event) => beginRoiDrag(event, index, "cec"));
+    group.append(cortexCircle, cecCircle);
+    const text = create("text", { x: (cortexX + cecX) / 2, y: Math.min(cortexY, cecY) - radius - 8, "text-anchor": "middle" });
+    text.textContent = `${index + 1}. ${pair.faixa}: ${pair.percentual.toFixed(1)}%`;
+    group.append(text);
+    layer.append(group);
+  });
+  layer.style.display = $("toggle-brightness-rois").checked ? "block" : "none";
+}
+function roiPoint(event) {
+  const layer = $("brightness-roi-layer");
+  const matrix = layer.getScreenCTM();
+  const point = layer.createSVGPoint();
+  point.x = event.clientX; point.y = event.clientY;
+  const local = matrix ? point.matrixTransform(matrix.inverse()) : point;
+  return [
+    Math.round(Math.min(Math.max(local.x, 0), state.originalWidth - 1)),
+    Math.round(Math.min(Math.max(local.y, 0), state.originalHeight - 1)),
+  ];
+}
+function updateRoiPairDrawing(index) {
+  const pair = state.roiPairs[index];
+  const group = $("brightness-roi-layer").querySelector(`[data-pair="${index}"]`);
+  if (!group || !pair) return;
+  const [cortexX, cortexY] = pair.cortex_centro;
+  const [cecX, cecY] = pair.cec_centro;
+  const line = group.querySelector("line");
+  line.setAttribute("x1", cortexX); line.setAttribute("y1", cortexY); line.setAttribute("x2", cecX); line.setAttribute("y2", cecY);
+  const cortexCircle = group.querySelector('[data-region="cortex"]');
+  const cecCircle = group.querySelector('[data-region="cec"]');
+  cortexCircle.setAttribute("cx", cortexX); cortexCircle.setAttribute("cy", cortexY);
+  cecCircle.setAttribute("cx", cecX); cecCircle.setAttribute("cy", cecY);
+  const label = group.querySelector("text");
+  label.setAttribute("x", (cortexX + cecX) / 2);
+  label.setAttribute("y", Math.min(cortexY, cecY) - pair.raio - 8);
+}
+function beginRoiDrag(event, index, region) {
+  if (!$("adjust-brightness-rois").checked) return;
+  event.preventDefault();
+  event.stopPropagation();
+  state.roiDragging = { index, region, before: JSON.stringify(state.roiPairs) };
+  $("brightness-roi-layer").setPointerCapture(event.pointerId);
+}
+async function finishRoiDrag() {
+  const drag = state.roiDragging;
+  if (!drag) return;
+  state.roiDragging = null;
+  try {
+    const result = await request("/api/brightness-rois", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_id: state.currentId, reviewer: reviewer(), model: state.segmentationModel, pares: state.roiPairs, preview: true }),
+    });
+    state.roiDirty = true;
+    showBrightnessMeter(result.medidor_brilho, { keepDirty: true });
+    showMessage("ROI ajustada. Salve as ROIs para registrar a seleção do revisor.");
+  } catch (error) {
+    state.roiPairs = JSON.parse(drag.before);
+    renderBrightnessRois(state.roiPairs);
+    showMessage(error.message, true);
+  }
+}
 function polygonColor() {
-  return { rim: "#f34f56", cortex: "#41cbd0", medulla: "#ffdb3b", central_echo_complex: "#ff9100" }[$("polygon-layer").value];
+  return { rim: "#f34f56", cortex: "#41cbd0", medulla: "#ffdb3b", central_echo_complex: "#ff9100", anomalia: "#b861ff" }[$("polygon-layer").value];
 }
 function resetPolygon() {
   state.points = [];
@@ -230,6 +390,12 @@ function renderPolygon() {
   });
 }
 function setDrawingTool(tool) {
+  state.comparing = false;
+  state.comparatorStart = null;
+  clearComparatorPreview();
+  $("comparator-panel").classList.remove("open");
+  $("brightness-roi-layer").classList.remove("comparing");
+  $("tool-comparator").classList.remove("active");
   const wasActive = state.drawing && state.drawingTool === tool;
   state.drawingTool = tool;
   state.drawing = !wasActive;
@@ -249,17 +415,108 @@ function setDrawingTool(tool) {
   }[tool];
   if (!state.drawing) resetPolygon();
 }
+function comparatorRadius() { return Number($("comparator-radius").value || 8); }
+function clearComparatorPreview() { $("brightness-roi-layer").querySelector("#comparator-preview")?.remove(); }
+function renderComparatorPreview(start, end = start) {
+  clearComparatorPreview();
+  const layer = $("brightness-roi-layer");
+  const namespace = "http://www.w3.org/2000/svg";
+  const group = document.createElementNS(namespace, "g");
+  group.id = "comparator-preview";
+  const make = (tag, attributes) => {
+    const element = document.createElementNS(namespace, tag);
+    Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, String(value)));
+    return element;
+  };
+  const radius = comparatorRadius();
+  group.append(
+    make("line", { x1: start[0], y1: start[1], x2: end[0], y2: end[1], class: "roi-link" }),
+    make("circle", { cx: start[0], cy: start[1], r: radius, class: "roi-cec" }),
+    make("circle", { cx: end[0], cy: end[1], r: radius, class: "roi-cortex" }),
+  );
+  layer.append(group);
+}
+function setComparator() {
+  const enabled = !state.comparing;
+  state.comparing = enabled;
+  state.comparatorStart = null;
+  state.drawing = false;
+  resetPolygon();
+  $("polygon-panel").classList.remove("open");
+  $("drawing-layer").classList.remove("active");
+  ["polygon", "brush", "eraser"].forEach((name) => $(`tool-${name}`).classList.remove("active"));
+  $("tool-comparator").classList.toggle("active", enabled);
+  $("comparator-panel").classList.toggle("open", enabled);
+  $("adjust-brightness-rois").checked = false;
+  $("brightness-roi-layer").classList.remove("adjusting");
+  $("brightness-roi-layer").classList.toggle("comparing", enabled);
+  if (!enabled) clearComparatorPreview();
+}
+async function addComparatorPair() {
+  const start = state.comparatorStart;
+  if (!start || !state.currentId) return;
+  const end = state.comparatorEnd;
+  state.comparatorStart = null;
+  state.comparatorEnd = null;
+  clearComparatorPreview();
+  if (!end) return;
+  if (state.roiPairs.length >= 3) {
+    showMessage("Há três pares de ROIs. Remova ou ajuste um par existente antes de adicionar outro.", true);
+    return;
+  }
+  const before = JSON.stringify(state.roiPairs);
+  state.roiPairs.push({
+    faixa: `manual ${state.roiPairs.length + 1}`,
+    cec_centro: start,
+    cortex_centro: end,
+    raio: comparatorRadius(),
+    modo: "livre",
+  });
+  try {
+    const result = await request("/api/brightness-rois", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_id: state.currentId, reviewer: reviewer(), model: state.segmentationModel, pares: state.roiPairs, preview: true }),
+    });
+    state.roiDirty = true;
+    showBrightnessMeter(result.medidor_brilho, { keepDirty: true });
+    showMessage("Comparação ponto A → ponto B adicionada. Salve as ROIs para registrar a seleção.");
+  } catch (error) {
+    state.roiPairs = JSON.parse(before);
+    renderBrightnessRois(state.roiPairs);
+    showMessage(error.message, true);
+  }
+}
 function drawingPoint(event) {
-  const bounds = $("drawing-layer").getBoundingClientRect();
-  const x = (event.clientX - bounds.left) * state.originalWidth / bounds.width;
-  const y = (event.clientY - bounds.top) * state.originalHeight / bounds.height;
-  return [Math.round(x), Math.round(y)];
+  const layer = $("drawing-layer");
+  // Converte o clique para o proprio sistema de coordenadas do SVG. Isso
+  // preserva a posicao correta quando a imagem foi redimensionada, recebeu
+  // zoom ou tiver barras laterais por diferenca de proporcao.
+  const matrix = layer.getScreenCTM();
+  if (matrix) {
+    const point = layer.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const local = point.matrixTransform(matrix.inverse());
+    return [
+      Math.round(Math.min(Math.max(local.x, 0), state.originalWidth - 1)),
+      Math.round(Math.min(Math.max(local.y, 0), state.originalHeight - 1)),
+    ];
+  }
+  const bounds = layer.getBoundingClientRect();
+  return [
+    Math.round((event.clientX - bounds.left) * state.originalWidth / bounds.width),
+    Math.round((event.clientY - bounds.top) * state.originalHeight / bounds.height),
+  ];
 }
 async function savePolygon() {
   if (!state.currentId) return;
   if (!ensureReviewer()) return;
+  if (state.saving) return;
   if (state.drawingTool === "polygon" && state.points.length < 3) return showMessage("Desenhe pelo menos tres vertices.", true);
   if (state.drawingTool !== "polygon" && state.points.length < 1) return showMessage("Desenhe com o pincel ou a borracha antes de aplicar.", true);
+  state.saving = true;
+  $("polygon-save").disabled = true;
   try {
     await request("/api/corrections", {
       method: "POST",
@@ -278,9 +535,16 @@ async function savePolygon() {
     resetPolygon();
     await selectItem(state.currentId);
     await loadCorrections();
-    chooseButton(layer === "rim" ? "status_rim" : `status_${layer}`, "corrigir");
-    showMessage("Mascara corrigida salva; finalize a avaliacao em Salvar e avancar.");
-  } catch (error) { showMessage(error.message, true); }
+    const reviewField = layer === "rim" ? "status_rim" : `status_${layer}`;
+    if (document.querySelector(`[data-field="${reviewField}"]`)) chooseButton(reviewField, "corrigir");
+    const label = layer === "anomalia" ? "Marcador de anomalia" : "Mascara manual";
+    showMessage(`${label} salvo com versao de auditoria; finalize a avaliacao em Salvar e avancar.`);
+  } catch (error) {
+    showMessage(error.message, true);
+  } finally {
+    state.saving = false;
+    $("polygon-save").disabled = false;
+  }
 }
 async function selectItem(imageId) {
   try {
@@ -299,6 +563,7 @@ async function selectItem(imageId) {
     setLayer("cortex", item.layers.cortex);
     setLayer("medulla", item.layers.medulla);
     setLayer("central_echo_complex", item.layers.central_echo_complex);
+    setLayer("anomalia", item.layers.anomalia);
     $("item-source").textContent = item.info.origem;
     $("item-dimension").textContent = item.info.dimensao;
     $("item-rim").textContent = item.info.mascara_rim;
@@ -310,6 +575,7 @@ async function selectItem(imageId) {
       state.segmentationModel = item.modelo_segmentacao_interna;
     }
     showModelMetrics(item);
+    showBrightnessMeter(item.medidor_brilho);
     fillReview(item.review, item.camadas_disponiveis);
     state.zoom = 1;
     resetPolygon();
@@ -351,9 +617,50 @@ async function exportDatabase() {
 document.querySelectorAll("[data-field] button").forEach((button) => button.addEventListener("click", () => {
   chooseButton(button.closest("fieldset").dataset.field, button.dataset.value);
 }));
-["rim", "cortex", "medulla", "central_echo_complex"].forEach((name) => $(`toggle-${name}`).addEventListener("change", (event) => {
+["rim", "cortex", "medulla", "central_echo_complex", "anomalia"].forEach((name) => $(`toggle-${name}`).addEventListener("change", (event) => {
   $(`layer-${name}`).style.display = event.target.checked ? "block" : "none";
 }));
+$("toggle-brightness-rois").addEventListener("change", (event) => {
+  $("brightness-roi-layer").style.display = event.target.checked ? "block" : "none";
+});
+$("adjust-brightness-rois").addEventListener("change", () => {
+  $("brightness-roi-layer").classList.toggle("adjusting", $("adjust-brightness-rois").checked);
+});
+$("brightness-roi-layer").addEventListener("pointermove", (event) => {
+  const drag = state.roiDragging;
+  if (!drag) return;
+  const pair = state.roiPairs[drag.index];
+  if (!pair) return;
+  event.preventDefault();
+  pair[drag.region === "cortex" ? "cortex_centro" : "cec_centro"] = roiPoint(event);
+  updateRoiPairDrawing(drag.index);
+});
+["pointerup", "pointercancel"].forEach((eventName) => $("brightness-roi-layer").addEventListener(eventName, () => finishRoiDrag()));
+$("save-brightness-rois").addEventListener("click", async () => {
+  if (!state.currentId || !ensureReviewer() || !state.roiPairs.length) return;
+  try {
+    const result = await request("/api/brightness-rois", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_id: state.currentId, reviewer: reviewer(), model: state.segmentationModel, pares: state.roiPairs }),
+    });
+    state.roiDirty = false;
+    showBrightnessMeter(result.medidor_brilho);
+    showMessage("ROIs ajustadas salvas para este revisor e esta versão do modelo.");
+  } catch (error) { showMessage(error.message, true); }
+});
+$("restore-brightness-rois").addEventListener("click", async () => {
+  if (!state.currentId || !ensureReviewer()) return;
+  try {
+    await request("/api/brightness-rois", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_id: state.currentId, reviewer: reviewer(), model: state.segmentationModel, restore: true }),
+    });
+    await selectItem(state.currentId);
+    showMessage("ROIs automáticas restauradas.");
+  } catch (error) { showMessage(error.message, true); }
+});
 $("zoom-in").addEventListener("click", () => { state.zoom = Math.min(3, state.zoom + 0.25); applyZoom(); });
 $("zoom-out").addEventListener("click", () => { state.zoom = Math.max(0.5, state.zoom - 0.25); applyZoom(); });
 $("zoom-reset").addEventListener("click", () => { state.zoom = 1; applyZoom(); });
@@ -361,6 +668,76 @@ $("tool-zoom").addEventListener("click", () => { state.zoom = Math.min(3, state.
 $("tool-polygon").addEventListener("click", () => setDrawingTool("polygon"));
 $("tool-brush").addEventListener("click", () => setDrawingTool("brush"));
 $("tool-eraser").addEventListener("click", () => setDrawingTool("eraser"));
+$("tool-comparator").addEventListener("click", setComparator);
+$("calculate-comparator-pairs").addEventListener("click", async () => {
+  if (!state.currentId || !ensureReviewer()) return;
+  if (!state.roiPairs.length) {
+    showMessage("Marque ao menos um par A → B antes de calcular.", true);
+    return;
+  }
+  try {
+    const result = await request("/api/brightness-rois", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_id: state.currentId, reviewer: reviewer(), model: state.segmentationModel, pares: state.roiPairs, preview: true }),
+    });
+    state.roiDirty = true;
+    showBrightnessMeter(result.medidor_brilho, { keepDirty: true });
+    showMessage("Cálculo atualizado a partir das marcações A/B. Salve as ROIs para registrar a seleção.");
+  } catch (error) { showMessage(error.message, true); }
+});
+$("clear-comparator-pairs").addEventListener("click", async () => {
+  if (!state.currentId || !ensureReviewer()) return;
+  try {
+    await request("/api/brightness-rois", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_id: state.currentId, reviewer: reviewer(), model: state.segmentationModel, restore: true }),
+    });
+    state.roiPairs = [];
+    state.roiDirty = false;
+    clearComparatorPreview();
+    await selectItem(state.currentId);
+    showMessage("Marcações manuais A/B removidas; as ROIs automáticas foram restauradas.");
+  } catch (error) { showMessage(error.message, true); }
+});
+$("comparator-radius").addEventListener("input", () => {
+  $("comparator-radius-value").textContent = `${comparatorRadius()} px`;
+  if (state.comparatorStart) renderComparatorPreview(state.comparatorStart, state.comparatorEnd || state.comparatorStart);
+});
+$("brightness-roi-layer").addEventListener("pointerdown", (event) => {
+  if (!state.comparing || !state.originalWidth || !state.originalHeight) return;
+  event.preventDefault();
+  state.comparatorStart = roiPoint(event);
+  state.comparatorEnd = state.comparatorStart;
+  $("brightness-roi-layer").setPointerCapture(event.pointerId);
+  renderComparatorPreview(state.comparatorStart);
+});
+$("brightness-roi-layer").addEventListener("pointermove", (event) => {
+  if (!state.comparing || !state.comparatorStart) return;
+  event.preventDefault();
+  state.comparatorEnd = roiPoint(event);
+  renderComparatorPreview(state.comparatorStart, state.comparatorEnd);
+});
+function finishComparatorPair(event) {
+  if (!state.comparing || !state.comparatorStart) return;
+  event?.preventDefault();
+  if (event) state.comparatorEnd = roiPoint(event);
+  addComparatorPair();
+}
+$("brightness-roi-layer").addEventListener("pointerup", finishComparatorPair);
+// Alguns navegadores encerram o arraste fora do SVG mesmo quando a captura do
+// ponteiro está ativa. O listener global torna a soltura confiável nesses casos.
+window.addEventListener("pointerup", finishComparatorPair);
+$("brightness-roi-layer").addEventListener("pointercancel", () => {
+  if (!state.comparing) return;
+  state.comparatorStart = null;
+  state.comparatorEnd = null;
+  clearComparatorPreview();
+});
+$("toggle-panels").addEventListener("click", () => {
+  setFocusMode(!$("workspace").classList.contains("focus-mode"));
+});
 $("polygon-clear").addEventListener("click", resetPolygon);
 $("polygon-save").addEventListener("click", savePolygon);
 $("polygon-layer").addEventListener("change", renderPolygon);
@@ -396,6 +773,7 @@ $("base-image").addEventListener("load", () => {
   const width = state.originalWidth || $("base-image").naturalWidth;
   const height = state.originalHeight || $("base-image").naturalHeight;
   $("drawing-layer").setAttribute("viewBox", `0 0 ${width} ${height}`);
+  $("brightness-roi-layer").setAttribute("viewBox", `0 0 ${width} ${height}`);
 });
 $("toggle-superres").addEventListener("change", () => {
   localStorage.setItem("curadoria_view_superres", $("toggle-superres").checked ? "1" : "0");
@@ -430,6 +808,14 @@ $("clear-filters").addEventListener("click", async () => {
   $("annotation").value = ""; $("queue-state").value = "pendentes"; $("source").value = ""; $("search").value = "";
   await loadQueue(false);
 });
+$("toggle-left-details").addEventListener("click", () => {
+  const leftRail = document.querySelector(".left");
+  const collapsed = leftRail.classList.toggle("details-collapsed");
+  $("toggle-left-details").textContent = collapsed ? "Mostrar progresso e filtros" : "Recolher progresso e filtros";
+  $("toggle-left-details").setAttribute("aria-expanded", String(!collapsed));
+  localStorage.setItem("curadoria_left_details_collapsed", collapsed ? "1" : "0");
+});
+if (localStorage.getItem("curadoria_left_details_collapsed") === "1") $("toggle-left-details").click();
 reviewerInput.addEventListener("change", async () => {
   localStorage.setItem("curadoria_reviewer", reviewer()); await loadMeta(); await loadQueue(false); await loadCorrections();
 });
@@ -440,6 +826,7 @@ async function start() {
   $("segmentation-model").value = localStorage.getItem("curadoria_segmentation_model") || "unet";
   $("toggle-superres").checked = localStorage.getItem("curadoria_view_superres") === "1";
   $("toggle-clahe-view").checked = localStorage.getItem("curadoria_view_clahe") === "1";
+  setFocusMode(localStorage.getItem("curadoria_focus_mode") === "1");
   $("brush-size-field").style.display = "none";
   state.segmentationModel = $("segmentation-model").value;
   await loadMeta(); await loadQueue(false); await loadCorrections();

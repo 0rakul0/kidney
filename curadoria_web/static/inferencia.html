@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inferência Renal</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><span class="kidney-mark" aria-hidden="true"><i></i><i></i></span><h1>Inferência Renal</h1></div>
+      <a class="back-link" href="/">Voltar à curadoria</a>
+    </header>
+    <main class="inference-page">
+      <section class="inference-intro">
+        <span class="eyebrow">MODELO EXPLORATÓRIO</span>
+        <h2>Segmentar uma nova imagem</h2>
+        <p>Envie uma imagem de ultrassom renal. A cascata prediz rim, córtex, medula e CEC; as máscaras devem ser revisadas antes de qualquer uso clínico.</p>
+      </section>
+      <section class="inference-upload" aria-labelledby="upload-title">
+        <h2 id="upload-title">Imagem de entrada</h2>
+        <label id="drop-zone" class="drop-zone" for="inference-file">
+          <input id="inference-file" type="file" accept="image/png,image/jpeg" hidden>
+          <strong>Selecione ou arraste uma imagem</strong>
+          <span>PNG, JPG ou JPEG · até 20 MB</span>
+        </label>
+        <div id="selected-file" class="selected-file" hidden></div>
+        <button id="run-inference" class="primary inference-run" type="button" disabled>Executar inferência</button>
+        <p id="inference-message" class="message" role="status"></p>
+      </section>
+      <section id="inference-result" class="inference-result" hidden>
+        <div class="result-heading"><div><span class="eyebrow">RESULTADO</span><h2 id="result-name">—</h2></div><span id="result-dimensions" class="scope"></span></div>
+        <div class="inference-grid">
+          <div class="inference-viewer">
+            <div class="inference-stack">
+              <img id="inference-image" alt="Imagem de ultrassom enviada">
+              <img id="inference-rim" class="overlay" alt="">
+              <img id="inference-cortex" class="overlay" alt="">
+              <img id="inference-medulla" class="overlay" alt="">
+              <img id="inference-central_echo_complex" class="overlay" alt="">
+            </div>
+            <fieldset class="inference-layers"><legend>Camadas</legend><label class="red"><input data-layer="rim" type="checkbox" checked> Rim</label><label class="cyan"><input data-layer="cortex" type="checkbox" checked> Córtex</label><label class="yellow"><input data-layer="medulla" type="checkbox" checked> Medula</label><label class="orange"><input data-layer="central_echo_complex" type="checkbox" checked> CEC</label></fieldset>
+          </div>
+          <aside class="inference-summary">
+            <section class="brightness-meter inference-meter" aria-labelledby="inference-meter-title">
+              <div class="brightness-header"><div><h2 id="inference-meter-title">Ecogenicidade cortical</h2><span>Referência: CEC</span></div><strong id="inference-brightness-value">—</strong></div>
+              <div class="brightness-track"><span id="inference-brightness-indicator"></span></div>
+              <div class="brightness-scale"><span>Mais translúcido</span><span>Brilho do CEC</span></div>
+              <div class="brightness-metrics"><div><span>Δ CEC − córtex</span><b id="inference-difference">—</b></div><div><span>Contraste normalizado</span><b id="inference-contrast">—</b></div><div><span>Córtex / medula</span><b id="inference-cortex-medulla">—</b></div><div><span>Diferença C − M</span><b id="inference-cortex-medulla-difference">—</b></div></div>
+              <div class="brightness-distribution"><div><span>Córtex</span><b id="inference-cortex-distribution">—</b></div><div><span>CEC</span><b id="inference-cec-distribution">—</b></div></div>
+              <p id="inference-quality" class="brightness-quality"></p><small class="brightness-source">Calculado na imagem original, sem CLAHE.</small>
+            </section>
+            <p id="inference-warning" class="hint"></p>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <script src="/inferencia.js?v=20260905"></script>
+  </body>
+</html>

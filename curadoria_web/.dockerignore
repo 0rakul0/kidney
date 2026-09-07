@@ -1,0 +1,11 @@
+# Apenas o servidor, a interface e as dependencias entram no contexto.
+**/__pycache__/
+**/*.py[cod]
+.git/
+.idea/
+.vscode/
+k8s/
+README.md
+*.md
+*.sqlite3
+*.log

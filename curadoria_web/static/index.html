@@ -10,11 +10,14 @@
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="menu">&#9776;</span>
+        <button id="toggle-panels" class="menu" type="button" aria-expanded="true" aria-controls="workspace" title="Ocultar paineis laterais">
+          &#9776;<span class="sr-only">Alternar paineis laterais</span>
+        </button>
         <span class="kidney-mark" aria-hidden="true"><i></i><i></i></span>
         <h1>Curadoria Renal</h1>
       </div>
       <div class="identity">
+        <a class="inference-link" href="/inferencia.html">Inferir imagem</a>
         <span class="help-dot">?</span>
         <label class="reviewer-field">
           <span>Revisor</span>
@@ -27,8 +30,10 @@
       </div>
     </header>
 
-    <main class="workspace">
+    <main id="workspace" class="workspace">
       <aside class="rail left">
+        <div class="left-controls"><button id="toggle-left-details" type="button" aria-expanded="true">Recolher progresso e filtros</button></div>
+        <div id="left-details">
         <section class="progress-panel">
           <h2>Progresso da fila</h2>
           <div class="progress-body">
@@ -69,6 +74,7 @@
           </label>
           <label>Buscar ID<input id="search" placeholder="IM-0712"></label>
         </section>
+        </div>
 
         <section class="queue">
           <h2>Proximos na fila</h2>
@@ -91,7 +97,18 @@
               <button id="tool-polygon" type="button">Poligono</button>
               <button id="tool-brush" type="button">Pincel</button>
               <button id="tool-eraser" type="button">Borracha</button>
+              <button id="tool-comparator" type="button">Comparador</button>
             </div>
+            <section id="comparator-panel" class="polygon-panel" aria-label="Comparador de brilho">
+  <strong>Comparar ponto A → ponto B</strong>
+              <label>Raio das duas áreas (pixels)
+                <input id="comparator-radius" type="range" min="2" max="24" value="8">
+                <span id="comparator-radius-value">8 px</span>
+              </label>
+  <small>Pressione no ponto A e arraste até o ponto B. As áreas podem estar em qualquer estrutura visível, como rim, fígado ou baço.</small>
+              <button id="calculate-comparator-pairs" type="button">Calcular marcações</button>
+              <button id="clear-comparator-pairs" class="secondary-button" type="button">Limpar pontos A/B</button>
+            </section>
             <section id="polygon-panel" class="polygon-panel" aria-label="Editar mascara">
               <strong id="drawing-title">Corrigir por poligono</strong>
               <label>Classe
@@ -100,6 +117,7 @@
                   <option value="cortex" selected>Cortex</option>
                   <option value="medulla">Medulla</option>
                   <option value="central_echo_complex">Central echo complex</option>
+                  <option value="anomalia">Marcador de anomalia</option>
                 </select>
               </label>
               <label>Acao
@@ -114,7 +132,7 @@
               </label>
               <div class="polygon-actions">
                 <button id="polygon-clear" type="button">Limpar</button>
-                <button id="polygon-save" type="button">Aplicar</button>
+                <button id="polygon-save" type="button">Salvar marcacao</button>
               </div>
               <small id="drawing-help">Clique nos vertices; aplicar fecha o poligono.</small>
             </section>
@@ -124,6 +142,8 @@
               <img id="layer-cortex" class="overlay" alt="">
               <img id="layer-medulla" class="overlay" alt="">
               <img id="layer-central_echo_complex" class="overlay" alt="">
+              <img id="layer-anomalia" class="overlay" alt="">
+              <svg id="brightness-roi-layer" class="brightness-roi-layer" aria-label="ROIs usadas no cálculo de ecogenicidade"></svg>
               <svg id="drawing-layer" class="drawing-layer" aria-label="Poligono em edicao"></svg>
             </div>
             <p id="empty-state">Selecione um caso na fila para iniciar a curadoria.</p>
@@ -134,6 +154,8 @@
                 <label class="cyan"><input type="checkbox" id="toggle-cortex" checked> Cortex</label>
                 <label class="yellow"><input type="checkbox" id="toggle-medulla" checked> Medulla</label>
                 <label class="orange"><input type="checkbox" id="toggle-central_echo_complex" checked> CEC</label>
+                <label class="purple"><input type="checkbox" id="toggle-anomalia" checked> Anomalia</label>
+                <label class="roi"><input type="checkbox" id="toggle-brightness-rois" checked> ROIs de brilho</label>
               </fieldset>
               <label class="model-picker">Modelo interno
                 <select id="segmentation-model">
@@ -224,20 +246,42 @@
             <button type="button" data-value="aceita">1 Correta</button>
             <button type="button" data-value="corrigir">0 Incorreta</button>
           </fieldset>
-          <fieldset class="ternary" data-field="fibrose">
-            <legend>Fibrose (referencia clinica)</legend>
-            <input type="hidden" name="fibrose" value="">
-            <button type="button" data-value="1">1 Fibrose</button>
-            <button type="button" data-value="0">0 Saudavel</button>
-            <button type="button" data-value="">Sem info</button>
-          </fieldset>
-          <label>Fonte da fibrose
-            <input name="fonte_fibrose" placeholder="biopsia, laudo, especialista">
-          </label>
+          <section class="brightness-meter" aria-labelledby="brightness-meter-title">
+            <div class="brightness-header">
+              <div>
+                <h2 id="brightness-meter-title">Ecogenicidade cortical</h2>
+                <span id="brightness-reference">Referência: CEC</span>
+              </div>
+              <strong id="brightness-value">Indisponível</strong>
+            </div>
+            <div class="brightness-track" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="brightness-meter-title">
+              <span id="brightness-indicator"></span>
+            </div>
+            <div class="brightness-scale"><span>Mais translúcido</span><span id="brightness-right-label">Brilho do CEC</span></div>
+            <p id="brightness-unavailable" class="brightness-unavailable">São necessárias as máscaras de córtex e CEC.</p>
+            <p id="brightness-pairs" class="brightness-pairs"></p>
+            <div id="brightness-roi-actions" class="brightness-roi-actions">
+              <label><input type="checkbox" id="adjust-brightness-rois"> Ajustar ROIs</label>
+              <button id="save-brightness-rois" type="button" disabled>Salvar ROIs</button>
+              <button id="restore-brightness-rois" type="button">Restaurar automáticas</button>
+            </div>
+            <div id="brightness-metrics" class="brightness-metrics">
+              <div><span id="brightness-difference-label">Δ CEC − córtex</span><b id="brightness-difference">—</b></div>
+              <div><span>Contraste normalizado</span><b id="brightness-contrast">—</b></div>
+              <div><span id="brightness-ratio-label">Córtex / medula</span><b id="brightness-cortex-medulla">—</b></div>
+              <div><span id="brightness-secondary-difference-label">Diferença C − M</span><b id="brightness-cortex-medulla-difference">—</b></div>
+            </div>
+            <div id="brightness-distribution" class="brightness-distribution">
+              <div><span id="brightness-cortex-label">Córtex</span><b id="brightness-cortex-distribution">—</b></div>
+              <div><span id="brightness-cec-label">CEC</span><b id="brightness-cec-distribution">—</b></div>
+            </div>
+            <p id="brightness-quality" class="brightness-quality"></p>
+            <small class="brightness-source">Calculado na imagem original, sem CLAHE.</small>
+          </section>
           <label>Observacoes
             <textarea name="observacao" rows="5" maxlength="1000" placeholder="Adicione observacoes aqui..."></textarea>
           </label>
-          <p class="hint">Marque fibrose somente quando houver referencia clinica rastreavel.</p>
+          <p class="hint">O marcador de anomalia e exploratório. O medidor compara a intensidade média do córtex com a do CEC nas máscaras exibidas e não confirma diagnóstico.</p>
           <button id="save-next" class="primary" type="submit">Salvar e avancar &rarr;</button>
           <p id="message" class="message" role="status"></p>
         </form>
@@ -257,6 +301,6 @@
         </footer>
       </aside>
     </main>
-    <script src="/app.js?v=20260607_brush_eraser"></script>
+    <script src="/app.js?v=20260901_echogenicity_panel"></script>
   </body>
 </html>

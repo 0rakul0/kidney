@@ -152,10 +152,13 @@ Com mascaras anatomicas revisadas, a primeira analise exploratoria pode medir:
 - intensidade media e mediana dentro de `Medulla` e `Cortex`;
 - percentis de intensidade e dispersao local;
 - razao de intensidade `cortex/medulla` e contraste cortico-medular;
-- razao `medula/complexo_ecogenico_central`, quando disponivel;
+- razao `cortex/complexo_ecogenico_central`, diferenca absoluta e contraste
+  normalizado entre CEC e cortex, quando disponivel;
 - textura por compartimento e no parenquima renal.
 
 Essas medidas devem ser descritas inicialmente como caracterizacao
 ultrassonografica anatomica, nao como diagnostico de fibrose. A revisao
 medico-metodologica completa esta em
 `docs/revisao_medico_metodologica_fibrose.md`.
+As formulas, as referencias e os controles de qualidade do eixo central estao
+registrados em `docs/eixo_ecogenicidade_renal.md`.
