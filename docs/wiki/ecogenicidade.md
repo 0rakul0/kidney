@@ -260,3 +260,13 @@ Esses documentos discutem estudos sobre:
 ## Próxima leitura
 
 Para reproduzir o pipeline e os principais scripts, consulte [Execução e reprodutibilidade](execucao-e-reprodutibilidade.md).
+
+
+## Documentos técnicos relacionados
+
+- [Eixo central: ecogenicidade renal quantitativa](../eixo_ecogenicidade_renal.md)
+- [Revisão médico-metodológica sobre fibrose](../revisao_medico_metodologica_fibrose.md)
+- [Referências visuais para ultrassom renal](../referencias_visuais_ultrassom_renal.md)
+- [Pipeline rim–medula–marcadores](../pipeline_rim_medula_opacidade.md)
+
+Veja também o [índice completo da documentação técnica](documentacao-tecnica.md).
