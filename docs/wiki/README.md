@@ -40,7 +40,11 @@ A wiki foi organizada para responder perguntas diferentes sobre o projeto.
 | [Execução e reprodutibilidade](execucao-e-reprodutibilidade.md) | Como reproduzir os principais fluxos e experimentos? |
 | [Histórico metodológico](historico-metodologico.md) | Quais decisões mudaram ao longo do desenvolvimento? |
 | [Roadmap e limitações](roadmap-e-limitacoes.md) | O que ainda falta validar, melhorar ou implementar? |
-| [Documentação técnica](documentacao-tecnica.md) | Quais documentos detalhados existem em `docs/` e como eles se relacionam? |
+| [Scripts de engenharia de dataset](scripts-engenharia-dataset.md) | O que cada script de `engenharia_dataset/` lê, processa e gera? |
+| [Scripts de segmentação](scripts-segmentacao.md) | Como funcionam treino, consenso, inferência, avaliação e pós-processamento? |
+| [Curadoria e inferência](curadoria-e-inferencia.md) | Como a aplicação salva revisões, corrige máscaras, calcula ecogenicidade e roda nova imagem? |
+| [Scripts auxiliares](scripts-auxiliares.md) | Como funcionam features, classificação, figuras e benchmarks externos? |
+| [Documentação técnica](documentacao-tecnica.md) | Inventário dos documentos históricos e relatórios em `docs/` |
 
 ## Eixos científicos do projeto
 
@@ -126,7 +130,7 @@ Confiança, morfologia e consenso são usados para priorização. A entrada em u
 
 A wiki é uma camada de orientação. Ela explica o papel de cada componente e conecta os documentos detalhados, sem substituí-los.
 
-Todos os documentos Markdown de `docs/` foram catalogados em [Documentação técnica](documentacao-tecnica.md), com descrição, agrupamento temático e links diretos.
+A wiki agora absorve também o comportamento do código. As páginas [Scripts de engenharia de dataset](scripts-engenharia-dataset.md), [Scripts de segmentação](scripts-segmentacao.md), [Curadoria e inferência](curadoria-e-inferencia.md) e [Scripts auxiliares](scripts-auxiliares.md) descrevem entradas, processamento, saídas, parâmetros e papel de cada componente. O [índice de documentação técnica](documentacao-tecnica.md) permanece como registro dos relatórios históricos em `docs/`.
 
 ## Para quem chega agora
 
@@ -138,7 +142,11 @@ A leitura recomendada é:
 4. [Modelos e resultados](modelos-e-resultados.md);
 5. [Ecogenicidade](ecogenicidade.md);
 6. [Histórico metodológico](historico-metodologico.md);
-7. [Roadmap e limitações](roadmap-e-limitacoes.md);
-8. [Documentação técnica](documentacao-tecnica.md).
+7. [Scripts de engenharia de dataset](scripts-engenharia-dataset.md);
+8. [Scripts de segmentação](scripts-segmentacao.md);
+9. [Curadoria e inferência](curadoria-e-inferencia.md);
+10. [Scripts auxiliares](scripts-auxiliares.md);
+11. [Histórico metodológico](historico-metodologico.md);
+12. [Roadmap e limitações](roadmap-e-limitacoes.md).
 
 Assim é possível entender primeiro o desenho geral, depois os experimentos e, por fim, as decisões científicas que ainda estão em aberto.
