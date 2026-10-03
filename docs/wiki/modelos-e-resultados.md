@@ -179,3 +179,17 @@ Não existe necessariamente um único melhor modelo para todo o projeto.
 ## Próxima leitura
 
 Para entender o que o projeto faz **depois da segmentação**, siga para [Ecogenicidade renal quantitativa](ecogenicidade.md).
+
+
+## Documentos técnicos relacionados
+
+- [Resultados DeepLabV3 no dataset_geral](../resultados_deeplab_dataset_geral_cv.md)
+- [Geração de máscaras com o modelo campeão](../geracao_mascaras_modelo_campeao.md)
+- [Pipeline rim–medula–marcadores](../pipeline_rim_medula_opacidade.md)
+- [Baseline supervisionado de Medulla](../resultados_modelo3_baseline_medulla.md)
+- [Estabilidade da segmentação de Medulla](../resultados_estabilidade_medula.md)
+- [Expansão controlada de pseudo-máscaras de Medulla](../resultados_expansao_pseudomascaras_medulla.md)
+- [Próximos passos do modelo intrarrenal](../proximos_passos_modelo_intrarrenal.md)
+- [Protocolo kidneyUS + WiSARD](../protocolo_retreino_kidneyus_wisard.md)
+
+Veja também o [índice completo da documentação técnica](documentacao-tecnica.md).
