@@ -262,11 +262,6 @@ Esses documentos discutem estudos sobre:
 Para reproduzir o pipeline e os principais scripts, consulte [Execução e reprodutibilidade](execucao-e-reprodutibilidade.md).
 
 
-## Documentos técnicos relacionados
+## Conteúdo consolidado na wiki
 
-- [Eixo central: ecogenicidade renal quantitativa](../eixo_ecogenicidade_renal.md)
-- [Revisão médico-metodológica sobre fibrose](../revisao_medico_metodologica_fibrose.md)
-- [Referências visuais para ultrassom renal](../referencias_visuais_ultrassom_renal.md)
-- [Pipeline rim–medula–marcadores](../pipeline_rim_medula_opacidade.md)
-
-Veja também o [índice completo da documentação técnica](documentacao-tecnica.md).
+Os antigos relatórios técnicos de `docs/` foram incorporados às páginas temáticas da wiki e removidos do repositório para evitar duplicação. Para aprofundamento, use a navegação da [Wiki](README.md), especialmente as páginas de scripts e histórico metodológico.
