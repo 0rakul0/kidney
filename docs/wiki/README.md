@@ -40,6 +40,7 @@ A wiki foi organizada para responder perguntas diferentes sobre o projeto.
 | [Execução e reprodutibilidade](execucao-e-reprodutibilidade.md) | Como reproduzir os principais fluxos e experimentos? |
 | [Histórico metodológico](historico-metodologico.md) | Quais decisões mudaram ao longo do desenvolvimento? |
 | [Roadmap e limitações](roadmap-e-limitacoes.md) | O que ainda falta validar, melhorar ou implementar? |
+| [Documentação técnica](documentacao-tecnica.md) | Quais documentos detalhados existem em `docs/` e como eles se relacionam? |
 
 ## Eixos científicos do projeto
 
@@ -125,18 +126,7 @@ Confiança, morfologia e consenso são usados para priorização. A entrada em u
 
 A wiki é uma camada de orientação. Ela explica o papel de cada componente e conecta os documentos detalhados, sem substituí-los.
 
-Entre os documentos técnicos principais estão:
-
-- `docs/narrativa_engenharia_dataset.md`
-- `docs/organizacao_repositorio.md`
-- `docs/organizacao_datasets_curadoria.md`
-- `docs/reuniao_curadoria_human_in_the_loop.md`
-- `docs/eixo_ecogenicidade_renal.md`
-- `docs/geracao_mascaras_modelo_campeao.md`
-- `docs/proximos_passos_modelo_intrarrenal.md`
-- `docs/resultados_deeplab_dataset_geral_cv.md`
-- `docs/resultados_expansao_pseudomascaras_medulla.md`
-- `docs/revisao_medico_metodologica_fibrose.md`
+Todos os documentos Markdown de `docs/` foram catalogados em [Documentação técnica](documentacao-tecnica.md), com descrição, agrupamento temático e links diretos.
 
 ## Para quem chega agora
 
@@ -148,6 +138,7 @@ A leitura recomendada é:
 4. [Modelos e resultados](modelos-e-resultados.md);
 5. [Ecogenicidade](ecogenicidade.md);
 6. [Histórico metodológico](historico-metodologico.md);
-7. [Roadmap e limitações](roadmap-e-limitacoes.md).
+7. [Roadmap e limitações](roadmap-e-limitacoes.md);
+8. [Documentação técnica](documentacao-tecnica.md).
 
 Assim é possível entender primeiro o desenho geral, depois os experimentos e, por fim, as decisões científicas que ainda estão em aberto.
