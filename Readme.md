@@ -382,3 +382,8 @@ e segmentacao intrarrenal como apoio a analise exploratoria.
 - ZUIDERVELD, Karel. *Contrast Limited Adaptive Histogram Equalization*. In:
   HECKBERT, Paul S. (ed.). *Graphics Gems IV*. Academic Press, p. 474-485,
   1994.
+
+
+## Wiki do projeto
+
+A documentação viva do projeto está organizada em [docs/wiki/](docs/wiki/README.md). Ela reúne arquitetura, dados e curadoria, modelos e resultados, ecogenicidade, execução, histórico metodológico e roadmap, conectando os relatórios técnicos já existentes sem duplicá-los.
