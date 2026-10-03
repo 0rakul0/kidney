@@ -233,14 +233,6 @@ Idealmente, o manifesto deve permitir recuperar:
 A página [Modelos e resultados](modelos-e-resultados.md) mostra quais modelos produzem essas máscaras e como foram avaliados.
 
 
-## Documentos técnicos relacionados
+## Conteúdo consolidado na wiki
 
-- [Narrativa da engenharia de dataset](../narrativa_engenharia_dataset.md)
-- [Datasets externos candidatos](../external_datasets.md)
-- [Dados externos baixados/inspecionados](../downloaded_external_data.md)
-- [Guia de download manual](../download_manual_datasets.md)
-- [Organização dos datasets e curadoria](../organizacao_datasets_curadoria.md)
-- [Organização do repositório](../organizacao_repositorio.md)
-- [Reunião de curadoria human-in-the-loop](../reuniao_curadoria_human_in_the_loop.md)
-
-Veja também o [índice completo da documentação técnica](documentacao-tecnica.md).
+Os antigos relatórios técnicos de `docs/` foram incorporados às páginas temáticas da wiki e removidos do repositório para evitar duplicação. Para aprofundamento, use a navegação da [Wiki](README.md), especialmente as páginas de scripts e histórico metodológico.
