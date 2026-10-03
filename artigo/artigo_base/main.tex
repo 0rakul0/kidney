@@ -268,6 +268,8 @@ Um experimento anterior com DeepLabV3-ResNet50 no \texttt{dataset_geral} expandi
 
 A cápsula é a etapa mais estável do pipeline. O Dice de 0,9290 e a concordância humana de 0,9461 indicam uma referência relativamente consistente. Em contraste, córtex e medula apresentam menor desempenho automático e menor concordância entre anotadores, mostrando que o problema intrarrenal envolve também variabilidade da própria referência.
 
+Como referência externa recente, o MAT-UNet foi avaliado no Open Kidney US Data Set e relatou Dice de 0,9383 para cápsula, 0,8434 para CEC, 0,6634 para medula e 0,5893 para córtex~\cite{Zhang2025RenalAttention}. Esses valores não devem ser ordenados diretamente contra os resultados locais porque o protocolo de divisão, o anotador de referência e a configuração experimental diferem; ainda assim, a distribuição entre classes é coerente com a dificuldade observada neste trabalho, especialmente para córtex e medula.
+
 A avaliação da cascata fornece evidência de que a primeira etapa pode sustentar a segunda: no DeepLab de Medulla, substituir a ROI manual pela prevista alterou o Dice global em apenas 0,0016. Isso não elimina falhas em casos difíceis, mas mostra viabilidade do encadeamento.
 
 A pseudo-expansão de Medulla é igualmente informativa. O treino cresceu de 236 para 578 imagens sem ganho no teste manual. Esse resultado é compatível com a literatura que enfatiza qualidade de pseudorrótulos em vez de quantidade\~\cite{Su2024ReliablePseudo,Huang2025SemiPLC} e justifica a curadoria \textit{human-in-the-loop}.
