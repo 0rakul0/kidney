@@ -218,18 +218,6 @@ Preservar o histórico permite:
 A página [Roadmap e limitações](roadmap-e-limitacoes.md) apresenta os pontos ainda não resolvidos.
 
 
-## Documentos que registram a evolução
+## Conteúdo histórico consolidado
 
-A sequência histórica pode ser acompanhada diretamente nos relatórios:
-
-- [Narrativa da engenharia de dataset](../narrativa_engenharia_dataset.md)
-- [Resultados DeepLabV3 no dataset_geral](../resultados_deeplab_dataset_geral_cv.md)
-- [Geração de máscaras com o modelo campeão](../geracao_mascaras_modelo_campeao.md)
-- [Baseline de Medulla](../resultados_modelo3_baseline_medulla.md)
-- [Estabilidade de Medulla](../resultados_estabilidade_medula.md)
-- [Expansão de pseudo-máscaras de Medulla](../resultados_expansao_pseudomascaras_medulla.md)
-- [Reunião de curadoria human-in-the-loop](../reuniao_curadoria_human_in_the_loop.md)
-- [Revisão médico-metodológica](../revisao_medico_metodologica_fibrose.md)
-- [Eixo de ecogenicidade](../eixo_ecogenicidade_renal.md)
-
-O inventário completo está em [Documentação técnica](documentacao-tecnica.md).
+Os documentos que registravam as etapas anteriores foram absorvidos por esta página, por [Scripts de engenharia de dataset](scripts-engenharia-dataset.md), [Scripts de segmentação](scripts-segmentacao.md) e [Curadoria e inferência](curadoria-e-inferencia.md). Os arquivos originais em `docs/` foram removidos para evitar documentação duplicada.
