@@ -20,19 +20,15 @@
 \setlength{\abovecaptionskip}{3pt}
 \setlength{\belowcaptionskip}{0pt}
 \setlength{\parskip}{1pt}
-\setlength{\abovedisplayskip}{3pt}
-\setlength{\belowdisplayskip}{3pt}
-\setlength{\abovedisplayshortskip}{2pt}
-\setlength{\belowdisplayshortskip}{2pt}
 
 \renewcommand{\baselinestretch}{0.97}
 
-\title{Um \textit{Pipeline} de Vis\~ao Computacional para An\'alise de Achados Hiperecog\^enicos em Ultrassonografia Renal}
+\title{Um \textit{Pipeline} de Visão Computacional para Análise de Achados Hiperecogênicos em Ultrassonografia Renal}
 
 \author{
   Jefferson S. dos Anjos\inst{1}, Amaro A. de Lima\inst{1},
-  Gabriel M. Ara\'ujo\inst{1},\\ Jorge Luiz de C. Henriques Junior\inst{2},
-  Norderval C. Ara\'ujo\inst{2},\\ Jos\'e Herm\'ogenes R. Suassuna\inst{2}, Felipe da R. Henriques\inst{1}
+  Gabriel M. Araújo\inst{1},\\ Jorge Luiz de C. Henriques Junior\inst{2},
+  Nordeval C. Araújo\inst{2},\\ José Hermógenes R. Suassuna\inst{2}, Felipe da R. Henriques\inst{1}
 }
 
 \address{
@@ -49,11 +45,11 @@
 \maketitle
 
 \begin{abstract}
-The interpretation of renal ultrasound images depends on subjective visual inspection and anatomical kidney delineation. This paper proposes a computer vision \textit{pipeline} that first segments the kidney and then analyzes suspicious hyperechoic regions near the renal pyramids. The models were retrained using the original \texttt{kidneyUS} images with CLAHE preprocessing. On a deduplicated test set of 70 images, U-Net achieved Dice of 0.9290, IoU of 0.8722, and precision of 0.9236, obtaining the highest Dice among the evaluated architectures. Applied to 4,479 external images, this model generated 3,534 candidate pseudomasks, which remain pending human review and are not included in the reported metrics. In the intrarenal stage, the multiclass U-Net achieved a mean Dice of 0.7594 on 50 manually annotated test images.
+The interpretation of renal ultrasound images depends on subjective visual inspection and anatomical kidney delineation. This paper proposes a computer vision \textit{pipeline} that first segments the kidney and then analyzes suspicious hyperechoic regions near the renal pyramids. The models were retrained using the original \texttt{kidneyUS} images with CLAHE preprocessing. On a deduplicated test set of 70 images, U-Net achieved Dice of 0.9290, IoU of 0.8722, and precision of 0.9236, obtaining the highest Dice among the evaluated architectures. Applied to 4,479 external images, this model generated 3,534 candidate pseudomasks, which remain pending human review and are not included in the reported metrics. %A classifier for suspected fibrosis remains exploratory due to the lack of real labeled examples.
 \end{abstract}
 
 \begin{resumo}
-A interpreta\c{c}\~ao de ultrassonografias renais depende de inspe\c{c}\~ao visual subjetiva e da delimita\c{c}\~ao anat\^omica do rim. Este artigo prop\~oe um \textit{pipeline} de vis\~ao computacional que primeiro segmenta o rim e depois analisa regi\~oes hiperecog\^enicas suspeitas pr\'oximas \`as pir\^amides renais. Os modelos foram retreinados com as imagens originais da base \texttt{kidneyUS} e aplica\c{c}\~ao de CLAHE no pr\'e-processamento. Em um teste deduplicado de 70 imagens, a U-Net atingiu Dice de 0,9290, IoU de 0,8722 e precis\~ao de 0,9236, obtendo o maior Dice entre as arquiteturas avaliadas. Aplicado a 4.479 imagens externas, esse modelo gerou 3.534 pseudom\'ascaras candidatas, ainda pendentes de revis\~ao humana e ausentes das m\'etricas apresentadas. Na etapa intrarrenal, a U-Net multiclasse alcan\c{c}ou Dice m\'edio de 0,7594 em 50 imagens de teste anotadas manualmente.
+A interpretação de ultrassonografias renais depende de inspeção visual subjetiva e da delimitação anatômica do rim. Este artigo propõe um \textit{pipeline} de visão computacional que primeiro segmenta o rim e depois analisa regiões hiperecogênicas suspeitas próximas às pirâmides renais. Os modelos foram retreinados com as imagens originais da base \texttt{kidneyUS} e aplicação de CLAHE no pré-processamento. Em um teste deduplicado de 70 imagens, a U-Net atingiu Dice de 0,9290, IoU de 0,8722 e precisão de 0,9236, obtendo o maior Dice entre as arquiteturas avaliadas. Aplicado a 4.479 imagens externas, esse modelo gerou 3.534 pseudomáscaras candidatas, ainda pendentes de revisão humana e ausentes das métricas apresentadas. %Um classificador de suspeita de fibrose permanece explorat\'orio pela falta de exemplos reais rotulados.
 \end{resumo}
 
 \section{Introdução}
@@ -66,8 +62,7 @@ Em paralelo, a literatura explora a segmentação renal e a extração de medida
 
 Esse recorte é importante porque a ultrassonografia apresenta ruído, sombras acústicas, variações de ganho e diferenças de enquadramento. Sem uma máscara renal confiável, pontos muito claros podem ser confundidos com artefatos ou estruturas externas ao rim. Por isso, este trabalho parte da delimitação semântica do rim e, somente depois, transforma achados hiperecogênicos em medidas computacionais.
 
-Nesse contexto, este artigo combina segmentação renal, expansão supervisionada por pseudomáscaras e extração de atributos intrarrenais. As imagens originais da base \texttt{kidneyUS} foram usadas para retreinar, com CLAHE~\cite{Zuiderveld1994CLAHE}, quatro arquiteturas de segmentação da cápsula renal, entre as quais a U-Net apresentou o melhor \textit{Dice} no teste deduplicado. A região renal delimitada alimenta uma segunda U-Net, responsável por identificar córtex, medula e complexo ecogênico central. As contribuições são: (i) consolidação do acervo com as imagens originais e suas anotações; (ii) geração rastreável de pseudomáscaras externas para revisão; (iii) comparação de segmentadores para delimitação renal; e (iv) segmentação das estruturas intrarrenais como suporte à análise exploratória de achados hiperecogênicos.
-
+Nesse contexto, este artigo combina segmentação renal, expansão supervisionada por pseudomáscaras e extração de atributos intrarrenais. As imagens originais da base \texttt{kidneyUS} foram usadas para retreinar, com CLAHE (\textit{Contrast Limited Adaptive Histogram Equalization})~\cite{Zuiderveld1994CLAHE}, quatro arquiteturas de segmentação da cápsula renal, entre as quais a U-Net apresentou o melhor \textit{Dice} no teste deduplicado. A região renal delimitada alimenta uma segunda U-Net, responsável por identificar córtex, medula e complexo ecogênico central. As contribuições são: (i) consolidação do acervo com as imagens originais e suas anotações; (ii) geração rastreável de pseudomáscaras externas para revisão; (iii) comparação de segmentadores para delimitação renal; e (iv) segmentação das estruturas intrarrenais como suporte à análise exploratória de achados hiperecogênicos.
 
 \section{Contexto e Trabalhos Relacionados}
 
@@ -79,7 +74,7 @@ A terceira linha compreende a extração de atributos quantitativos de intensida
 
 Além da delimitação externa do rim, este trabalho identifica córtex, medula e complexo ecogênico central. Essa representação não segmenta individualmente cada pirâmide renal, mas fornece uma localização anatômica mais específica para restringir a busca por achados hiperecogênicos.
 
-A qualidade das segmentações é avaliada pela comparação entre a máscara produzida pelo modelo e a anotação manual. O coeficiente \textit{Dice} mede a semelhança entre essas duas regiões, considerando duas vezes a área de interseção em relação à soma de suas áreas. A \textit{Intersection over Union} (IoU) corresponde à razão entre a interseção e a união das regiões. Ambas variam de 0 a 1: valores próximos de 1 indicam maior concordância entre predição e referência. A precisão indica a proporção da região prevista que pertence à referência, enquanto o \textit{recall} indica quanto da estrutura anotada foi recuperado.
+A qualidade das segmentações é avaliada pela comparação entre a máscara produzida pelo modelo e a anotação manual. O coeficiente \textit{Dice}~\cite{Dice1945} mede a semelhança entre essas duas regiões, considerando duas vezes a área de interseção em relação à soma de suas áreas. A \textit{Intersection over Union} (IoU), equivalente ao índice de Jaccard~\cite{Jaccard1901}, corresponde à razão entre a interseção e a união das regiões. Ambas variam de 0 a 1: valores próximos de 1 indicam maior concordância entre predição e referência. A precisão indica a proporção da região prevista que pertence à referência, enquanto o \textit{recall} indica quanto da estrutura anotada foi recuperado.
 
 Trabalhos também discutem a organização de dados de saúde para aprendizagem computacional~\cite{Lima2021DataLakeSaude} e o uso de aprendizado ativo para reduzir o custo de rotulação~\cite{Constantino2022SBBD}. Este estudo aproxima essas linhas em um \textit{pipeline} no qual imagens e anotações são organizadas segundo sua proveniência, a cápsula delimita o rim e as estruturas intrarrenais fornecem referências para a análise exploratória de regiões hiperecogênicas.
 
@@ -109,7 +104,7 @@ block/.style={draw, rounded corners=2pt, minimum width=2.35cm, minimum height=0.
 \label{fig:tikz_pipeline}
 \end{figure}
 
-O estudo utiliza o \texttt{kidneyUS} (\textit{Open Kidney Ultrasound Data Set})~\cite{Singla2023KidneyUS}, que contém anotações de dois observadores para cápsula, córtex, medula e complexo ecogênico central. A Tabela~\ref{tab:data} resume os acervos utilizados e suas finalidades.
+O estudo utiliza o \textit{Open Kidney Ultrasound Data Set} (\texttt{kidneyUS})~\cite{Singla2023KidneyUS}, que contém anotações de dois observadores para cápsula, córtex, medula e complexo ecogênico central. A Tabela~\ref{tab:data} resume os acervos utilizados e suas finalidades.
 
 \begin{table}[htb!]
 \centering
@@ -127,19 +122,24 @@ MONAI & 4.479 & 4.479 & 3.534 pseudomáscaras para revisão \\
 \end{tabular}
 \end{table}
 
-Para a cápsula renal, foram usados 486 registros do primeiro anotador, correspondentes a 468 imagens únicas. A auditoria por \textit{hash} identificou 18 registros redundantes em nove grupos, cinco deles atravessando partições originais. Após deduplicação e agrupamento por exame, obtiveram-se 328 imagens de treino, 70 de validação e 70 de teste. Para a tarefa intrarrenal, 335 imagens foram divididas por paciente em 235, 50 e 50 imagens. O MONAI foi utilizado apenas para geração de pseudomáscaras, sem participação nas métricas manuais.
+Para a cápsula renal, foram usados 486 registros do primeiro anotador, correspondentes a 468 imagens únicas. Após deduplicação e agrupamento por exame, obtiveram-se 328 imagens de treino, 70 de validação e 70 de teste. Para a tarefa intrarrenal, 335 imagens foram divididas por paciente em 235, 50 e 50 imagens. O MONAI foi utilizado apenas para geração de pseudomáscaras, sem participação nas métricas manuais.
 
-Na primeira etapa, U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 foram treinados para segmentar a cápsula, com CLAHE, aumento de dados apenas no treino, AdamW, taxa inicial $10^{-4}$ e perda BCE+Dice. A U-Net, selecionada pelo maior Dice, foi aplicada ao MONAI. A inferência combinou a imagem original e seu espelhamento horizontal; após binarização pelo limiar 0,35, manteve-se o maior componente conectado e a máscara foi restaurada à resolução original. As pseudomáscaras foram ordenadas pela confiança média dos pixels positivos, definida na Equação~\ref{eq:confidence}:
+Na primeira etapa, U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 foram treinados para segmentar a cápsula, com CLAHE, aumento de dados apenas no treino, AdamW, taxa inicial de $10^{-4}$ e perda BCE+Dice. A U-Net, selecionada pelo maior \textit{Dice}, foi aplicada ao MONAI. A inferência combinou a imagem original e seu espelhamento horizontal; após binarização pelo limiar 0,35, manteve-se o maior componente conectado e a máscara foi restaurada à resolução original. Dessa forma as pseudomáscaras foram ordenadas pela confiança média dos pixels positivos, definida por:
+%\[
 \begin{equation}
 \label{eq:confidence}
 C=\frac{1}{|M|}\sum_{i\in M}p_i,
 \end{equation}
-em que $M$ é a pseudomáscara e $p_i$ a probabilidade prevista para o pixel $i$. Esse valor auxilia a priorização da revisão, mas não valida automaticamente a máscara~\cite{Lee2013PseudoLabel}. Para controlar as pseudomáscaras externas, as mesmas imagens foram processadas pela DeepLabV3-ResNet50. A concordância entre modelos foi estimada pelo Dice entre a máscara da U-Net, $M_U$, e a máscara da DeepLabV3, $M_D$:
+%\]
+em que $M$ é a pseudomáscara e $p_i$ a probabilidade prevista para o pixel $i$. Esse valor auxilia a priorização da revisão, mas não valida automaticamente a máscara~\cite{Lee2013PseudoLabel}. Para controlar as pseudomáscaras externas, as mesmas imagens foram processadas pela DeepLabV3-ResNet50. A concordância entre modelos foi estimada pelo coeficiente \textit{Dice}~\cite{Dice1945} entre a máscara da U-Net, $M_U$, e a máscara da DeepLabV3, $M_D$, da seguinte forma:
+%\[
  \begin{equation}
 \label{eq:consensus}
 S(M_U,M_D)=\frac{2|M_U\cap M_D|}{|M_U|+|M_D|}.
 \end{equation}
-O escore da Equação~\ref{eq:consensus} foi usado como medida complementar de consenso entre arquiteturas.
+%\]
+
+O escore da Equação (\ref{eq:consensus}) foi usado como medida complementar de consenso entre arquiteturas.
 Os limiares foram calibrados por validação cruzada em cinco \textit{folds} agrupados por exame, de modo que cada uma das 468 imagens manuais fosse avaliada apenas por modelos que não a utilizaram no treino. Os percentis 10 e 25, arredondados, definiram concordância baixa ($<0{,}89$), intermediária ($0{,}89$ a $0{,}94$) e alta ($\geq0{,}94$). Predições isoladas também receberam prioridade de revisão. A Figura~\ref{fig:consensus} mostra as máscaras individuais e a sobreposição dos contornos da U-Net, em verde, e da DeepLabV3, em vermelho.
 
 \begin{figure}[htb!]
@@ -166,7 +166,7 @@ A Figura~\ref{fig:intrarenal} apresenta, da esquerda para a direita, a ultrasson
 
 \section{Resultados}
 
-A primeira etapa avaliou a segmentação da cápsula renal. Conforme a Tabela~\ref{tab:capsule}, nas 70 imagens do teste deduplicado, a U-Net apresentou os melhores valores de \textit{Dice} (0,9290), IoU (0,8722), precisão (0,9236) e \textit{recall} (0,9440), sendo selecionada para localizar o rim na cascata. O SegFormer-B0, embora ligeiramente inferior nas métricas de sobreposição, obteve a maior velocidade média de inferência (FPS médio, \textit{Frames Per Second}).
+A primeira etapa avaliou a segmentação da cápsula renal. Conforme a Tabela~\ref{tab:capsule}, nas 70 imagens do teste deduplicado, a U-Net apresentou os melhores valores de \textit{Dice} (0,9290), IoU (0,8722), precisão (0,9236) e \textit{recall} (0,9440), sendo selecionada para localizar o rim na cascata. O SegFormer-B0, embora ligeiramente inferior nas métricas de sobreposição, obteve a maior velocidade de inferência (FPS - \textit{Frames Per Second} - em valores médios).
 
 \begin{table}[htb!]
 \centering
@@ -174,7 +174,7 @@ A primeira etapa avaliou a segmentação da cápsula renal. Conforme a Tabela~\r
 \label{tab:capsule}
 \begin{tabular}{lccccc}
 \hline
-\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Precisão} & \textbf{Recall} & \textbf{FPS médio} \\
+\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Precisão} & \textbf{Recall} & \textbf{FPS} \\
 \hline
 \mbox{U-Net} & \textbf{0,9290} & \textbf{0,8722} & \textbf{0,9236} & \textbf{0,9440} & 18,11 \\
 SegFormer-B0 & 0,9223 & 0,8598 & 0,9117 & 0,9426 & \textbf{31,34} \\
@@ -184,11 +184,11 @@ UNet++ & 0,9099 & 0,8419 & 0,8910 & 0,9419 & 16,57 \\
 \end{tabular}
 \end{table}
 
-O controle por consenso foi calibrado nas 468 imagens manuais por validação cruzada em cinco \textit{folds}. O consenso médio foi 0,9416, com mediana de 0,9627, e apresentou correlação de 0,840 com o menor \textit{Dice} frente à anotação manual. Os \textit{Dices} médios fora da amostra foram 0,9150 para a U-Net e 0,9243 para a DeepLabV3. Assim, o consenso foi usado como indicador operacional de qualidade e priorização, não como substituto da validação manual.
+O controle por consenso foi calibrado nas 468 imagens manuais por validação cruzada em cinco \textit{folds}. O consenso médio foi 0,9416, com mediana de 0,9627, e apresentou correlação ($r$) de 0,840 com o menor \textit{Dice} frente à anotação manual. Os \textit{Dices} médios fora da amostra foram 0,9150 para a U-Net e 0,9243 para a DeepLabV3. Assim, o consenso foi usado como indicador operacional de qualidade e priorização, não como substituto da validação manual.
 
 Nas 4.479 imagens externas, 1.529 (34,1\%) apresentaram concordância alta entre os modelos, correspondente a \textit{Dice} de consenso igual ou superior a 94\%, e 699 (15,6\%) ficaram na faixa intermediária, entre 89\% e 94\%. A revisão prioritária reuniu 1.741 imagens (38,9\%): 1.204 com concordância inferior a 89\% e 537 segmentadas por apenas um modelo, das quais 435 somente pela DeepLabV3 e 102 somente pela U-Net. Em 510 imagens (11,4\%), nenhum modelo delimitou o rim. Assim, a U-Net gerou 3.534 pseudomáscaras entre as 4.479 imagens processadas. Como o subconjunto externo não possui anotação manual neste estudo, essas porcentagens expressam concordância e cobertura da triagem, e não probabilidade de acerto ou acurácia externa.
 
-Por fim, U-Net e DeepLabV3 foram comparadas na segmentação intrarrenal usando as mesmas 50 imagens de teste com referência manual. Conforme a Tabela~\ref{tab:intrarenal}, a U-Net obteve os maiores valores de \textit{Dice} para córtex (0,7075) e medula (0,7237), enquanto a DeepLabV3 foi ligeiramente superior no complexo ecogênico central (0,8497). Na média das três classes, a U-Net alcançou \textit{Dice} de 0,7594 e IoU de 0,6163, superando os valores de 0,7492 e 0,6045 da DeepLabV3.
+Por fim, U-Net e DeepLabV3 foram comparadas na segmentação intrarrenal usando as mesmas 50 imagens de teste com referência manual. De acordo com a Tabela~\ref{tab:intrarenal}, a U-Net obteve os maiores valores de \textit{Dice} para córtex (0,7075) e medula (0,7237), enquanto a DeepLabV3 foi ligeiramente superior no complexo ecogênico central - CEC (0,8497). Na média das três classes, a U-Net alcançou \textit{Dice} de 0,7594 e IoU de 0,6163, superando os valores de 0,7492 e 0,6045 da DeepLabV3.
 
 \begin{table}[htb!]
 \centering
@@ -208,12 +208,12 @@ Embora a diferença média seja pequena, a U-Net foi mantida como modelo intrarr
 
 \section{Discussão}
 
-A qualidade das imagens foi um dos fatores observados nas falhas de segmentação da cápsula. Baixo contraste, sombras acústicas, ru\'ido e perda de detalhes dificultam a identificação dos limites renais. A Figura~\ref{fig:capsule_quality} apresenta um contraste qualitativo entre dois exemplos externos.
+A qualidade das imagens foi um dos fatores observados nas falhas de segmentação da cápsula. O baixo contraste, sombras acústicas, ruído e perda de detalhes dificultam a identificação dos limites renais. A Figura~\ref{fig:capsule_quality} apresenta um contraste qualitativo entre dois exemplos externos.
 
 \begin{figure}[htb!]
 \centering
 \includegraphics[width=0.84\textwidth]{figures/capsule_quality_comparison.png}
-\caption{Contraste qualitativo no conjunto externo: (a) ausência de predição; (b) imagem com limites renais mais nítidos; e (c) contornos da U-Net (verde) e da DeepLabV3 (vermelho), com consenso Dice de 0,9888.}
+\caption{Contraste qualitativo no conjunto externo: (a) ausência de predição; (b) imagem com limites renais mais nítidos; e (c) contornos da U-Net (verde) e da DeepLabV3 (vermelho), com consenso \textit{Dice} de 0,9888.}
 \label{fig:capsule_quality}
 \end{figure}
 
@@ -221,15 +221,41 @@ No primeiro caso, a baixa diferenciação visual da cápsula coincide com a aus�
 
 A cascata permanece dependente da primeira segmentação: uma máscara incompleta ou com tecido adjacente altera a ROI e pode comprometer a identificação das estruturas internas. As métricas intrarrenais também devem ser interpretadas considerando o tamanho do teste e a variabilidade entre anotadores.
 
-A pseudorrotulação MONAI constitui engenharia de dados, não resultado clínico. O consenso prioriza a revisão, mas somente uma refer\^encia manual confirma a localização correta do rim. Experimentos futuros devem incorporar apenas m\'ascaras revisadas, manter validação e teste manuais invariantes e usar referência clínica ou histol\'ogica para investigar fibrose.
+A pseudorrotulação MONAI constitui engenharia de dados, não resultado clínico. O consenso prioriza a revisão, mas somente uma referência manual confirma a localização correta do rim. Experimentos futuros devem incorporar apenas máscaras revisadas, manter validação e teste manuais invariantes e usar referência clínica ou histológica para investigar fibrose.
 
 \section{Conclusão}
 
-Este trabalho apresentou um \textit{pipeline} rastreável para análise de ultrassonografias renais em três etapas: segmentação da cápsula, verificação por consenso entre modelos e segmentação das estruturas intrarrenais. Na delimitação da cápsula, a U-Net obteve \textit{Dice} de 0,9290 e IoU de 0,8722 no teste deduplicado de 70 imagens. O consenso com a DeepLabV3 priorizou a revisão das 3.534 pseudomáscaras externas sem substituir a validação por especialistas. Na etapa intrarrenal, a U-Net alcançou \textit{Dice} médio de 0,7594 nas 50 imagens de teste.
+Este trabalho apresentou um \textit{pipeline} rastreável para análise de ultrassonografias
+renais em três etapas encadeadas: segmentação da cápsula renal, verificação por
+consenso entre modelos e segmentação das estruturas intrarrenais. A auditoria por
+\textit{hash} do acervo \textit{kidneyUS} identificou 18 registros redundantes distribuídos
+em nove grupos, cinco deles atravessando partições originais, motivando a
+reorganização das divisões por exame antes do treinamento.
 
-Como limitações, as diferenças entre arquiteturas não foram submetidas a testes de significância, e a avaliação de ponta a ponta permanece como trabalho futuro. Pretende-se incorporar apenas pseudomáscaras revisadas e estabelecer referência clínica ou histológica para investigar a associação entre regiões hiperecogênicas e alterações funcionais do rim.
+Na delimitação da cápsula, a U-Net obteve \textit{Dice} de 0,9290 e IoU de 0,8722 no
+teste deduplicado de 70 imagens, superando as demais arquiteturas avaliadas. O
+consenso entre U-Net e DeepLabV3 ($r = 0{,}840$ com o \textit{Dice} individual) foi adotado
+como critério operacional para priorizar a revisão humana das 3.534 pseudomáscaras
+geradas sobre as 4.479 imagens externas, sem substituir a validação por
+especialistas. Na etapa intrarrenal, a U-Net alcançou \textit{Dice} médio de 0,7594 nas
+50 imagens de teste com referência manual.
 
-\newpage
+As diferenças entre arquiteturas na etapa intrarrenal não foram submetidas a
+testes de significância estatística, e a avaliação de ponta-a-ponta do \textit{pipeline}
+permanece como trabalho futuro. Além disso, pretende-se incorporar
+apenas pseudomáscaras revisadas por especialistas e estabelecer referência clínica
+ou histológica para investigar, de forma validada, a associação entre regiões
+hiperecogênicas e alterações funcionais do rim.
+
+%Este trabalho apresentou um pipeline rastreável para análise de ultrassonografias renais, estruturado em três etapas encadeadas: segmentação da cápsula renal, verificação por consenso entre modelos e segmentação das estruturas intrarrenais. A auditoria por hash do acervo kidneyUS identificou 18 registros redundantes distribuídos em nove grupos, cinco deles atravessando partições originais, o que motivou a reorganização das divisões por exame antes do treinamento. Esse procedimento é essencial para garantir que as métricas reportadas reflitam a capacidade de generalização dos modelos e não haja contaminação entre conjuntos.
+
+%Na tarefa de delimitação da cápsula, a UNet obteve um Dice de 0,9290, IoU de 0,8722 e precisão de 0,9236 no conjunto de teste deduplicado de 70 imagens, superando UNet++, DeepLabV3-ResNet50 e SegFormer-B0 nas métricas de sobreposição. O consenso entre U-Net e DeepLabV3, calibrado por validação cruzada em cinco folds agrupados por exame, correlacionou-se com o Dice individual frente à referência manual (r = 0,840) e foi adotado como critério operacional de priorização da revisão humana das 3.534 pseudomáscaras geradas sobre as 4.479 imagens externas do MONAI — sem substituir, em nenhuma etapa, a validação por anotadores especialistas. Na segmentação intrarrenal, a U-Net alcançou um Dice médio de 0,7594 e IoU de 0,6163 nas 50 imagens de teste com referência manual, obtendo os maiores valores para córtex e medula, enquanto a DeepLabV3 foi ligeiramente superior no complexo ecogênico central.
+
+%As limitações do estudo circunscrevem o alcance das conclusões. Os conjuntos de teste são reduzidos, e as diferenças entre arquiteturas na etapa intrarrenal não foram submetidas a testes de significância estatística. A avaliação de ponta a ponta do pipeline — incluindo a propagação de erro da segmentação da cápsula para as estruturas internas — permanece como trabalho futuro. O classificador de suspeita de fibrose não foi incorporado às métricas pela ausência de exemplos rotulados com referência clínica ou histológica.
+
+%Como trabalho futuro, pretende-se incorporar ao pipeline apenas pseudomáscaras revisadas por especialistas, expandir os conjuntos de validação e teste para suportar análises estatísticas robustas e estabelecer referência clínica ou histológica para investigar, de forma quantitativa e validada, a associação entre regiões hiperecogênicas próximas às pirâmides renais e alterações funcionais do rim.
+
+%\newpage
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
 

@@ -1,0 +1,149 @@
+{"kind":"deck","id":"pr/hstbv5","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"simple-light-2","type":"master","placeholders":[{"name":"title","type":"title"},{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"TITLE","type":"title","placeholders":[{"name":"title","type":"title"},{"name":"subtitle","type":"subtitle"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout2.xml","name":"SECTION_HEADER","type":"secHead","placeholders":[{"name":"title","type":"title"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout3.xml","name":"TITLE_AND_BODY","type":"tx","placeholders":[{"name":"title","type":"title"},{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout4.xml","name":"TITLE_AND_TWO_COLUMNS","type":"twoColTx","placeholders":[{"name":"title","type":"title"},{"name":"body","type":"body"},{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout5.xml","name":"TITLE_ONLY","type":"titleOnly","placeholders":[{"name":"title","type":"title"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout6.xml","name":"ONE_COLUMN_TEXT","placeholders":[{"name":"title","type":"title"},{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout7.xml","name":"MAIN_POINT","placeholders":[{"name":"title","type":"title"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout8.xml","name":"SECTION_TITLE_AND_DESCRIPTION","placeholders":[{"name":"title","type":"title"},{"name":"subtitle","type":"subtitle"},{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout9.xml","name":"CAPTION_ONLY","placeholders":[{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout10.xml","name":"BIG_NUMBER","placeholders":[{"name":"title","type":"title","textPreview":"xx%"},{"name":"body","type":"body"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout11.xml","name":"BLANK","type":"blank","placeholders":[{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"slide","id":"sl/n4dk92","slide":1,"title":"1","textShapes":4}
+{"kind":"shape","id":"sh/ytszehor","slide":1,"name":"Google Shape;70;p14","bbox":[-0.44,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/zu1gnm5c","slide":1,"name":"Google Shape;71;p14","placeholder":"slideNumber","text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"textbox","id":"sh/kvahgrmx","slide":1,"name":"Google Shape;72;p14","text":"ANÁLISE DE\nULTRASSOM RENAL","textPreview":"ANÁLISE DE | ULTRASSOM RENAL","textChars":26,"textLines":2,"bbox":[38.27,145.5,449.42,132.5]}
+{"kind":"textbox","id":"sh/lg3ipcni","slide":1,"name":"Google Shape;73;p14","text":"Achados hiperecogênicos e visão computacional","textPreview":"Achados hiperecogênicos e visão computacional","textChars":45,"textLines":1,"bbox":[39.44,276.56,449.42,76.8]}
+{"kind":"shape","id":"sh/mhczih43","slide":1,"name":"Google Shape;74;p14","bbox":[51.65,361.78,284.31,2.9]}
+{"kind":"textbox","id":"sh/7il0rm5o","slide":1,"name":"Google Shape;75;p14","text":"Jefferson S. dos Anjos et al.\nCEFET/RJ e HUPE - UERJ","textPreview":"Jefferson S. dos Anjos et al. | CEFET/RJ e HUPE - UERJ","textChars":52,"textLines":2,"bbox":[38.58,376.27,449.42,64.63]}
+{"kind":"image","id":"im/ji5cjepg","slide":1,"name":"Google Shape;68;p14","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/yhwvq98v","slide":1,"name":"Google Shape;69;p14","bbox":[473.91,152.91,464.85,269.29]}
+{"kind":"notes","id":"nt/n4dk92","slide":1,"text":"Apresente o problema: transformar inspeção visual subjetiva em um processo computacional rastreável.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/itngoa","slide":2,"title":"ROTEIRO","textShapes":14}
+{"kind":"shape","id":"sh/7uhgnedg","slide":2,"name":"Google Shape;82;p15","bbox":[0,519.86,960,20.16]}
+{"kind":"shape","id":"sh/6t8fe9cv","slide":2,"name":"Google Shape;83;p15","bbox":[35.37,103.06,94.49,2.9]}
+{"kind":"textbox","id":"sh/5szyl4va","slide":2,"name":"Google Shape;84;p15","placeholder":"title","text":"ROTEIRO","textPreview":"ROTEIRO","textChars":7,"textLines":1,"bbox":[32.72,46.72,894.55,60.13]}
+{"kind":"textbox","id":"sh/kr6xczup","slide":2,"name":"Google Shape;85;p15","text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[35.37,133.2,45.35,45.35]}
+{"kind":"textbox","id":"sh/jqxgjed4","slide":2,"name":"Google Shape;86;p15","text":"Contexto e objetivo\nPor que delimitar o rim primeiro","textPreview":"Contexto e objetivo | Por que delimitar o rim primeiro","textChars":52,"textLines":2,"bbox":[86.53,134.38,590.14,42.99]}
+{"kind":"textbox","id":"sh/i5ofa9cj","slide":2,"name":"Google Shape;87;p15","text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[35.67,199.78,45.35,45.35]}
+{"kind":"textbox","id":"sh/x4fyh4ve","slide":2,"name":"Google Shape;88;p15","text":"Metodologia\nCascata em três etapas","textPreview":"Metodologia | Cascata em três etapas","textChars":34,"textLines":2,"bbox":[86.84,200.97,590.14,42.99]}
+{"kind":"textbox","id":"sh/w36x8zut","slide":2,"name":"Google Shape;89;p15","text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[35.09,263.74,45.35,45.35]}
+{"kind":"textbox","id":"sh/mxkn21of","slide":2,"name":"Google Shape;90;p15","text":"Dados e protocolo\nConjuntos auditados e partições","textPreview":"Dados e protocolo | Conjuntos auditados e partições","textChars":49,"textLines":2,"bbox":[86.26,264.92,590.14,42.99]}
+{"kind":"textbox","id":"sh/nyt4v6p0","slide":2,"name":"Google Shape;91;p15","text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[35.09,328.85,45.35,45.35]}
+{"kind":"textbox","id":"sh/oz254b65","slide":2,"name":"Google Shape;92;p15","text":"Resultados da cápsula\nSeleção do segmentador renal","textPreview":"Resultados da cápsula | Seleção do segmentador renal","textChars":50,"textLines":2,"bbox":[86.26,330.04,590.14,42.99]}
+{"kind":"textbox","id":"sh/90bmxg7q","slide":2,"name":"Google Shape;93;p15","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[35.39,395.44,45.35,45.35]}
+{"kind":"textbox","id":"sh/et03y1o3","slide":2,"name":"Google Shape;94;p15","text":"Consenso e regiões internas\nTriagem e segmentação multiclasse","textPreview":"Consenso e regiões internas | Triagem e segmentação multiclasse","textChars":61,"textLines":2,"bbox":[86.56,396.62,590.14,42.99]}
+{"kind":"textbox","id":"sh/zu94r6po","slide":2,"name":"Google Shape;95;p15","text":"6","textPreview":"6","textChars":1,"textLines":1,"bbox":[34.81,459.39,45.35,45.35]}
+{"kind":"textbox","id":"sh/0vil0r69","slide":2,"name":"Google Shape;96;p15","text":"Conclusões\nLimites e próximos passos","textPreview":"Conclusões | Limites e próximos passos","textChars":36,"textLines":2,"bbox":[85.98,460.57,590.14,42.99]}
+{"kind":"textbox","id":"sh/1wbmtw7u","slide":2,"name":"Google Shape;97;p15","placeholder":"slideNumber","text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"image","id":"im/h8vi50f6","slide":2,"name":"Google Shape;80;p15","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/g7m1cvyl","slide":2,"name":"Google Shape;81;p15","bbox":[473.91,152.91,464.85,269.29]}
+{"kind":"notes","id":"nt/itngoa","slide":2,"text":"Antecipe a sequência: do desafio clínico-operacional ao resultado e às limitações.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/en9l7e","slide":3,"title":"3","textShapes":4}
+{"kind":"shape","id":"sh/o7als7a5","slide":3,"name":"Google Shape;104;p16","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/98j21crq","slide":3,"name":"Google Shape;105;p16","placeholder":"slideNumber","text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"textbox","id":"sh/m583qxsz","slide":3,"name":"Google Shape;106;p16","text":"CONTEXTO E OBJETIVO","textPreview":"CONTEXTO E OBJETIVO","textChars":19,"textLines":1,"bbox":[43.51,236.06,623.84,67.87]}
+{"kind":"textbox","id":"sh/n6hkz29k","slide":3,"name":"Google Shape;107;p16","text":"Analisar estruturas internas requer uma ROI renal confiável.","textPreview":"Analisar estruturas internas requer uma ROI renal confiável.","textChars":60,"textLines":1,"bbox":[40.15,308.54,449.42,76.8]}
+{"kind":"shape","id":"sh/03qlo7at","slide":3,"name":"Google Shape;108;p16","bbox":[56.43,203.9,94.49,2.9]}
+{"kind":"textbox","id":"sh/14z2xcre","slide":3,"name":"Google Shape;109;p16","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[43.51,71.13,449.42,148.66]}
+{"kind":"image","id":"im/ypwj6pcv","slide":3,"name":"Google Shape;102;p16","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/zqpkzudg","slide":3,"name":"Google Shape;103;p16","bbox":[473.91,152.91,464.85,269.29]}
+{"kind":"notes","id":"nt/en9l7e","slide":3,"text":"Faça a transição do cenário da ultrassonografia para a pergunta que o pipeline responde.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/lj3qsw","slide":4,"title":"Delimitar o rim reduz falsos achados","textShapes":4}
+{"kind":"textbox","id":"sh/a18rqhg3","slide":4,"name":"Google Shape;126;p18","placeholder":"title","text":"Delimitar o rim reduz falsos achados","textPreview":"Delimitar o rim reduz falsos achados","textChars":36,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/s7mpgnyp","slide":4,"name":"Google Shape;128;p18","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/d8vq9sfa","slide":4,"name":"Google Shape;129;p18","placeholder":"slideNumber","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/v2lsvqhs","slide":4,"name":"Google Shape;130;p18","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/u1cbml07","slide":4,"name":"Google Shape;131;p18","placeholder":"body","text":"PROBLEMA\n\n• Ruído, sombras acústicas e variação de ganho dificultam a leitura.\n\n• Pontos claros fora do rim podem simular achados suspeitos.","textPreview":"PROBLEMA |  | • Ruído, sombras acústicas e variação de ganho dificultam a leitura. |  | • Pontos claros fora do rim podem simular achados...","textChars":140,"textLines":5,"bbox":[32.72,154.72,288.69,358.68]}
+{"kind":"textbox","id":"sh/ho3ux0zy","slide":4,"name":"Google Shape;132;p18","placeholder":"body","text":"OBJETIVO\n\n• Delimitar a cápsula renal.\n\n• Usar estruturas internas como referência para investigar regiões hiperecogênicas.","textPreview":"OBJETIVO |  | • Delimitar a cápsula renal. |  | • Usar estruturas internas como referência para investigar regiões hiperecogênicas.","textChars":123,"textLines":5,"bbox":[347.56,154.44,288.69,358.68]}
+{"kind":"image","id":"im/54729o7q","slide":4,"name":"Google Shape;127;p18","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/udwju9o3","slide":4,"name":"Google Shape;133;p18","alt":"Exemplo de ultrassonografia renal do artigo","bbox":[644.79,174.79,282.49,233.51]}
+{"kind":"notes","id":"nt/lj3qsw","slide":4,"text":"Destaque que a proposta não diagnostica doença: ela organiza e restringe a análise à anatomia renal.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/kiij69","slide":5,"title":"6","textShapes":4}
+{"kind":"shape","id":"sh/czm187ep","slide":5,"name":"Google Shape;140;p19","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/x0vi1cfu","slide":5,"name":"Google Shape;141;p19","placeholder":"slideNumber","text":"6","textPreview":"6","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"textbox","id":"sh/ax4j6hwj","slide":5,"name":"Google Shape;142;p19","text":"METODOLOGIA","textPreview":"METODOLOGIA","textChars":11,"textLines":1,"bbox":[43.51,236.06,623.84,67.87]}
+{"kind":"textbox","id":"sh/byd0z2x4","slide":5,"name":"Google Shape;143;p19","text":"A região analisada é delimitada progressivamente.","textPreview":"A região analisada é delimitada progressivamente.","textChars":49,"textLines":1,"bbox":[40.15,308.54,449.42,76.8]}
+{"kind":"shape","id":"sh/kn61crel","slide":5,"name":"Google Shape;144;p19","bbox":[56.43,203.9,94.49,2.9]}
+{"kind":"textbox","id":"sh/lofi5wf6","slide":5,"name":"Google Shape;145;p19","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[43.51,71.13,449.42,148.66]}
+{"kind":"image","id":"im/zqdg7atk","slide":5,"name":"Google Shape;138;p19","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/y54fe5cz","slide":5,"name":"Google Shape;139;p19","bbox":[473.91,152.91,464.85,269.29]}
+{"kind":"notes","id":"nt/kiij69","slide":5,"text":"Introduza a cascata: cápsula, consenso entre modelos e estruturas intrarrenais.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/z3t448","slide":6,"title":"Cascata em três etapas encadeadas","textShapes":3}
+{"kind":"textbox","id":"sh/gbutwj2t","slide":6,"name":"Google Shape;150;p20","placeholder":"title","text":"Cascata em três etapas encadeadas","textPreview":"Cascata em três etapas encadeadas","textChars":33,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/u9cbu9kn","slide":6,"name":"Google Shape;152;p20","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/fals3e18","slide":6,"name":"Google Shape;153;p20","placeholder":"slideNumber","text":"7","textPreview":"7","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/s7atsz2x","slide":6,"name":"Google Shape;154;p20","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/t8ja14ji","slide":6,"name":"Google Shape;155;p20","placeholder":"body","text":"Imagem de ultrassom\n↓\nCLAHE e preparo da entrada\n↓\nSegmentação da cápsula renal (U-Net)\n↓\nConsenso U-Net × DeepLabV3\n↓\nSegmentação de córtex, medula e CEC\n↓\nPriorização de regiões hiperecogênicas","textPreview":"Imagem de ultrassom | ↓ | CLAHE e preparo da entrada | ↓ | Segmentação da cápsula renal (U-Net) | ↓ | Consenso U-Net × DeepLabV3 | ↓ | Se...","textChars":195,"textLines":11,"bbox":[32.72,141.92,894.55,358.68]}
+{"kind":"image","id":"im/felonul8","slide":6,"name":"Google Shape;151;p20","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"notes","id":"nt/z3t448","slide":6,"text":"Explique que cada etapa reduz a região de interesse e torna a seguinte mais específica.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/58my5g","slide":7,"title":"Dados auditados evitam vazamento","textShapes":5}
+{"kind":"textbox","id":"sh/gjyhsf6l","slide":7,"name":"Google Shape;114;p17","placeholder":"title","text":"Dados auditados evitam vazamento","textPreview":"Dados auditados evitam vazamento","textChars":32,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/exwzqpov","slide":7,"name":"Google Shape;116;p17","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/fi50zapg","slide":7,"name":"Google Shape;117;p17","placeholder":"slideNumber","text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/svehof6p","slide":7,"name":"Google Shape;118;p17","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/twnixk7a","slide":7,"name":"Google Shape;119;p17","placeholder":"body","text":"CÁPSULA\n\n486 registros\n468 imagens únicas\n\n328 treino\n70 validação\n70 teste deduplicado","textPreview":"CÁPSULA |  | 486 registros | 468 imagens únicas |  | 328 treino | 70 validação | 70 teste deduplicado","textChars":87,"textLines":8,"bbox":[32.72,154.72,288.69,358.68]}
+{"kind":"textbox","id":"sh/tcfy1wzy","slide":7,"name":"Google Shape;120;p17","placeholder":"body","text":"REGIÕES INTERNAS\n\n335 imagens anotadas\n\n235 treino\n50 validação\n50 teste\n\nSeparação por paciente","textPreview":"REGIÕES INTERNAS |  | 335 imagens anotadas |  | 235 treino | 50 validação | 50 teste |  | Separação por paciente","textChars":96,"textLines":9,"bbox":[344.07,154.44,288.69,358.68]}
+{"kind":"textbox","id":"sh/8b6xsryd","slide":7,"name":"Google Shape;121;p17","placeholder":"body","text":"MONAI EXTERNO\n\n4.479 imagens\n\n3.534 pseudomáscaras\n\nSomente triagem;\nfora das métricas manuais","textPreview":"MONAI EXTERNO |  | 4.479 imagens |  | 3.534 pseudomáscaras |  | Somente triagem; | fora das métricas manuais","textChars":94,"textLines":8,"bbox":[656,154.16,288.69,358.68]}
+{"kind":"image","id":"im/u5grqlkz","slide":7,"name":"Google Shape;115;p17","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"notes","id":"nt/58my5g","slide":7,"text":"Explique por que o conjunto externo não entra nas métricas: ele não possui anotação manual no estudo.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/y1d6e7","slide":8,"title":"U-Net lidera a segmentação da cápsula","textShapes":4}
+{"kind":"textbox","id":"sh/ahwnm1oj","slide":8,"name":"Google Shape;126;p18","placeholder":"title","text":"U-Net lidera a segmentação da cápsula","textPreview":"U-Net lidera a segmentação da cápsula","textChars":37,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/cnu5c765","slide":8,"name":"Google Shape;128;p18","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/do3mlc7q","slide":8,"name":"Google Shape;129;p18","placeholder":"slideNumber","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/fi98ra98","slide":8,"name":"Google Shape;130;p18","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/eh07y58n","slide":8,"name":"Google Shape;131;p18","placeholder":"body","text":"TESTE DEDUPLICADO\n\n70 imagens\n\nU-Net\nDice 0,9290\nIoU 0,8722\nPrecisão 0,9236\nRecall 0,9440","textPreview":"TESTE DEDUPLICADO |  | 70 imagens |  | U-Net | Dice 0,9290 | IoU 0,8722 | Precisão 0,9236 | Recall 0,9440","textChars":89,"textLines":9,"bbox":[32.72,154.72,288.69,358.68]}
+{"kind":"textbox","id":"sh/1kbqtkre","slide":8,"name":"Google Shape;132;p18","placeholder":"body","text":"COMPARAÇÃO\n\nU-Net obteve o maior Dice entre quatro arquiteturas.\n\nSegFormer-B0 foi o mais rápido: 31,34 FPS.","textPreview":"COMPARAÇÃO |  | U-Net obteve o maior Dice entre quatro arquiteturas. |  | SegFormer-B0 foi o mais rápido: 31,34 FPS.","textChars":108,"textLines":5,"bbox":[347.56,154.44,288.69,358.68]}
+{"kind":"image","id":"im/dsnmp4zm","slide":8,"name":"Google Shape;127;p18","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/21c3qp0z","slide":8,"name":"Google Shape;133;p18","alt":"Comparação de qualidade para segmentação da cápsula","bbox":[644.79,174.79,282.49,233.51]}
+{"kind":"notes","id":"nt/y1d6e7","slide":8,"text":"Informe que a escolha da U-Net privilegia a sobreposição com a anotação manual; velocidade não foi o único critério.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/u8es1t","slide":9,"title":"Consenso prioriza a revisão das pseudomáscaras","textShapes":4}
+{"kind":"textbox","id":"sh/qp4vq9g3","slide":9,"name":"Google Shape;126;p18","placeholder":"title","text":"Consenso prioriza a revisão das pseudomáscaras","textPreview":"Consenso prioriza a revisão das pseudomáscaras","textChars":46,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/4nmdozyd","slide":9,"name":"Google Shape;128;p18","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/5ovex4fy","slide":9,"name":"Google Shape;129;p18","placeholder":"slideNumber","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/7ytw7u1k","slide":9,"name":"Google Shape;130;p18","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/6xkfyp0z","slide":9,"name":"Google Shape;131;p18","placeholder":"body","text":"CALIBRAÇÃO\n\nConsenso médio: 0,9416\n\nAlta: ≥ 0,94\nIntermediária: 0,89–0,94\nBaixa: < 0,89\n\nÉ um indicador operacional, não uma validação clínica.","textPreview":"CALIBRAÇÃO |  | Consenso médio: 0,9416 |  | Alta: ≥ 0,94 | Intermediária: 0,89–0,94 | Baixa: < 0,89 |  | É um indicador operacional, não ...","textChars":143,"textLines":9,"bbox":[32.72,154.72,288.69,358.68]}
+{"kind":"textbox","id":"sh/tkby94jq","slide":9,"name":"Google Shape;132;p18","placeholder":"body","text":"TRIAGEM EXTERNA\n\n1.529 (34,1%) com alta concordância\n\n1.741 (38,9%) em revisão prioritária\n\n510 (11,4%) sem rim delimitado por ambos os modelos","textPreview":"TRIAGEM EXTERNA |  | 1.529 (34,1%) com alta concordância |  | 1.741 (38,9%) em revisão prioritária |  | 510 (11,4%) sem rim delimitado po...","textChars":143,"textLines":7,"bbox":[347.56,154.44,288.69,358.68]}
+{"kind":"image","id":"im/do7exw7m","slide":9,"name":"Google Shape;127;p18","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/ixwvyh8z","slide":9,"name":"Google Shape;133;p18","alt":"Consenso entre as máscaras U-Net e DeepLabV3","bbox":[644.79,174.79,282.49,233.51]}
+{"kind":"notes","id":"nt/u8es1t","slide":9,"text":"Reforce a distinção: concordância entre arquiteturas prioriza trabalho humano, mas não comprova acerto sem referência manual.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/css8mh","slide":10,"title":"U-Net melhora o resultado intrarrenal","textShapes":4}
+{"kind":"textbox","id":"sh/a54jyl4z","slide":10,"name":"Google Shape;126;p18","placeholder":"title","text":"U-Net melhora o resultado intrarrenal","textPreview":"U-Net melhora o resultado intrarrenal","textChars":37,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/sb21orm1","slide":10,"name":"Google Shape;128;p18","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/tcb2hwn6","slide":10,"name":"Google Shape;129;p18","placeholder":"slideNumber","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/v6h43up4","slide":10,"name":"Google Shape;130;p18","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/u58nupoj","slide":10,"name":"Google Shape;131;p18","placeholder":"body","text":"SAÍDA DA CASCATA\n\nA cápsula restringe a ROI.\n\nA U-Net identifica:\n• Córtex\n• Medula\n• Complexo ecogênico central (CEC)","textPreview":"SAÍDA DA CASCATA |  | A cápsula restringe a ROI. |  | A U-Net identifica: | • Córtex | • Medula | • Complexo ecogênico central (CEC)","textChars":118,"textLines":8,"bbox":[32.72,154.72,288.69,358.68]}
+{"kind":"textbox","id":"sh/h8jm547u","slide":10,"name":"Google Shape;132;p18","placeholder":"body","text":"TESTE MANUAL\n\n50 imagens\n\nU-Net: Dice médio 0,7594\nDeepLabV3: Dice médio 0,7492\n\nMelhor Dice em córtex e medula; DeepLabV3 foi ligeiramente melhor no CEC.","textPreview":"TESTE MANUAL |  | 50 imagens |  | U-Net: Dice médio 0,7594 | DeepLabV3: Dice médio 0,7492 |  | Melhor Dice em córtex e medula; DeepLabV3 ...","textChars":154,"textLines":8,"bbox":[347.56,154.44,288.69,358.68]}
+{"kind":"image","id":"im/9wbi9ore","slide":10,"name":"Google Shape;127;p18","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/axkz2t8z","slide":10,"name":"Google Shape;133;p18","alt":"Exemplo de segmentação intrarrenal multiclasse","bbox":[644.79,174.79,282.49,233.51]}
+{"kind":"notes","id":"nt/css8mh","slide":10,"text":"Aponte a leitura correta da figura: medula segue a anotação do kidneyUS, não são pirâmides individuais segmentadas.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/bgykq0","slide":11,"title":"Qualidade de imagem limita a cascata","textShapes":4}
+{"kind":"textbox","id":"sh/gby1gb29","slide":11,"name":"Google Shape;126;p18","placeholder":"title","text":"Qualidade de imagem limita a cascata","textPreview":"Qualidade de imagem limita a cascata","textChars":36,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/adcz2hkz","slide":11,"name":"Google Shape;128;p18","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/bel0vml4","slide":11,"name":"Google Shape;129;p18","placeholder":"slideNumber","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/d8bm1k32","slide":11,"name":"Google Shape;130;p18","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/c72l8fmh","slide":11,"name":"Google Shape;131;p18","placeholder":"body","text":"FALHA TÍPICA\n\nBaixo contraste, ruído e sombras acústicas reduzem a definição da cápsula.\n\nQuando os limites do rim não aparecem, os dois modelos podem não produzir máscara.","textPreview":"FALHA TÍPICA |  | Baixo contraste, ruído e sombras acústicas reduzem a definição da cápsula. |  | Quando os limites do rim não aparecem, ...","textChars":172,"textLines":5,"bbox":[32.72,154.72,288.69,358.68]}
+{"kind":"textbox","id":"sh/r694zalw","slide":11,"name":"Google Shape;132;p18","placeholder":"body","text":"LEITURA CAUTELOSA\n\nNo exemplo externo, consenso alto coincide com bordas mais nítidas.\n\nSem anotação manual, o contraste visual não permite concluir causalidade nem acurácia externa.","textPreview":"LEITURA CAUTELOSA |  | No exemplo externo, consenso alto coincide com bordas mais nítidas. |  | Sem anotação manual, o contraste visual n...","textChars":182,"textLines":5,"bbox":[347.56,154.44,288.69,358.68]}
+{"kind":"image","id":"im/j6hwz6t4","slide":11,"name":"Google Shape;127;p18","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/wjqx4rut","slide":11,"name":"Google Shape;133;p18","alt":"Comparação qualitativa entre falha e alta concordância","bbox":[644.79,174.79,282.49,233.51]}
+{"kind":"notes","id":"nt/bgykq0","slide":11,"text":"Use este slide para explicitar o limite de generalização do conjunto externo.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/w5gs43","slide":12,"title":"Conclusão: uma cascata rastreável","textShapes":3}
+{"kind":"textbox","id":"sh/1gfih4zy","slide":12,"name":"Google Shape;160;p21","placeholder":"title","text":"Conclusão: uma cascata rastreável","textPreview":"Conclusão: uma cascata rastreável","textChars":33,"textLines":1,"bbox":[32.72,29.86,894.55,60.13]}
+{"kind":"shape","id":"sh/fed0fuh8","slide":12,"name":"Google Shape;162;p21","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/ed4z6p0n","slide":12,"name":"Google Shape;163;p21","placeholder":"slideNumber","text":"8","textPreview":"8","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/dsvidkz2","slide":12,"name":"Google Shape;164;p21","bbox":[41.76,122.83,94.49,2.9]}
+{"kind":"textbox","id":"sh/srmh4fih","slide":12,"name":"Google Shape;165;p21","placeholder":"body","text":"• A segmentação da cápsula pela U-Net atingiu Dice 0,9290 no teste deduplicado.\n\n• O consenso com DeepLabV3 priorizou a revisão de 3.534 pseudomáscaras externas, sem substituir especialistas.\n\n• A segmentação intrarrenal alcançou Dice médio 0,7594 no teste manual.\n\n• Próximos passos: revisar pseudomáscaras, manter testes manuais invariantes e estabelecer referência clínica ou histológica.","textPreview":"• A segmentação da cápsula pela U-Net atingiu Dice 0,9290 no teste deduplicado. |  | • O consenso com DeepLabV3 priorizou a revisão de 3....","textChars":391,"textLines":7,"bbox":[32.72,141.92,894.55,358.68]}
+{"kind":"image","id":"im/utgbulcb","slide":12,"name":"Google Shape;161;p21","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"notes","id":"nt/w5gs43","slide":12,"text":"Retome a tese: o valor do trabalho é a cadeia auditável de dados, segmentação e priorização, não um diagnóstico automatizado.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
+{"kind":"slide","id":"sl/wwmj52","slide":13,"title":"9","textShapes":4}
+{"kind":"shape","id":"sh/7ihwj6x0","slide":13,"name":"Google Shape;172;p22","bbox":[0,519.86,960,20.16]}
+{"kind":"textbox","id":"sh/6h8fq1wf","slide":13,"name":"Google Shape;173;p22","placeholder":"slideNumber","text":"9","textPreview":"9","textChars":1,"textLines":1,"bbox":[893.75,511.97,57.61,35.94]}
+{"kind":"shape","id":"sh/hojep0f2","slide":13,"name":"Google Shape;174;p22","bbox":[58.63,246.34,94.49,2.9]}
+{"kind":"textbox","id":"sh/gnqxwveh","slide":13,"name":"Google Shape;175;p22","text":"OBRIGADO!","textPreview":"OBRIGADO!","textChars":9,"textLines":1,"bbox":[46.42,123.02,718.61,113.1]}
+{"kind":"textbox","id":"sh/vmhwnqxw","slide":13,"name":"Google Shape;176;p22","text":"jefferson.anjos.1@aluno.cefet-rj.br\nCEFET/RJ","textPreview":"jefferson.anjos.1@aluno.cefet-rj.br | CEFET/RJ","textChars":44,"textLines":2,"bbox":[46.41,266.54,449.42,86.4]}
+{"kind":"textbox","id":"sh/ul8fulwb","slide":13,"name":"Google Shape;177;p22","text":"Apoio:\nCEFET/RJ e HUPE - UERJ","textPreview":"Apoio: | CEFET/RJ e HUPE - UERJ","textChars":29,"textLines":2,"bbox":[46.08,402.42,573.32,57.6]}
+{"kind":"image","id":"im/gj6p4bm9","slide":13,"name":"Google Shape;170;p22","bbox":[811.42,16.93,131.33,54.2]}
+{"kind":"image","id":"im/1kf6dw3u","slide":13,"name":"Google Shape;171;p22","bbox":[473.91,152.91,464.85,269.29]}
+{"kind":"notes","id":"nt/wwmj52","slide":13,"text":"Abra para perguntas.\n\n[Sources]\nArtigo final do projeto: main.pdf (SBBD 2026)."}
