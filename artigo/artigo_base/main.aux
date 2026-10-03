@@ -1,0 +1,86 @@
+\relax 
+\providecommand \babel@aux [2]{\global \let \babel@toc \@gobbletwo }
+\@nameuse{bbl@beforestart}
+\catcode `"\active 
+\babel@aux{brazilian}{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introdu\c {c}\~ao}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Fundamentos do Método}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Máscaras, interseção e métricas de sobreposição}{2}{}\protected@file@percent }
+\citation{Singla2023KidneyUS}
+\citation{Ronneberger2015}
+\citation{Zhou2018UNetPP}
+\citation{Chen2018DeepLab}
+\citation{Xie2021SegFormer}
+\citation{Lee2013PseudoLabel}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Região de interesse renal}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Realce de contraste por CLAHE}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Estruturas anatômicas segmentadas}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Trabalhos Relacionados}{3}{}\protected@file@percent }
+\citation{Athavale2021}
+\citation{Chen2023}
+\citation{Ge2022}
+\citation{Haralick1973}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Metodologia}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Visão geral do pipeline}{4}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Pipeline metodológico. O kidneyUS fornece as anotações supervisionadas; o pré-processamento prepara a entrada dos modelos; a segmentação renal define a ROI; a segmentação intrarrenal gera máscaras candidatas; e a curadoria humana consolida correções para ciclos posteriores.}}{4}{}\protected@file@percent }
+\newlabel{fig:tikz_pipeline}{{1}{4}{Visão geral do pipeline}{figure.1}{}}
+\citation{Singla2023KidneyUS}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Dados de entrada e geração das máscaras supervisionadas}{5}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Entradas, processamento e saídas da etapa supervisionada.}}{5}{}\protected@file@percent }
+\newlabel{tab:met_dados}{{1}{5}{Dados de entrada e geração das máscaras supervisionadas}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Pré-processamento das imagens}{5}{}\protected@file@percent }
+\citation{Ronneberger2015}
+\citation{Zhou2018UNetPP}
+\citation{Chen2018DeepLab}
+\citation{Xie2021SegFormer}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Exemplo de pré-processamento por CLAHE. A comparação visual evidencia o aumento de contraste local usado como apoio à entrada dos modelos de segmentação.}}{6}{}\protected@file@percent }
+\newlabel{fig:clahe_example}{{2}{6}{Pré-processamento das imagens}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Treinamento e seleção do modelo renal}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Pseudocódigo da seleção do modelo renal.}}{6}{}\protected@file@percent }
+\newlabel{alg:renal_model}{{3}{6}{Treinamento e seleção do modelo renal}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Geração de pseudomáscaras renais em imagens adicionais}{7}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Pseudocódigo da geração e filtragem das pseudomáscaras renais.}}{7}{}\protected@file@percent }
+\newlabel{alg:pseudomask}{{4}{7}{Geração de pseudomáscaras renais em imagens adicionais}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Segmentação intrarrenal}{7}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Entradas e saídas da segmentação intrarrenal.}}{8}{}\protected@file@percent }
+\newlabel{tab:met_intrarenal}{{2}{8}{Segmentação intrarrenal}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Curadoria humana e consolidação no banco}{8}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Pseudocódigo da curadoria humana e consolidação das correções.}}{9}{}\protected@file@percent }
+\newlabel{alg:curation}{{5}{9}{Curadoria humana e consolidação no banco}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Saídas finais do método}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Resultados}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Resultados hist\'oricos de segmenta\c {c}\~ao renal}{9}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Resultado hist\'orico do DeepLabV3 ResNet50 no \texttt  {dataset\_geral}: valida\c {c}\~ao cruzada em 5 folds e teste fixo de 1.188 imagens.}}{9}{}\protected@file@percent }
+\newlabel{tab:deeplab_cv}{{3}{9}{Resultados hist\'oricos de segmenta\c {c}\~ao renal}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Linha de base hist\'orica no \texttt  {dataset\_augmented}.}}{10}{}\protected@file@percent }
+\newlabel{tab:historico}{{4}{10}{Resultados hist\'oricos de segmenta\c {c}\~ao renal}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Segmenta\c {c}\~ao intrarrenal e concord\^ancia entre anotadores}{10}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces DeepLabV3 multiclasse para estruturas intrarrenais no teste do anotador 1.}}{10}{}\protected@file@percent }
+\newlabel{tab:intrarenal}{{5}{10}{Segmenta\c {c}\~ao intrarrenal e concord\^ancia entre anotadores}{table.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}An\'alise qualitativa}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Exemplo do fluxo de an\'alise: imagem original, m\'ascara renal, regi\~ao intrarrenal, regi\~oes internas candidatas e ROIs usadas para compara\c {c}\~ao de ecogenicidade quando h\'a \'org\~ao de refer\^encia vis\'ivel.}}{11}{}\protected@file@percent }
+\newlabel{fig:reference_example}{{6}{11}{An\'alise qualitativa}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Exemplo de divergência entre modelos intrarrenais. A comparação entre U-Net e DeepLabV3 destaca regiões em que as máscaras candidatas diferem e devem ser priorizadas na revisão.}}{11}{}\protected@file@percent }
+\newlabel{fig:unet_deeplab_divergence}{{7}{11}{An\'alise qualitativa}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Caso qualitativo favor\'avel: imagem original, m\'ascara de refer\^encia, predi\c {c}\~ao kidneyUS e predi\c {c}\~ao DeepLab local.}}{11}{}\protected@file@percent }
+\newlabel{fig:quality_good}{{8}{11}{An\'alise qualitativa}{figure.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discuss\~ao}{11}{}\protected@file@percent }
+\bibstyle{sbc}
+\bibdata{sbc-template}
+\bibcite{Araujo2020}{Araújo et~al. 2020}
+\bibcite{Athavale2021}{Athavale et~al. 2021}
+\bibcite{Chen2018DeepLab}{Chen et~al. 2018}
+\bibcite{Chen2023}{Chen et~al. 2023}
+\bibcite{Ge2022}{Ge et~al. 2023}
+\bibcite{Haralick1973}{Haralick et~al. 1973}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclus\~ao}{12}{}\protected@file@percent }
+\bibcite{Lee2013PseudoLabel}{Lee 2013}
+\bibcite{Manley2001}{Manley and O'Neill 2001}
+\bibcite{Moghazi2005}{Moghazi et~al. 2005}
+\bibcite{MONAIClinicalUltrasound}{{MONAI Development Team} 2026}
+\bibcite{Ronneberger2015}{Ronneberger et~al. 2015}
+\bibcite{Shtaiyat2024KidneyOutlines}{Shtaiyat and Younes 2024}
+\bibcite{Singla2023KidneyUS}{Singla et~al. 2023}
+\bibcite{Xie2021SegFormer}{Xie et~al. 2021}
+\bibcite{Zhou2018UNetPP}{Zhou et~al. 2018}
+\gdef \@abspage@last{13}

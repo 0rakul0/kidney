@@ -1,0 +1,348 @@
+Um Pipeline Semi-supervisionado para Segmentação Renal e
+     Caracterização Intrarrenal em Ultrassonografia
+            Jefferson S. dos Anjos1 , Amaro A. de Lima1 , Gabriel M. Araújo1 ,
+Jorge Luiz de C. Henriques Junior2 , Norderval C. Araújo2 , José Hermógenes R. Suassuna2 ,
+                                 Felipe da R. Henriques1
+                      1
+                       CEFET/RJ – Rio de Janeiro – RJ – Brasil
+                  2
+                      HUPE – UERJ – Rio de Janeiro – RJ – Brasil
+                      jefferson.anjos.1@aluno.cefet-rj.br,
+       {amaro.lima,gabriel.araujo,felipe.henriques}@cefet-rj.br,
+              {jorge.henriques,norderval.norderval}@uerj.br
+
+   Abstract. Renal ultrasound analysis depends on reliable anatomical
+   delimitation before any intrarenal measurement can be interpreted. This
+   paper presents a semi-supervised computer vision pipeline for kidney
+   segmentation and exploratory intrarenal characterization in 2D ultrasound.
+   The initial renal contour set contained 513 image-mask pairs obtained from
+   the flood_1 file shared by Shtaiyat and Younes, whose provenance is the Open
+   Kidney Ultrasound Data Set. A first segmenter was used to generate pseudo
+   masks for additional images, accepted only after confidence and geometric
+   filters. The consolidated set currently contains 5,994 unique images, 4,853 of
+   them with renal masks; the cross-validation experiment reported here used the
+   earlier supervised subset with 3,962 accepted masks. DeepLabV3 ResNet50
+   achieved mean Dice of 0.9366 and mean IoU of 0.8839 on the fixed test set.
+   For intrarenal structures, kidneyUS multiclass annotations were converted
+   into masks for cortex, medulla and central echo complex, enabling a separate
+   DeepLabV3 model. The method is designed as a human-in-the-loop dataset
+   expansion strategy and does not yet validate automatic fibrosis diagnosis.
+   Resumo. A análise de ultrassonografias renais depende de uma delimitação
+   anatômica confiável antes que qualquer medida intrarrenal possa ser
+   interpretada. Este artigo apresenta um pipeline semi-supervisionado de
+   visão computacional para segmentação renal e caracterização intrarrenal
+   exploratória em ultrassom 2D. A base inicial de contorno renal continha
+   513 pares imagem-máscara obtidos do arquivo flood_1 compartilhado por
+   Shtaiyat e Younes, cuja proveniência é o Open Kidney Ultrasound Data Set.
+   Um primeiro segmentador foi usado para gerar pseudomáscaras em imagens
+   adicionais, aceitas apenas após filtros de confiança e geometria. O conjunto
+   consolidado atual possui 5.994 imagens únicas, das quais 4.853 têm máscaras
+   renais; o experimento de validação cruzada relatado aqui usou o subconjunto
+   supervisionado anterior com 3.962 máscaras aceitas. O DeepLabV3 ResNet50
+   obteve Dice médio de 0,9366 e IoU médio de 0,8839 no teste fixo. Para
+   estruturas intrarrenais, anotações multiclasse do kidneyUS foram convertidas
+   em máscaras de córtex, medula e complexo ecogênico central, permitindo um
+   modelo DeepLabV3 separado. O método foi projetado como estratégia de
+   expansão de dataset com especialista no ciclo e ainda não valida diagnóstico
+   automático de fibrose.
+1. Introdução
+A ultrassonografia renal é acessível, não invasiva e amplamente empregada na avaliação
+de alterações estruturais do rim. Na prática clínica, dimensões renais, diferenciação
+cortico-medular, ecogenicidade cortical e presença de regiões muito brilhantes podem
+apoiar a interpretação do exame. Entretanto, esses achados são sensíveis a ruído, ganho,
+sombras acústicas, enquadramento e experiência do avaliador.
+         Em estudos pareados com biópsia, a fibrose renal costuma ser operacionalizada
+como interstitial fibrosis and tubular atrophy (IFTA). Trabalhos anteriores mostram que
+achados ultrassonográficos e medidas de ecogenicidade podem se relacionar a alterações
+histológicas, mas também deixam claro que a imagem isolada não substitui referência
+clínica ou histológica [Moghazi et al. 2005, Athavale et al. 2021]. Por isso, este trabalho
+não apresenta um classificador clínico de fibrose. O foco está na etapa anterior: construir
+uma base maior e um segmentador confiável para isolar o rim e preparar medidas
+intrarrenais auditáveis.
+         A razão entre a intensidade cortical renal e a intensidade de um órgão
+de referência, como o fígado, é uma forma de tornar a ecogenicidade menos
+subjetiva [Manley and O’Neill 2001, Araújo et al. 2020].        Neste contexto, “razão”
+significa dividir uma medida de brilho extraída do rim por uma medida equivalente
+extraída do órgão de referência. Valores mais altos indicam que o rim aparece
+relativamente mais ecogênico naquela aquisição, embora essa medida ainda precise ser
+interpretada por especialistas.
+         A questão investigada é: como combinar segmentação renal, pseudorrotulação
+controlada e anotações intrarrenais para aumentar gradualmente a base de dados e
+produzir máscaras úteis para análise posterior? A contribuição principal é de engenharia
+metodológica: transformar poucas anotações manuais em um ciclo rastreável de
+expansão, treinamento, aceite automático e futura curadoria humana.
+         As contribuições deste trabalho são: (i) documentar a origem da base inicial e
+sua relação com OpenKidney/kidneyUS; (ii) consolidar um dataset renal expandido com
+imagens locais e MONAI; (iii) definir critérios objetivos para aceitar pseudomáscaras;
+(iv) treinar e avaliar um segmentador renal DeepLabV3 ResNet50; e (v) usar as anotações
+internas do kidneyUS para treinar uma etapa intrarrenal multiclasse, ainda voltada à
+curadoria e não a diagnóstico final.
+
+2. Contexto e Trabalhos Relacionados
+A segmentação automática de rim em ultrassonografia é a primeira linha relacionada a este
+estudo. Arquiteturas como U-Net [Ronneberger et al. 2015], UNet++ [Zhou et al. 2018],
+DeepLabV3 [Chen et al. 2018] e SegFormer [Xie et al. 2021] são amplamente usadas
+por preservarem informação espacial, capturarem contexto multiescala e lidarem com
+variações de textura.
+        A segunda linha é a análise quantitativa de ecogenicidade, intensidade e
+textura. Estudos de radiomics e aprendizado de máquina investigam associações entre
+ultrassonografia renal e fibrose ou disfunção, especialmente quando há padrão de
+referência clínico ou histológico [Athavale et al. 2021, Chen et al. 2023, Ge et al. 2023].
+Descritores clássicos de textura, como matrizes de coocorrência de níveis de cinza,
+também podem ser extraídos após a delimitação do órgão [Haralick et al. 1973].
+        A terceira linha é a expansão semi-supervisionada por pseudorrotulação. Nessa
+abordagem, um modelo treinado com rótulos manuais gera rótulos candidatos para novas
+imagens, que são aceitos somente quando satisfazem critérios de qualidade [Lee 2013].
+No presente trabalho, essa ideia é usada para aumentar o número de máscaras renais e
+preparar um ciclo posterior de revisão por especialista.
+
+
+3. Metodologia
+
+3.1. Visão geral
+
+A Figura 1 resume o fluxo proposto. A imagem de ultrassom é padronizada, passa por
+segmentação renal e produz uma máscara binária do rim. Essa máscara restringe a análise
+à anatomia renal, evitando que fundo, textos da tela, tecidos adjacentes ou artefatos
+externos sejam tratados como regiões intrarrenais. Em seguida, podem ser extraídos
+atributos de intensidade, textura e regiões internas candidatas.
+     Imagem de         Preparo da     Segmentação      Segmentação        Curadoria
+      ultrassom         entrada          renal          intrarrenal        humana
+
+    Figura 1. Pipeline metodológico. A segmentação renal define a região
+    anatômica; a segmentação intrarrenal e a curadoria humana formam o ciclo de
+    refinamento do dataset.
+        O termo “curadoria humana” indica a etapa em que um especialista revisa as
+máscaras geradas automaticamente e decide se elas são adequadas, precisam de correção
+ou devem ser descartadas. Assim, o modelo não substitui a validação clínica; ele prioriza
+e acelera a produção de exemplos revisáveis.
+
+3.2. Origem das bases
+
+A base inicial deste projeto foi o arquivo flood_1, recebido por e-mail dos autores do
+estudo de Shtaiyat e Younes [Shtaiyat and Younes 2024]. No próprio e-mail, os autores
+informaram que o material deriva do Open Kidney Ultrasound Data Set, também tratado
+no projeto como OpenKidney/kidneyUS [Singla et al. 2023]. A partir desse arquivo,
+foram organizados 513 pares imagem-máscara de contorno renal, distribuídos em 360
+imagens de treino, 51 de validação e 102 de teste.
+        O kidneyUS também foi usado em uma segunda frente, diferente da base
+inicial de contorno renal. Suas anotações internas incluem classes anatômicas como
+Capsule, Cortex, Medulla e Central Echo Complex. Essas anotações foram convertidas
+em máscaras para treinar modelos de segmentação intrarrenal. Portanto, a resposta
+metodológica é: o OpenKidney/kidneyUS aparece primeiro como origem da base inicial
+de contorno e depois como fonte de anotações internas para treinar a segmentação de
+estruturas renais.
+        A terceira fonte foi o MONAI Clinical Ultrasound Image
+Repository [MONAI Development Team 2026].            Como esse repositório é amplo
+e heterogêneo, foram selecionados estudos renais ou retroperitoneais, convertidos
+DICOMs para PNG e descartados quadros RGB, Doppler, coloridos ou fora do
+padrão B-mode em escala de cinza. Esse processo gerou 4.487 PNGs curados; após
+deduplicação, 4.479 entraram no dataset_geral.
+                      Tabela 1. Evolução das bases usadas no projeto.
+ Conjunto                Imagens Papel metodológico
+ flood_1 / OpenKidney       513     base inicial com máscaras manuais de contorno renal
+ dataset_augmented          532     expansão histórica usada no primeiro benchmark local
+ Subconjuntos locais       1.002    complemento consolidado antes da expansão externa
+ MONAI renal curado        4.479    expansão externa em B-mode após filtragem e deduplicação
+ dataset_geral atual       5.994    acervo consolidado para novos ciclos de treinamento e curadoria
+
+         A Tabela 1 também esclarece a diferença entre dataset_augmented e
+dataset_geral. O primeiro foi uma expansão inicial e hoje funciona como histórico
+experimental. O segundo é o acervo consolidado, reunindo a base inicial, subconjuntos
+locais, imagens processadas do MONAI e as máscaras geradas ou reaproveitadas.
+
+3.3. Geração e aceite das pseudomáscaras
+
+As pseudomáscaras renais foram geradas por modelos treinados com anotações manuais.
+Cada máscara candidata só foi aceita quando passou por controles automáticos: confiança
+média dentro da máscara de pelo menos 0,90, área relativa entre 0,03 e 0,75 da imagem,
+pelo menos 800 pixels positivos e no máximo três componentes conectados. Predições
+com baixa confiança, regiões quase vazias, regiões excessivamente grandes ou muitos
+componentes foram rejeitadas.
+       No experimento de validação cruzada relatado neste artigo, o dataset_geral
+tinha 3.962 imagens com máscaras aceitas: 1.001 máscaras existentes e 2.961
+pseudomáscaras geradas. As 2.032 imagens sem máscara aceita naquele momento foram
+preservadas no manifesto para rastreabilidade e reprocessamento, mas não entraram no
+treinamento supervisionado nem no teste. Depois, com o modelo campeão, parte dessas
+imagens foi reprocessada; o estado atual do repositório registra 5.994 imagens únicas,
+4.853 com máscara renal aceita e 1.141 ainda sem máscara aceita.
+       Essa distinção evita uma confusão importante: 3.962 é o tamanho supervisionado
+usado no experimento de validação cruzada; 4.853 é o número atual de imagens com
+máscara renal aceita após o ciclo posterior de geração de máscaras.
+
+3.4. Treinamento renal e intrarrenal
+
+Para a segmentação externa do rim, foram avaliadas U-Net, UNet++, DeepLabV3 e
+SegFormer. O protocolo principal com dataset_geral separou 30% das 3.962
+imagens com máscara aceita como teste fixo, totalizando 1.188 imagens, e usou os 70%
+restantes em validação cruzada com 5 folds para treino e seleção do modelo.
+        Para a segmentação intrarrenal, as anotações do kidneyUS foram reorganizadas
+por anotador. O processamento local encontrou 534 imagens PNG e duas planilhas de
+anotações. Para o anotador 1, havia 486 imagens com cápsula, 336 com medula e 336
+elegíveis para treino da medula; o conjunto multiclasse final usado no treinamento reuniu
+335 imagens com classes de córtex, medula e complexo ecogênico central. O split usado
+pelo modelo multiclasse foi de 235 imagens para treino, 50 para validação e 50 para teste.
+        As máscaras internas geradas por esse modelo não devem ser apresentadas como
+anotações manuais definitivas. Elas são pseudomáscaras candidatas, produzidas a partir
+do aprendizado das anotações kidneyUS, para aumentar a base e orientar a revisão por
+especialista.
+4. Resultados
+4.1. Segmentação renal
+Dice e IoU medem sobreposição entre a máscara predita e a máscara de referência. Ambas
+variam de 0 a 1; quanto mais próximo de 1, maior a concordância. O Dice dá peso maior
+à sobreposição entre as duas máscaras, enquanto a IoU mede a razão entre interseção e
+união.
+    Tabela 2. DeepLabV3 ResNet50 no dataset_geral: validação cruzada em 5
+    folds e teste fixo de 1.188 imagens.
+            Fold     Época    Limiar    Dice Val.   Dice Teste   IoU Teste
+            1         25       0,50      0,9298      0,9263        0,8782
+            2         16       0,50      0,9358      0,9371        0,8817
+            3         19       0,55      0,9401      0,9391        0,8851
+            4         18       0,50      0,9467      0,9420        0,8904
+            5         17       0,35      0,9400      0,9385        0,8841
+            Média      –         –       0,9385      0,9366        0,8839
+
+         A Tabela 2 mostra que o DeepLabV3 ResNet50 teve Dice médio de 0,9366 no
+teste fixo. O melhor fold atingiu Dice 0,9420 e IoU 0,8904. Esse resultado passa a ser
+a principal referência do projeto para segmentação renal, pois foi obtido no acervo mais
+diverso e com teste preservado.
+               Tabela 3. Linha de base histórica no dataset_augmented.
+ Modelo         Dice   IoU                          Precisão      Recall      FPS
+ DeepLabV3 R50 0,8472 0,7732                         0,8426       0,8718      28,98
+ SegFormer B2  0,8372 0,7700                         0,8294       0,8782      35,66
+ U-Net         0,8119 0,7309                         0,8039       0,8545      26,43
+ UNet++        0,7924 0,6958                         0,8189       0,7968      20,88
+       A Tabela 3 não deve ser lida como comparação direta com a Tabela 2, porque o
+protocolo e o tamanho do acervo são diferentes. Ela documenta o ponto de partida: antes
+da consolidação do dataset_geral, o melhor resultado local era Dice 0,8472 com
+DeepLabV3 R50 no dataset_augmented. A melhora posterior reforça a importância
+da expansão controlada e da curadoria dos dados.
+4.2. Segmentação intrarrenal
+A etapa intrarrenal foi treinada com anotações multiclasse do kidneyUS. O modelo usa
+como entrada a região renal em tons de cinza, a ROI renal mascarada e a máscara do
+rim. A saída prediz córtex, medula e complexo ecogênico central. A Tabela 4 apresenta o
+desempenho no conjunto de teste.
+    Tabela 4. DeepLabV3 multiclasse para estruturas intrarrenais no teste do
+    anotador 1.
+                    Classe                      Dice   IoU
+                    Córtex                     0,6822 0,5176
+                    Medula                     0,7156 0,5571
+                    Complexo ecogênico central 0,8497 0,7387
+                    Média das classes internas 0,7492 0,6045
+       O melhor desempenho intrarrenal ocorreu no complexo ecogênico central, com
+Dice 0,8497. Córtex e medula tiveram resultados menores, o que é esperado pela maior
+ambiguidade visual e pela variabilidade entre anotadores. Ainda assim, essa etapa já
+permite gerar pseudomáscaras internas para revisão e aumento gradual da base.
+
+4.3. Análise qualitativa
+A Figura 2 mostra a aplicação do fluxo em uma imagem concreta. O primeiro painel
+é a imagem original; os painéis seguintes mostram a máscara renal, a região intrarrenal
+analisada, as regiões internas candidatas e as ROIs de referência. A figura serve para
+mostrar que as medidas não são extraídas da imagem inteira, mas de uma região anatômica
+delimitada.
+
+
+
+
+    Figura 2. Exemplo do fluxo de análise: imagem original, máscara renal, região
+    intrarrenal, regiões internas candidatas e ROIs usadas para comparação de
+    ecogenicidade quando há órgão de referência visível.
+
+         A Figura 3 ilustra um caso favorável de segmentação externa. Da esquerda para a
+direita, aparecem a imagem original, a máscara de referência, a predição de um modelo
+associado ao kidneyUS e a predição do DeepLab treinado localmente. O exemplo mostra
+que, quando o contorno renal é legível, a segmentação local preserva bem a geometria do
+rim.
+
+
+
+
+    Figura 3. Caso qualitativo favorável: imagem original, máscara de referência,
+    predição kidneyUS e predição DeepLab local.
+
+
+5. Discussão
+O principal resultado do trabalho não é afirmar que o sistema diagnostica fibrose, mas
+demonstrar que o repositório passou a ter um fluxo consistente para crescer com controle.
+A partir de 513 imagens iniciais com máscara, o projeto consolidou um acervo de 5.994
+imagens únicas e criou regras objetivas para decidir quais pseudomáscaras podem entrar
+no treinamento.
+         Esse ciclo também permite incorporar um especialista de maneira produtiva.
+Em vez de pedir que o especialista anote todas as imagens do zero, o sistema pode
+apresentar máscaras candidatas já geradas. O especialista revisa, aceita, corrige ou
+rejeita; as imagens aprovadas retornam ao conjunto supervisionado e alimentam um novo
+treinamento. Esse processo caracteriza uma abordagem human-in-the-loop.
+         O uso do kidneyUS para segmentação interna deve ser explicado como
+transferência metodológica de anotações anatômicas, não como cópia de resultado. As
+anotações multiclasse existentes foram usadas para treinar modelos capazes de sugerir
+córtex, medula e complexo ecogênico central em novas imagens. Essas sugestões
+aumentam a capacidade de curadoria, mas ainda não substituem uma anotação manual
+validada.
+         As limitações principais permanecem claras. O projeto ainda não possui um
+conjunto robusto de imagens vinculadas a biópsia ou diagnóstico histológico de IFTA.
+Também existe variabilidade entre anotadores nas estruturas internas, especialmente
+córtex e medula. Por fim, imagens de ultrassom muito ruidosas ou com o rim pouco
+visível continuam podendo gerar falhas de segmentação, mesmo com filtros automáticos.
+
+6. Conclusão
+Este artigo apresentou uma versão atualizada do método: a base inicial veio do flood_1,
+derivado do Open Kidney Ultrasound Data Set; o kidneyUS foi usado também para
+anotações internas; e o MONAI foi incorporado depois como fonte externa para aumentar
+variabilidade. As pseudomáscaras foram geradas por modelos treinados com anotações
+reais e aceitas apenas quando passaram por filtros de confiança e geometria.
+         No experimento principal, o DeepLabV3 ResNet50 alcançou Dice médio de
+0,9366 e IoU médio de 0,8839 no teste fixo. Na etapa intrarrenal, o modelo multiclasse
+obteve Dice médio de 0,7492 nas classes internas, com melhor desempenho no complexo
+ecogênico central. Esses resultados sustentam a principal contribuição atual: um sistema
+incremental para segmentar o rim, propor estruturas internas e ampliar o dataset com
+controle humano.
+         Como trabalhos futuros, pretende-se executar a curadoria especializada das
+máscaras geradas, incorporar as correções ao treinamento e avaliar a estabilidade do
+método em novas imagens de ultrassom renal. Somente após a obtenção de rótulos
+clínicos ou histológicos adequados será possível avaliar predição de fibrose como tarefa
+clínica.
+
+Referências
+Araújo, N. C., Riella, C., Martins, L. S., et al. (2020). Sonographically determined kidney
+  measurements are better able to predict histological changes and a low ckd-epi egfr
+  when weighted towards cortical echogenicity. BMC Nephrology, 21(123).
+Athavale, A., Hartman, N., Sonavane, R., et al. (2021). Development and validation of
+  a deep learning model to quantify interstitial fibrosis and tubular atrophy from kidney
+  ultrasonography images. JAMA Network Open, 4(5):e2110856.
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018). Encoder-decoder
+  with atrous separable convolution for semantic image segmentation. European
+  Conference on Computer Vision (ECCV), pages 801–818.
+Chen, Z., Guo, J., Chen, C., and Zheng, J. (2023). Ultrasound-based radiomics analysis
+  in the assessment of renal fibrosis in patients with chronic kidney disease. Journal of
+  Ultrasound in Medicine, 42(12):3025–3038.
+Ge, X.-Y., Miao, H., Wang, J., et al. (2023). Diagnostic accuracy of ultrasound-based
+  multimodal radiomics modeling for fibrosis detection in chronic kidney disease.
+  Abdominal Radiology, 48(3):977–987.
+Haralick, R. M., Shanmugam, K., and Dinstein, I. (1973). Textural features for
+  image classification. IEEE Transactions on Systems, Man, and Cybernetics,
+  SMC-3(6):610–621.
+Lee, D.-H. (2013). Pseudo-label: The simple and efficient semi-supervised learning
+  method for deep neural networks. In Workshop on Challenges in Representation
+  Learning, ICML, volume 3.
+Manley, J. A. and O’Neill, W. C. (2001). How echogenic is echogenic? quantitative
+  acoustics of the renal cortex. American Journal of Kidney Diseases, 37(4):706–711.
+Moghazi, S., Jones, E., Schroepple, J., et al. (2005). Correlation of renal histopathology
+  with sonographic findings. Kidney International, 67(4):1515–1520.
+MONAI Development Team (2026). Clinical ultrasound image repository. AWS Open
+ Data Registry. Accessed May 2026.
+Ronneberger, O., Fischer, P., and Brox, T. (2015). U-net: Convolutional networks for
+  biomedical image segmentation. In Medical Image Computing and Computer-Assisted
+  Intervention (MICCAI), pages 234–241.
+Shtaiyat, A. and Younes, H. A. (2024). Enhancing kidney outlines in 2d ultrasound images
+  using deep learning. Journal of Medicinal and Chemical Sciences, 7(7):909–921.
+Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and Rohling, R.
+   (2023). The open kidney ultrasound data set. In Simplifying Medical Ultrasound,
+   volume 14337 of Lecture Notes in Computer Science, pages 155–164. Springer Nature
+   Switzerland.
+Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J. M., and Luo, P. (2021).
+  Segformer: Simple and efficient design for semantic segmentation with transformers.
+  Advances in Neural Information Processing Systems, 34:12077–12090.
+Zhou, Z., Siddiquee, M. M. R., Tajbakhsh, N., and Liang, J. (2018). Unet++: A nested
+  u-net architecture for medical image segmentation. Deep Learning in Medical Image
+  Analysis and Multimodal Learning for Clinical Decision Support, pages 3–11.
+

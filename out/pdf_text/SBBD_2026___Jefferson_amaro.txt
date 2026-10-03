@@ -1,0 +1,333 @@
+       Um Pipeline de Visão Computacional para Análise de Achados
+               Hiperecogênicos em Ultrassonografia Renal
+               Jefferson S. dos Anjos1 , Amaro A. de Lima1 , Gabriel M. Araújo1 ,
+        Jorge Luiz de C. Henriques Junior2 , Norderval2 , José Hermógenes R. Suassuna2 ,
+                                    Felipe da R. Henriques1
+                               1
+                                CEFET/RJ – Rio de Janeiro – RJ – Brasil
+                           2
+                               HUPE – UERJ – Rio de Janeiro – RJ – Brasil
+                               jefferson.anjos.1@aluno.cefet-rj.br,
+                {amaro.lima,gabriel.araujo,felipe.henriques}@cefet-rj.br,
+                       {jorge.henriques,norderval.norderval}@uerj.br
+
+           Abstract. Renal ultrasound interpretation depends on subjective visual
+           inspection and anatomical delimitation of the kidney. This paper proposes
+           a computer vision pipeline that first segments the kidney and then analyzes
+           suspicious hyperechoic regions near renal pyramids. An exploratory annotated
+           set was used to train an initial model, which generated pseudo masks accepted
+           only above a 90% operational confidence threshold. After data expansion, a
+           second DeepLabV3 ResNet50 model was trained on the consolidated set and
+           achieved Dice of 0.9366 and IoU of 0.8839 on a fixed 30% test set. The fibrosis
+           suspicion classifier remains exploratory due to the lack of real labeled examples.
+
+           Resumo. A interpretação de ultrassonografias renais depende de inspeção
+   itálico  visual subjetiva e da delimitação anatômica do rim. Este artigo propõe um
+  palavra
+estrangeira pipeline de visão computacional que primeiro segmenta o rim e depois analisa
+           regiões hiperecogênicas suspeitas próximas às pirâmides renais. Uma base
+           exploratória anotada foi usada para treinar um modelo inicial, que gerou
+           pseudomáscaras aceitas apenas acima de 90% de confiança operacional. Após
+           a expansão dos dados, um segundo DeepLabV3 ResNet50 foi treinado no
+           conjunto  consolidado e atingiu Dice de 0.9366 e IoU de 0.8839 em teste fixo
+                 de que?
+           de 30%. O classificador de suspeita de fibrose permanece exploratório pela
+           falta de exemplos reais rotulados.     em português se usa vírgula
+
+       1. Introdução
+       A ultrassonografia renal é um exame acessível, não invasivo e amplamente empregado
+       na avaliação de alterações estruturais do rim. Na prática clínica, regiões muito claras
+       no parênquima, em especial quando aparecem próximas às pirâmides renais, podem
+       indicar achados suspeitos que merecem análise cuidadosa. A ecogenicidade cortical,
+       especialmente quando comparada ao fígado, também é um sinal observado em pacientes
+       com doença renal crônica. Estudos mostram que a razão entre a intensidade cortical renal
+       e a intensidade de um órgão de referência pode reduzir parte da subjetividade da inspeção
+       visual [Manley and O’Neill 2001, Araújo et al. 2020].                       o que é isso?
+
+              Em paralelo, a literatura recente explora segmentação renal, radiomics e
+       aprendizado de máquina para quantificar padrões associados a alterações fibróticas
+ou funcionais [Athavale et al. 2021, Chen et al. 2023, Ge et al. 2023]. Apesar desses
+avanços, ainda há uma lacuna entre segmentar o rim e examinar, dentro da região
+segmentada, pontos hiperecogênicos candidatos a achados suspeitos.         Assim, a
+segmentação não deve ser tratada como objetivo final, mas como etapa de isolamento
+anatômico para análise posterior.
+        Esse recorte é importante porque a ultrassonografia apresenta ruído, sombras
+acústicas, variações de ganho e diferenças de enquadramento entre exames. Pontos muito
+claros podem surgir por artefatos, por estruturas anatômicas normais ou por alterações que
+merecem atenção. Sem uma máscara renal confiável, esses pontos podem ser confundidos
+com estruturas externas ao rim. Por isso, este trabalho parte da delimitação semântica do
+rim e só depois transforma os achados hiperecogênicos em medidas computacionais.
+        Este artigo investiga a seguinte questão: em que medida a combinação entre
+                                            o que é isso?
+segmentação renal, expansão supervisionada por pseudomáscaras e extração de atributos
+intrarrenais pode apoiar a análise de achados hiperecogênicos suspeitos? As contribuições
+são: (i) consolidação de um acervo expandido para segmentação renal; (ii) uso de
+um modelo inicial para gerar pseudomáscaras com limiar de confiança de 90%; (iii)
+treinamento de um segundo segmentador mais eficaz após a expansão da base; e (iv)
+avaliação exploratória da etapa de suspeita de fibrose, ainda limitada pela escassez de
+exemplos reais rotulados.
+
+2. Contexto e Trabalhos Relacionados
+A primeira linha relacionada a este trabalho é a segmentação automática de
+rim em ultrassonografia.        Arquiteturas como U-Net [Ronneberger et al. 2015],
+DeepLabV3 [Chen et al. 2018] e SegFormer [Xie et al. 2021] oferecem estratégias
+complementares para preservar bordas, capturar contexto multiescala e lidar com
+variações de textura. A segunda linha é a quantificação da ecogenicidade renal
+relativa, em que medidas entre rim e fígado aproximam um critério usado por
+especialistas [Manley and O’Neill 2001, Araújo et al. 2020].         A terceira linha é
+a radiomics aplicada à doença renal, que busca relacionar textura, intensidade
+e heterogeneidade da imagem com fibrose ou disfunção [Athavale et al. 2021,
+Chen et al. 2023, Ge et al. 2023].     Além disso, alterações de ecogenicidade nas
+pirâmides renais foram associadas a pior função renal em cenários clínicos
+específicos [Chavhan et al. 2008], o que motiva a busca por estruturas claras nessa região.
+       Diferentemente de abordagens centradas apenas no contorno renal, este trabalho
+organiza essas linhas em um pipeline de dados. A máscara segmentada delimita
+a região de análise e permite procurar, apenas dentro do rim, regiões muito claras
+próximas às pirâmides candidatas. A contribuição, portanto, está no encadeamento entre
+curadoria, pseudorrotulação, treinamento, inferência, extração de atributos e interpretação
+experimental.
+
+3. Metodologia
+A Figura 1 apresenta a visão geral da abordagem. O pipeline recebe imagens de
+ultrassonografia, aplica normalização e redimensionamento, segmenta o rim e usa a
+máscara resultante para definir a região de interesse. Dentro dessa região, o método
+procura áreas hiperecogênicas, isto é, estruturas muito claras que aparecem próximas
+               às pirâmides renais candidatas. Em seguida, são extraídos atributos de intensidade,
+               dispersão, percentis, proporção de pixels brilhantes e textura por matrizes de coocorrência
+               de níveis de cinza [Haralick et al. 1973]. Quando há ROI manual do fígado, o
+               sistema também calcula razões entre rim e fígado. Por fim, um classificador Random
+               Forest [Breiman 2001] é usado apenas como prova de conceito, pois a etapa de decisão
+               sobre suspeita de fibrose ainda não possui exemplos reais suficientes.
+                       Na prática, a segmentação define uma janela anatômica para reduzir falsos
+               candidatos fora do rim. A partir dela, a imagem é analisada em tons de cinza, buscando
+               concentrações locais de pixels de alta intensidade e sua relação espacial com regiões
+               internas candidatas às pirâmides. Essa etapa não assume que todo ponto claro represente
+               fibrose; ela apenas transforma esses achados visuais em medidas que podem ser avaliadas
+               posteriormente com rótulos clínicos.
+                       Imagem de       Preparo da      Segmentação     Regiões claras      Suspeita
+                        ultrassom       entrada           renal         intrarrenais     exploratória
+
+                      Figura 1. Pipeline metodológico: a segmentação renal isola o rim para análise
+                      de regiões hiperecogênicas próximas às pirâmides renais.
+
+                       O desenvolvimento foi organizado em duas fases. Na primeira, uma base
+               exploratória derivada do Open Kidney Ultrasound Data Set [Singla et al. 2023], com 513
+               pares imagem e máscara, foi usada para treinar segmentadores iniciais. Esse modelo
+               inicial teve a função de aprender o contorno renal e permitir a geração automática de
+               máscaras em imagens adicionais. Na segunda fase, foi aplicada uma estratégia de pseudo
+               labeling [Lee 2013]: as novas máscaras só foram aceitas quando a predição atingiu
+               confiança operacional de pelo menos 90% e passou por filtros de área, componentes
+               conectados e pixels de primeiro plano.
+                       A montagem consolidada, chamada dataset_geral, contém 5.994 imagens
+               únicas; destas, 3.962 possuem máscaras aceitas, sendo 1.001 máscaras originais e 2.961
+               pseudomáscaras filtradas. As demais 2.032 imagens foram preservadas no manifesto,
+                         estas 2032 imagens foram usadas em algum lugar? Nem no teste também, certo?
+               mas não foram usadas no treinamento supervisionado. Após essa expansão, um segundo
+               modelo foi treinado sobre a base ampliada, com maior diversidade de imagens e de
+               contornos renais. A Tabela 1 resume o antes e depois dessa etapa.
+                      A aceitação das pseudomáscaras não foi tratada como simples aumento de volume.
+               A confiança mínima de 90% foi usada como critério operacional para reduzir a entrada
+               de máscaras fracas no segundo treinamento. Os filtros geométricos também buscaram
+               remover predições incompatíveis com uma região renal plausível, como objetos muito
+               pequenos, regiões desconectadas ou respostas quase vazias. Com isso, a expansão da
+               base procurou equilibrar quantidade e qualidade das anotações.
+                               Tabela 1. Evolução do acervo e do modelo de segmentação.
+as 513 estão dentro        Etapa               Imagens   Máscaras aceitas Uso principal
+da base consolidada        Base exploratória     513          513          Modelo inicial
+     também?
+                           Base consolidada     5.994        3.962        Segundo modelo
+
+                     O protocolo principal do segundo modelo reserva 30% das 3.962 imagens com
+               máscara como teste fixo e usa os 70% restantes para treino e seleção de modelo por
+                                explicar melhor de onde vieram estas imagens, qual a origem do dataset
+
+
+                validação cruzada em 5 folds. Foram avaliadas as famílias U-Net, UNet++, DeepLabV3
+                e SegFormer. A etapa de classificação usa apenas o subconjunto atualmente rotulado
+                para suspeita de alteração, com 50 imagens, das quais 44 compõem treino e validação
+                e 6 compõem o teste. Por isso, essa etapa tem caráter exploratório e ainda não fecha o
+                diagnóstico de fibrose em sim ou não.
+                            deixar mais claro, por exemplo, já falar que é classificador de suspeita de fibrose
+                       Essa separação entre segmentação e decisão clínica foi adotada deliberadamente.
+                                                                                   confiabilidade?
+                O primeiro problema exige aprender o contorno renal com boa estabilidade; o
+                segundo exige exemplos reais de fibrose, preferencialmente balanceados e associados a
+                informações clínicas. Neste estágio, portanto, o artigo prioriza a etapa que já pode ser
+                avaliada de forma consistente.
+
+
+
+
+                                                                                              explicar a figura no texto
+                                                                                               para guiar o leitor, não
+                                                                                                 deixá-lo interpretar.
+                                                                                                Precisa ser explicado
+                                                                                                 o que cada imagem
+                                                                                            representa e para que serve.
+
+
+
+
+                     Figura 2. Exemplo de análise com órgão de referência: imagem original,
+                     máscara renal, região intrarrenal, pirâmides candidatas e ROIs de referência para
+       seria         comparação de ecogenicidade.
+   interessante
+  ter um human 4. Resultados
+in the loop desta
+   expansão do
+   dataset, pois              está confuso quem é o dataset _augmented e o _geral?
+ imagine que vc                      Na tabela 1 isso já poderia estar definido
+    agregue ao
+   treino 600%
+   mais dados,
+    todos com     A Tabela 2 resume o desempenho antes e depois da expansão da base. Antes
+                                                                                                       não definido
+  algum errinho da montagem consolidada, o melhor resultado local era o DeepLabV3 R50 no
+         de                                         o que é Dice?
+                  dataset_augmented, com Dice de 0.8472. Depois da geração de pseudomáscaras,
+  segmentação,
+então resultados filtragem por confiança de 90% e treinamento do segundo modelo no dataset_geral,
+    com esses o DeepLabV3 ResNet50 atingiu Dice médio de 0.9366 e IoU de 0.8839 no teste fixo.
+errinhos gerarão Esse ganho indica que a expansão controlada do acervo foi decisiva para obter uma
+ maior acurácia. segmentação mais confiável antes da busca por achados intrarrenais.
+       Outra
+ possibilidade é         Do ponto de vista do pipeline completo, a melhora da segmentação tem impacto
+  fazer um loop direto sobre a etapa posterior. Uma máscara mais precisa reduz a inclusão de fundo,
+         de
+     aumento      legenda, tecidos adjacentes e artefatos externos, que poderiam aumentar artificialmente a
+     gradual,     contagem de pixels brilhantes. Também preserva melhor a região interna do rim, onde
+   observando se concentram as pirâmides candidatas. Assim, o ganho de Dice não representa apenas
+consistência em
+   aumento de
+                  melhor contorno, mas maior confiabilidade para as medidas intrarrenais usadas depois.
+acurácia até que
+   isso pare de
+   ocorrer. Mas
+essas são ideias
+        para
+                        Tabela 2. Resultados de segmentação antes e depois da expansão do acervo.
+                                      poderia criar uma coluna
+                   Protocolo / modelo        de dataset         Dice       IoU    Prec. Recall FPS
+                   Depois, DeepLabV3 R50, dataset_geral        0.9366     0.8839    –      –     –
+                   Antes, DeepLabV3 R50, dataset_augmented 0.8472         0.7732 0.8426 0.8718 28.98
+                   SegFormer B2, dataset_augmented             0.8372     0.7700 0.8294 0.8782 35.66
+                   U-Net baseline, dataset_augmented           0.8119     0.7309 0.8039 0.8545 26.43
+                   UNet++ baseline, dataset_augmented          0.7924     0.6958 0.8189 0.7968 20.88
+
+                         As Figuras 3 e 4 complementam a avaliação quantitativa. Em imagens com
+                 contorno renal definido, o modelo local recupera a geometria do rim com alta aderência à
+                 máscara de referência. Em imagens ruidosas ou de baixo contraste, o erro aumenta, mas
+                 o segmentador treinado localmente ainda pode preservar parte da estrutura renal. Essa
+                 estabilidade é importante porque a etapa seguinte depende de examinar apenas a região
+                 renal, evitando que pontos brilhantes fora do rim sejam tratados como suspeitos.
+
+
+
+
+                       Figura 3. Caso qualitativo favorável: imagem original, máscara de referência,
+                       predição do kidneyUS e predição do DeepLab local.
+
+   explicar no texto
+
+
+
+
+                       Figura 4. Caso qualitativo desafiador: imagem original, máscara de referência,
+                       predição do kidneyUS e predição do DeepLab local.
+
+                         A etapa de suspeita de fibrose ainda não é apresentada como um classificador
+                 final. Até o momento, ela foi usada apenas como prova de conceito para verificar
+                 se os atributos extraídos da região renal conseguem separar alguns casos rotulados
+ fiquei curioso, manualmente. Como esse subconjunto ainda é pequeno e desbalanceado, os resultados
+qual a acurácia
+do classificador
+                 numéricos dessa etapa não são usados como evidência principal do artigo. A contribuição
+   de fibrose?   experimental consolidada, neste estágio, está na segmentação renal e na preparação da
+                 região intrarrenal para futura validação clínica.
+                         Mesmo assim, essa etapa orienta a próxima fase do estudo. Os atributos
+                 extraídos permitem registrar, para cada imagem, informações sobre intensidade média,
+                 variabilidade, proporção de regiões muito claras e relação com a intensidade de referência
+                 quando disponível. Esse conjunto de medidas cria uma ponte entre o resultado visual do
+                 exame e uma base tabular que pode ser revisada por especialistas, ampliada com novos
+                 casos e usada posteriormente em modelos supervisionados mais robustos.
+              5. Discussão
+              Os resultados indicam que a principal contribuição do pipeline está na integração entre
+              dados, máscara e descritores. Para o problema estudado, a segmentação organiza a
+              evidência visual ao limitar a busca por achados muito claros à região anatômica do
+              rim. Isso reduz interferências externas e permite examinar regiões próximas às pirâmides
+              renais candidatas com maior controle. Além disso, o fluxo produz saídas intermediárias
+              interpretáveis, o que facilita auditoria e inspeção qualitativa dos resultados.
+                      Outro ponto relevante é que o pipeline preserva uma distinção entre evidência
+um sistema
+que auxilia   computacional e interpretação clínica. A presença de regiões hiperecogênicas pode
+ a tomada     orientar a análise, mas não deve ser convertida automaticamente em diagnóstico. Por isso,
+de decisão    a proposta é melhor entendida como uma infraestrutura de análise que prepara medidas e
+do médico     exemplos para uma validação posterior, e não como um classificador clínico fechado.
+                      A comparação com resultados externos, como artefatos associados ao
+              kidneyUS, deve ser feita com cautela. Diferenças de resolução, anotação, split
+              e distribuição dos dados impedem conclusões diretas quando os protocolos não são
+              idênticos. Ainda assim, as reproduções preliminares indicam que o ajuste aos dados locais
+              foi decisivo para o desempenho observado.
+                      As principais limitações são a ausência de rótulos clínicos robustos de fibrose por
+              imagem, o tamanho reduzido do conjunto rotulado para classificação, o desbalanceamento
+              das classes e a falta de anotações manuais das pirâmides renais. Por isso, a etapa de
+              decisão sobre fibrose em sim ou não ainda não deve ser apresentada como completa.
+              O estudo deve ser entendido como consolidação metodológica da segmentação e da
+              análise intrarrenal, preparando a futura validação clínica quando houver exemplos reais
+              suficientes.
+                      Também é importante destacar que o limiar de 90% usado na pseudorrotulação não
+              substitui revisão especializada. Ele funciona como barreira automática para selecionar
+              exemplos mais prováveis durante a expansão do acervo. Em um cenário clínico, a mesma
+              lógica pode ser combinada com auditoria humana, permitindo que especialistas revisem
+              prioritariamente os casos de maior incerteza ou aqueles em que a região hiperecogênica
+              aparece próxima a estruturas anatômicas relevantes.
+
+              6. Conclusão
+              Este artigo propôs e avaliou um pipeline para isolar o rim e analisar regiões
+              hiperecogênicas suspeitas próximas às pirâmides renais. A etapa de segmentação renal
+              foi construída em duas fases: primeiro, um modelo exploratório treinado em base inicial;
+              depois, a geração de pseudomáscaras com confiança mínima de 90% e o treinamento de
+              um segundo modelo sobre o dataset_geral. Esse segundo modelo alcançou Dice
+              médio de 0.9366, permitindo usar a máscara renal como base para a análise intrarrenal.
+                      Como trabalhos futuros, pretende-se ampliar o subconjunto rotulado com casos
+              reais, anotar pirâmides renais, refinar a detecção dos pontos muito claros e avaliar a
+              consistência das medidas em diferentes aparelhos e condições de aquisição.
+Referências
+Araújo, N. C., Riella, C., Martins, L. S., et al. (2020). Sonographically determined kidney
+  measurements are better able to predict histological changes and a low ckd-epi egfr
+  when weighted towards cortical echogenicity. BMC Nephrology, 21(123).
+Athavale, A., Hartman, N., Sonavane, R., et al. (2021). Development and validation of
+  a deep learning model to quantify interstitial fibrosis and tubular atrophy from kidney
+  ultrasonography images. JAMA Network Open, 4(5):e2110856.
+Breiman, L. (2001). Random forests. Machine Learning, 45(1):5–32.
+Chavhan, G. B., Parra, D. A., Oudjhane, K., et al. (2008). Renal pyramid echogenicity
+  in ureteropelvic junction obstruction: correlation between altered echogenicity and
+  differential renal function. Pediatric Radiology, 38(10):1063–1069.
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018). Encoder-decoder
+  with atrous separable convolution for semantic image segmentation. European
+  Conference on Computer Vision (ECCV), pages 801–818.
+Chen, Z., Guo, J., Chen, C., and Zheng, J. (2023). Ultrasound-based radiomics analysis
+  in the assessment of renal fibrosis in patients with chronic kidney disease. Journal of
+  Ultrasound in Medicine, 42(12):3025–3038.
+Ge, X.-Y., Miao, H., Wang, J., et al. (2023). Diagnostic accuracy of ultrasound-based
+  multimodal radiomics modeling for fibrosis detection in chronic kidney disease.
+  Abdominal Radiology, 48(3):977–987.
+Haralick, R. M., Shanmugam, K., and Dinstein, I. (1973). Textural features for
+  image classification. IEEE Transactions on Systems, Man, and Cybernetics,
+  SMC-3(6):610–621.
+Lee, D.-H. (2013). Pseudo-label: The simple and efficient semi-supervised learning
+  method for deep neural networks. In Workshop on Challenges in Representation
+  Learning, ICML, volume 3.
+Manley, J. A. and O’Neill, W. C. (2001). How echogenic is echogenic? quantitative
+  acoustics of the renal cortex. American Journal of Kidney Diseases, 37(4):706–711.
+Ronneberger, O., Fischer, P., and Brox, T. (2015). U-net: Convolutional networks for
+  biomedical image segmentation. In Medical Image Computing and Computer-Assisted
+  Intervention (MICCAI), pages 234–241.
+Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and Rohling, R.
+   (2023). The open kidney ultrasound data set. In Simplifying Medical Ultrasound,
+   volume 14337 of Lecture Notes in Computer Science, pages 155–164. Springer Nature
+   Switzerland.
+Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J. M., and Luo, P. (2021).
+  Segformer: Simple and efficient design for semantic segmentation with transformers.
+  Advances in Neural Information Processing Systems, 34:12077–12090.
+

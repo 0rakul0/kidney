@@ -1,0 +1,64 @@
+\begin{thebibliography}{}
+
+\bibitem[Chavhan et~al. 2008]{Chavhan2008}
+Chavhan, G.~B., Parra, D.~A., Oudjhane, K., et~al. (2008).
+\newblock Renal pyramid echogenicity in ureteropelvic junction obstruction:
+  correlation between altered echogenicity and differential renal function.
+\newblock {\em Pediatric Radiology}, 38(10):1063--1069.
+
+\bibitem[Chen et~al. 2018]{Chen2018DeepLab}
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018).
+\newblock Encoder-decoder with atrous separable convolution for semantic image
+  segmentation.
+\newblock {\em European Conference on Computer Vision (ECCV)}, pages 801--818.
+
+\bibitem[Constantino et~al. 2022]{Constantino2022SBBD}
+Constantino, K., Cruz, V. A.~L., Zucheratto, O. M.~M., Fran{\c c}a, C.,
+  Carvalho, M., Silva, T. H.~P., Laender, A. H.~F., and Gon{\c c}alves, M.~A.
+  (2022).
+\newblock Segmenta{\c c}{\~a}o e classifica{\c c}{\~a}o sem{\^a}ntica de
+  trechos de di{\'a}rios oficiais usando aprendizado ativo.
+\newblock In {\em Anais do XXXVII Simp{\'o}sio Brasileiro de Banco de Dados
+  (SBBD)}, pages 304--316. Sociedade Brasileira de Computa{\c c}{\~a}o.
+
+\bibitem[Lee 2013]{Lee2013PseudoLabel}
+Lee, D.-H. (2013).
+\newblock Pseudo-label: The simple and efficient semi-supervised learning
+  method for deep neural networks.
+\newblock In {\em Workshop on Challenges in Representation Learning, ICML},
+  volume~3.
+
+\bibitem[Lima et~al. 2021]{Lima2021DataLakeSaude}
+Lima, D.~M., Moreno, R.~A., Pires, F.~A., and Gutierrez, M.~A. (2021).
+\newblock Uma proposta de data lake para pesquisa em sa{\'u}de a partir de data
+  pools multic{\^e}ntricos interoper{\'a}veis.
+\newblock In {\em Anais do XXXVI Simp{\'o}sio Brasileiro de Banco de Dados
+  (SBBD)}, pages 367--372. Sociedade Brasileira de Computa{\c c}{\~a}o.
+
+\bibitem[Manley and O'Neill 2001]{Manley2001}
+Manley, J.~A. and O'Neill, W.~C. (2001).
+\newblock How echogenic is echogenic? quantitative acoustics of the renal
+  cortex.
+\newblock {\em American Journal of Kidney Diseases}, 37(4):706--711.
+
+\bibitem[Ronneberger et~al. 2015]{Ronneberger2015}
+Ronneberger, O., Fischer, P., and Brox, T. (2015).
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In {\em Medical Image Computing and Computer-Assisted Intervention
+  (MICCAI)}, pages 234--241.
+
+\bibitem[Singla et~al. 2023]{Singla2023KidneyUS}
+Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and
+  Rohling, R. (2023).
+\newblock The open kidney ultrasound data set.
+\newblock In {\em Simplifying Medical Ultrasound}, volume 14337 of {\em Lecture
+  Notes in Computer Science}, pages 155--164. Springer Nature Switzerland.
+
+\bibitem[Xie et~al. 2021]{Xie2021SegFormer}
+Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.~M., and Luo, P. (2021).
+\newblock Segformer: Simple and efficient design for semantic segmentation with
+  transformers.
+\newblock {\em Advances in Neural Information Processing Systems},
+  34:12077--12090.
+
+\end{thebibliography}
