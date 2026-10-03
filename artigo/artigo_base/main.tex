@@ -22,13 +22,7 @@
 \setlength{\belowcaptionskip}{0pt}
 \setlength{\parskip}{2pt}
 
-\title{Um \textit{Pipeline} Semi-supervisionado para Segmenta\c{c}\~ao Renal e Caracteriza\c{c}\~ao Intrarrenal em Ultrassonografia}
-
-\author{
-  Jefferson S. dos Anjos\inst{1}, Amaro A. de Lima\inst{1},
-  Gabriel M. Ara\'ujo\inst{1},\\ Jorge Luiz de C. Henriques Junior\inst{2},
-  Norderval C. Ara\'ujo\inst{2}, Jos\'e Herm\'ogenes R. Suassuna\inst{2},\\ Felipe da R. Henriques\inst{1}
-}
+\title{Segmentação Renal, Curadoria \textit{Human-in-the-Loop} e Quantificação da Ecogenicidade em Ultrassonografia: um Pipeline Rastreável para Caracterização Intrarrenal}
 
 \address{
   CEFET/RJ -- Rio de Janeiro -- RJ -- Brasil\\
@@ -51,377 +45,252 @@ Computational analysis of renal ultrasound images depends on reliable anatomical
 A análise computacional de ultrassonografias renais depende de uma delimitação anatômica confiável do rim e de suas estruturas internas. Este artigo apresenta um pipeline semi-supervisionado para segmentação renal e caracterização intrarrenal em ultrassom 2D, combinando modelos de aprendizado profundo, pseudorrotulação e curadoria humana. A metodologia utiliza o kidneyUS como base supervisionada, com anotações de cápsula renal, córtex, medula e complexo ecogênico central. Modelos de segmentação são avaliados para delimitar o rim, e as máscaras aceitas orientam a geração de regiões intrarrenais candidatas em imagens adicionais. Os resultados indicam que a abordagem permite ampliar o conjunto de máscaras revisáveis e estruturar uma interface de apoio à validação especializada. O trabalho contribui com um fluxo reprodutível de segmentação, expansão e curadoria de imagens renais, sem propor diagnóstico automático de fibrose.
 \end{resumo}
 
-\section{Introdu\c{c}\~ao}
+\section{Introdução}
 
-A ultrassonografia renal é um exame acessível, não invasivo e amplamente empregado na avaliação de alterações estruturais do rim. Na prática clínica, dimensões renais, diferenciação cortico-medular, ecogenicidade cortical e alterações do complexo ecogênico central podem apoiar a interpretação do exame. Entretanto, a análise visual dessas imagens é sensível a ruído, sombras acústicas, variações de ganho, diferenças de enquadramento e experiência do avaliador.
+A ultrassonografia renal combina baixo custo, portabilidade, ausência de radiação ionizante e aquisição em tempo real, mas sua interpretação depende de fatores como ruído \textit{speckle}, sombras acústicas, ganho, profundidade, equipamento e enquadramento. Essas características também tornam a análise computacional difícil: sem uma delimitação anatômica confiável, medidas de intensidade e textura podem incorporar fundo, textos da tela, tecidos adjacentes ou artefatos.
 
-Essas características também dificultam a análise computacional. Em imagens de ultrassom, o rim pode aparecer com bordas pouco definidas, contraste variável e estruturas internas parcialmente sobrepostas. Sem uma delimitação anatômica confiável, métodos automáticos podem incorporar fundo, textos da tela, tecidos adjacentes ou artefatos externos como se fossem regiões renais. Por isso, a segmentação do rim é uma etapa necessária antes de qualquer caracterização intrarrenal.
+A segmentação externa do rim constitui, portanto, o primeiro nível do problema. A partir de uma máscara renal confiável, a análise pode ser restringida ao córtex, medula e complexo ecogênico central (CEC). O segundo desafio é a disponibilidade de rótulos. Revisões sobre segmentação médica semi-supervisionada mostram que a anotação pixel a pixel é cara e especializada, motivando pseudorrótulos, consistência entre modelos e seleção de casos\~\cite{Jiao2024SSLReview,Tajbakhsh2020Imperfect}. Entretanto, rótulos automáticos incorretos podem reforçar erros; trabalhos recentes enfatizam a confiabilidade e a correção explícita de pseudorrótulos\~\cite{Su2024ReliablePseudo,Huang2025SemiPLC}.
 
-Além da segmentação externa, a análise de estruturas internas exige dados anotados em quantidade e qualidade suficientes. Bases públicas de ultrassonografia renal ainda são limitadas, e a anotação manual de cápsula, córtex, medula e complexo ecogênico central demanda tempo e conhecimento especializado. Uma alternativa é usar modelos treinados em dados supervisionados para gerar pseudomáscaras em imagens adicionais, desde que essas máscaras sejam filtradas por critérios de qualidade e submetidas à curadoria humana.
+Este projeto surgiu como uma comparação de segmentadores renais, mas evoluiu para uma infraestrutura mais ampla: engenharia de dados, deduplicação, segmentação da cápsula, expansão por fontes externas, consenso entre arquiteturas, segmentação intrarrenal, curadoria \textit{human-in-the-loop}, inferência integrada e quantificação da ecogenicidade. A pergunta deixou de ser apenas qual modelo segmenta melhor o rim e passou a incluir como transformar predições em uma cadeia rastreável de imagem, anatomia, revisão humana e medida quantitativa.
 
-Este trabalho propõe um pipeline semi-supervisionado para segmentação renal e caracterização intrarrenal em ultrassonografia 2D. A metodologia utiliza o kidneyUS como base supervisionada, avalia modelos de aprendizado profundo para segmentação da cápsula renal, aplica o melhor segmentador em imagens adicionais e organiza uma etapa de revisão para apoiar a validação das máscaras geradas. Em seguida, modelos intrarrenais são usados dentro da região de interesse renal para segmentar córtex, medula e complexo ecogênico central.
+O kidneyUS foi adotado como fonte supervisionada canônica por oferecer imagens B-mode e duas séries independentes de anotações para cápsula, córtex, medula e CEC\~\cite{Singla2023KidneyUS}. A etapa de ecogenicidade é motivada por estudos quantitativos que relacionam medidas relativas de brilho à função renal\~\cite{Manley2001,Beutler2024SRI,Zhao2025Echogenicity}. Ao mesmo tempo, correlações entre ecogenicidade e histopatologia são moderadas e inespecíficas\~\cite{Moghazi2005}; por isso, a presente pesquisa não trata ecogenicidade como diagnóstico de fibrose.
 
-As principais contribuições deste trabalho são: (i) organizar um protocolo supervisionado baseado no kidneyUS para segmentação renal e intrarrenal; (ii) avaliar arquiteturas de aprendizado profundo para segmentação da cápsula renal; (iii) propor uma estratégia de expansão por pseudomáscaras com controle de qualidade e curadoria humana; (iv) comparar modelos para segmentação de córtex, medula e complexo ecogênico central dentro da região renal; e (v) disponibilizar uma interface de revisão para apoiar a validação especializada das máscaras geradas.
+O objetivo geral é desenvolver um pipeline rastreável para segmentação e caracterização quantitativa da ultrassonografia renal combinando aprendizado profundo e curadoria humana. Os objetivos específicos são: estabelecer um benchmark deduplicado da cápsula; organizar fontes externas preservando proveniência; avaliar consenso entre arquiteturas; segmentar córtex, medula e CEC; estudar a propagação de erro na cascata; avaliar o impacto de pseudorrótulos; implementar curadoria auditável; e definir um protocolo exploratório de ecogenicidade córtex--CEC.
 
-O escopo do trabalho é metodológico e não clínico-diagnóstico. Embora a segmentação renal possa apoiar estudos futuros sobre ecogenicidade, textura e alterações parenquimatosas, este artigo não propõe diagnóstico automático de fibrose nem classificação clínica a partir da imagem.
+\section{Fundamentação e Trabalhos Relacionados}
 
-\section{Fundamentos do Método}
+\subsection{Bases abertas e ultrassonografia renal}
 
-\subsection{Máscaras, interseção e métricas de sobreposição}
+O kidneyUS foi proposto para reduzir a escassez de bases abertas em ultrassonografia renal, reunindo imagens provenientes de diferentes fabricantes e anotações independentes de especialistas\~\cite{Singla2023KidneyUS}. Essa característica permite que o conjunto seja usado tanto para benchmark de segmentação quanto para estudo de concordância entre anotadores. Como fonte externa não rotulada, este projeto utilizou o repositório clínico MONAI/NVIDIA, mantendo-o separado do benchmark manual.
 
-A segmentação por máscara consiste em atribuir a cada pixel de uma imagem uma classe de interesse. No caso da ultrassonografia renal, uma máscara binária pode separar o rim do fundo, enquanto uma máscara multiclasse pode distinguir estruturas internas, como córtex, medula e complexo ecogênico central. Essa representação é adequada para imagens médicas porque preserva a localização espacial das estruturas anatômicas e permite comparar diretamente uma predição automática com uma anotação de referência.
+\subsection{Segmentação renal}
 
-A avaliação dessas máscaras depende da sobreposição entre a região predita e a região de referência. Seja \(P\) a máscara prevista por um modelo e \(G\) a máscara de referência. A interseção \(P \cap G\) representa os pixels corretamente sobrepostos, enquanto a união \(P \cup G\) representa todos os pixels marcados em pelo menos uma das duas máscaras. Duas métricas comuns para esse tipo de avaliação são Dice e IoU. O Dice é definido por:
+A U-Net permanece uma referência em segmentação biomédica\~\cite{Ronneberger2015}; UNet++ amplia as conexões de salto\~\cite{Zhou2018UNetPP}; DeepLabV3 utiliza convoluções atrous para contexto multiescala\~\cite{Chen2018DeepLab}; e SegFormer introduz uma formulação baseada em transformadores\~\cite{Xie2021SegFormer}. Em ultrassom renal, Khan et al. destacam baixo contraste, ruído, variação de forma e artefatos como dificuldades centrais e mostram a relevância de pré e pós-processamento\~\cite{Khan2024KidneySeg}. Trabalhos recentes também utilizam o kidneyUS para segmentação multiclasse de estruturas internas\~\cite{Zhang2025RenalAttention}.
 
-\[
-Dice = \frac{2|P \cap G|}{|P| + |G|}
-\]
+\subsection{Pseudorrótulos, consistência e semi-supervisão}
 
-Já o IoU é definido por:
+A pseudorrotulação utiliza previsões de um modelo como rótulos candidatos para dados não anotados\~\cite{Lee2013PseudoLabel}. Em segmentação médica, métodos recentes combinam pseudorrótulos com consistência, incerteza, múltiplos ramos ou correção de rótulos\~\cite{Jiao2024SSLReview,Su2024ReliablePseudo,Huang2025SemiPLC}. A metodologia deste trabalho adota uma postura conservadora: confiança, morfologia e consenso ajudam a ordenar a revisão, mas não transformam automaticamente uma máscara em referência manual.
 
-\[
-IoU = \frac{|P \cap G|}{|P \cup G|}
-\]
+\subsection{Human-in-the-loop e curadoria}
 
-Valores mais próximos de 1 indicam maior concordância entre a predição e a referência. Neste trabalho, essas métricas são usadas tanto para avaliar a segmentação externa do rim quanto para comparar as estruturas intrarrenais.
+Budd et al. descrevem \textit{human-in-the-loop} como estratégia relevante em análise médica, incluindo seleção de casos, interação com previsões e refinamento iterativo\~\cite{Budd2021HITL}. Neste projeto, o revisor recebe uma proposta automática e pode aceitar, corrigir, rejeitar ou marcar uma estrutura como indisponível. A proposta original é preservada e cada edição fica associada ao revisor e ao tempo.
 
-\subsection{Região de interesse renal}
+\subsection{Ecogenicidade e função renal}
 
-Outro conceito central é a região de interesse renal, ou ROI renal. A ROI é a área da imagem delimitada pela máscara do rim. Ao restringir a análise a essa região, o pipeline reduz a influência de fundo, textos da tela, tecidos adjacentes e artefatos que não pertencem ao órgão. Assim, a segmentação da cápsula renal funciona como etapa de entrada para a análise intrarrenal: primeiro o rim é isolado, depois as estruturas internas são avaliadas dentro desse recorte anatômico.
+Manley e O'Neill demonstraram que a ecogenicidade cortical pode ser quantificada de forma reprodutível em relação a uma referência, embora seja influenciada por condições de aquisição\~\cite{Manley2001}. Beutler et al. estudaram o índice esplenorrenal e encontraram associação com creatinina, ureia e eGFR\~\cite{Beutler2024SRI}. Zhao et al., em 339 participantes, relataram associação entre diferenças seio--córtex e função renal\~\cite{Zhao2025Echogenicity}. Esses resultados apoiam medidas relativas, mas não um valor absoluto universal.
 
-\subsection{Realce de contraste por CLAHE}
+\subsection{Fibrose e IFTA}
 
-Antes da segmentação, as imagens passam por realce de contraste por CLAHE, sigla para \textit{Contrast Limited Adaptive Histogram Equalization}. Diferentemente de uma equalização global, o CLAHE atua em regiões locais da imagem e limita o aumento excessivo de contraste. Em ultrassonografia, esse procedimento pode tornar bordas e texturas mais visíveis, especialmente em exames com baixo contraste local. No pipeline proposto, o CLAHE é tratado como etapa fixa de pré-processamento para os modelos avaliados.
+Moghazi et al. compararam ultrassom e biópsia em 207 pacientes e observaram que ecogenicidade teve as maiores correlações sonográficas com alterações histológicas, porém com magnitude moderada e sem fibrose intersticial como determinante independente no modelo multivariado\~\cite{Moghazi2005}. Athavale et al. desenvolveram um modelo para IFTA usando biópsia como referência\~\cite{Athavale2021}, e Qin et al. mostraram melhor desempenho de ultrassom multimodal do que modalidades isoladas na classificação de fibrose precoce\~\cite{Qin2024Fibrosis}. Esses trabalhos delimitam o escopo clínico: sem histopatologia pareada, a presente pesquisa mede ecogenicidade, não fibrose.
 
-\subsection{Estruturas anatômicas segmentadas}
+\section{Evolução Metodológica da Pesquisa}
 
-As estruturas anatômicas consideradas neste estudo vêm das anotações do kidneyUS~\cite{Singla2023KidneyUS}. A cápsula renal define o contorno externo do rim e é usada para construir a máscara renal principal. O córtex corresponde à região mais periférica do parênquima renal. A medula corresponde a regiões internas associadas às pirâmides renais. O complexo ecogênico central representa a região central mais brilhante, relacionada ao seio renal, pelve, vasos e gordura central. Essas estruturas apresentam dificuldades diferentes de segmentação: a cápsula tende a ter maior estabilidade espacial, enquanto córtex e medula podem variar mais entre anotadores.
+A primeira fase concentrou-se na segmentação externa e na comparação entre arquiteturas. A limitação de dados motivou uma segunda fase de engenharia de fontes externas. Em seguida, uma estratégia inicial de pseudorrotulação utilizou limiares de confiança e filtros geométricos para selecionar máscaras. A inspeção dos casos mostrou, porém, que alta confiança não garante correção anatômica. A política foi modificada: os filtros passaram a priorizar revisão.
 
-\section{Trabalhos Relacionados}
+A quarta fase introduziu consenso entre U-Net e DeepLabV3. A concordância foi calibrada em esquema \textit{out-of-fold}, evitando medir estabilidade apenas em dados vistos. A quinta fase incorporou Medulla e, posteriormente, uma formulação multiclasse de córtex, medula e CEC. Uma expansão controlada de pseudorrótulos de Medulla foi então avaliada. Como o aumento do conjunto não melhorou o teste manual, a curadoria humana ganhou papel central.
 
-Em termos de modelos, arquiteturas de segmentação semântica baseadas em aprendizado profundo são frequentemente usadas por combinarem preservação espacial e extração de contexto. A U-Net~\cite{Ronneberger2015} tornou-se uma referência em segmentação biomédica por sua estrutura codificador-decodificador com conexões de salto. A UNet++~\cite{Zhou2018UNetPP} aprofunda essa ideia com conexões aninhadas. O DeepLabV3~\cite{Chen2018DeepLab} explora convoluções atrous para capturar contexto multiescala, enquanto o SegFormer~\cite{Xie2021SegFormer} utiliza uma arquitetura baseada em transformadores para segmentação semântica. Esses modelos formam a base comparativa da segmentação renal neste trabalho.
+A etapa seguinte transformou a curadoria em componente do sistema, com interface, banco SQLite, histórico de correções, status por camada e exportação. Finalmente, a pesquisa passou a medir ecogenicidade e revisou a narrativa sobre fibrose, separando marcador de imagem e desfecho clínico.
 
-A pseudorrotulação é outra estratégia relevante quando há poucas imagens anotadas manualmente. Nessa abordagem, um modelo treinado com rótulos manuais gera máscaras candidatas para imagens ainda não anotadas~\cite{Lee2013PseudoLabel}. Essas máscaras não devem ser tratadas automaticamente como verdade de referência, pois podem incorporar erros do modelo. Por isso, o uso de pseudomáscaras exige filtros de qualidade e, idealmente, uma etapa de curadoria humana. No presente trabalho, a curadoria permite revisar, aceitar, corrigir ou rejeitar máscaras antes que elas sejam reaproveitadas em ciclos posteriores.
+\section{Materiais e Métodos}
 
-A caracterização intrarrenal também se relaciona a estudos que investigam ecogenicidade, intensidade e textura em ultrassonografias renais. Trabalhos com radiomics e aprendizado de máquina analisam associações entre padrões de imagem e alterações clínicas ou histológicas quando há referência adequada~\cite{Athavale2021,Chen2023,Ge2022}. Descritores clássicos de textura, como matrizes de coocorrência de níveis de cinza, podem complementar essa análise após a delimitação do órgão~\cite{Haralick1973}. Neste artigo, esses estudos são tratados como motivação para organizar regiões anatômicas revisáveis, sem assumir diagnóstico automático de fibrose.
+\subsection{Construção dos conjuntos supervisionados}
 
-\section{Metodologia}
-
-Esta seção descreve o método proposto para segmentar o rim, gerar máscaras intrarrenais candidatas e consolidar correções humanas em um conjunto rastreável. A descrição é organizada por etapas para explicitar o que entra, o que é processado e o que sai de cada componente do pipeline. Essa organização busca tornar o procedimento reprodutível e separar três níveis de evidência: anotações manuais do kidneyUS, pseudomáscaras produzidas por modelos e correções realizadas durante a curadoria.
-
-\subsection{Visão geral do pipeline}
-
-A metodologia foi organizada como um pipeline semi-supervisionado em cinco etapas: preparação do conjunto supervisionado, pré-processamento das imagens, treinamento e seleção do modelo renal, geração de pseudomáscaras em imagens adicionais e curadoria humana das máscaras produzidas. Cada etapa possui entradas e saídas definidas, de modo que o fluxo possa ser reproduzido e auditado. A Figura~\ref{fig:tikz_pipeline} resume a sequência adotada.
-
-\begin{figure}[htb!]
-\centering
-\begin{tikzpicture}[
-    node distance=0.35cm and 0.35cm,
-    >=Latex,
-    every node/.style={font=\footnotesize, align=center},
-    block/.style={draw, rounded corners=2pt, minimum width=2.15cm, minimum height=0.75cm, fill=gray!8}
-]
-\node[block] (data) {kidneyUS\\anotado};
-\node[block, right=of data] (prep) {Lanczos e\\CLAHE};
-\node[block, right=of prep] (renal) {Modelo\\renal};
-\node[block, right=of renal] (intra) {Modelo\\intrarrenal};
-\node[block, right=of intra] (curation) {Curadoria\\humana};
-\draw[->, thick] (data) -- (prep);
-\draw[->, thick] (prep) -- (renal);
-\draw[->, thick] (renal) -- (intra);
-\draw[->, thick] (intra) -- (curation);
-\end{tikzpicture}
-\caption{Pipeline metodológico. O kidneyUS fornece as anotações supervisionadas; o pré-processamento prepara a entrada dos modelos; a segmentação renal define a ROI; a segmentação intrarrenal gera máscaras candidatas; e a curadoria humana consolida correções para ciclos posteriores.}
-\label{fig:tikz_pipeline}
-\end{figure}
-
-A Figura~\ref{fig:tikz_pipeline} mostra que o fluxo começa com o kidneyUS anotado, pois essa base fornece as máscaras supervisionadas necessárias para treinar os modelos. Em seguida, as imagens passam por reamostragem por Lanczos e CLAHE, compondo a entrada usada pelos segmentadores. A máscara renal gerada pelo modelo externo define a ROI anatômica e limita a etapa intrarrenal às estruturas internas do rim. Por fim, a curadoria humana revisa, corrige e consolida as máscaras produzidas, permitindo que o conjunto supervisionado seja ampliado de forma controlada.
-
-Assim, o pipeline recebe como entrada imagens de ultrassonografia renal 2D e anotações anatômicas. Como saída, produz máscaras renais, máscaras intrarrenais candidatas, registros de qualidade e um conjunto curado de correções humanas. As máscaras geradas automaticamente são tratadas como pseudomáscaras, isto é, como rótulos candidatos que precisam ser filtrados, revisados ou corrigidos antes de serem incorporados a um novo ciclo de treinamento.
-
-\subsection{Dados de entrada e geração das máscaras supervisionadas}
-
-A base supervisionada utilizada é o kidneyUS~\cite{Singla2023KidneyUS}. As entradas desta etapa são as imagens em resolução original e os arquivos de anotação dos dois anotadores disponíveis no repositório. As anotações descrevem polígonos para quatro estruturas: \textit{Capsule}, \textit{Cortex}, \textit{Medulla} e \textit{Central Echo Complex}. O processamento converte cada polígono em máscara raster na mesma dimensão da imagem correspondente.
-
-A classe \textit{Capsule} é convertida em máscara binária do rim e define a tarefa de segmentação renal externa. As classes \textit{Cortex}, \textit{Medulla} e \textit{Central Echo Complex} são convertidas em máscaras internas e definem a tarefa multiclasse intrarrenal. O anotador 1 é usado como referência principal de treinamento, enquanto o anotador 2 é preservado para comparação entre anotadores, avaliação de estabilidade e formação de consensos quando a sobreposição for suficiente. A saída desta etapa é um conjunto supervisionado composto por imagem original, máscara renal e máscaras anatômicas internas. A Tabela~\ref{tab:met_dados} sintetiza as entradas, transformações e saídas dessa etapa.
+As anotações poligonais do kidneyUS são rasterizadas na resolução original. Para a cápsula, 486 registros do primeiro anotador correspondem a 468 imagens únicas. Após deduplicação por hash e agrupamento por exame, foram obtidas 328 imagens de treino, 70 de validação e 70 de teste. Para a tarefa multiclasse intrarrenal, 335 imagens foram divididas em 235, 50 e 50. Para Medulla binária, o conjunto possui 336 imagens, divididas em 236, 50 e 50.
 
 \begin{table}[H]
 \centering
-\caption{Entradas, processamento e saídas da etapa supervisionada.}
-\label{tab:met_dados}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lll}
-\hline
-\textbf{Entrada} & \textbf{Processamento} & \textbf{Saída} \\
-\hline
-Imagens kidneyUS & leitura em resolução original & imagem base preservada \\
-Polígonos \textit{Capsule} & rasterização binária & máscara renal externa \\
-Polígonos \textit{Cortex}, \textit{Medulla} e CEC & rasterização multiclasse & máscaras intrarrenais \\
-Anotadores 1 e 2 & separação por origem da anotação & treino, comparação e consenso \\
-\hline
+\caption{Conjuntos supervisionados principais.}
+\label{tab:datasets}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Tarefa} & \textbf{Total} & \textbf{Treino} & \textbf{Val.} & \textbf{Teste} \\
+\midrule
+Cápsula deduplicada & 468 & 328 & 70 & 70 \\
+Intrarrenal multiclasse & 335 & 235 & 50 & 50 \\
+Medulla binária & 336 & 236 & 50 & 50 \\
+\bottomrule
 \end{tabular}
-}
 \end{table}
 
-A Tabela~\ref{tab:met_dados} delimita a primeira etapa do método. As imagens originais são preservadas como referência visual e documental, enquanto os polígonos anotados são convertidos para máscaras compatíveis com a dimensão de cada imagem. A separação entre anotador 1 e anotador 2 também é mantida, pois permite diferenciar o conjunto usado para treinamento do conjunto usado para comparação, estabilidade e consenso.
+\subsection{Deduplicação e prevenção de vazamento}
 
-Imagens sem correspondência válida entre arquivo e anotação são descartadas da montagem supervisionada. Essa decisão evita que uma máscara seja associada a uma imagem incorreta e mantém a rastreabilidade entre imagem, classe anatômica, anotador e máscara gerada.
+Hashes de conteúdo são utilizados para localizar arquivos repetidos. O identificador do exame é usado como chave de agrupamento durante a divisão dos conjuntos. Quando múltiplas máscaras estão associadas ao mesmo conteúdo, uma representação medóide pode ser escolhida pela similaridade com as demais. Esse procedimento reduz vazamento entre treino e teste.
 
-\subsection{Pré-processamento das imagens}
+\subsection{Pré-processamento}
 
-O pré-processamento recebe como entrada a imagem original e produz uma versão adequada à entrada dos modelos de segmentação. Essa etapa não altera o arquivo original armazenado no repositório; ela gera uma representação temporária para inferência e treinamento. Como as imagens podem apresentar dimensões diferentes, aplica-se reamostragem por Lanczos quando é necessário padronizar a escala de processamento. Em seguida, aplica-se CLAHE para realçar contraste local e tornar bordas e estruturas de baixo contraste mais evidentes para a segmentação. A ordem adotada é:
+Os modelos de segmentação recebem imagens redimensionadas e podem usar CLAHE. A imagem original é preservada e utilizada nas medidas quantitativas. Essa separação é necessária porque CLAHE redistribui intensidades locais e alteraria a variável de ecogenicidade.
 
-\begin{center}
-\textit{reamostragem por Lanczos} $\rightarrow$ \textit{CLAHE} $\rightarrow$ \textit{modelo de segmentação}.
-\end{center}
+\subsection{Benchmark da cápsula}
 
-A Figura~\ref{fig:clahe_example} ilustra visualmente o efeito do CLAHE sobre uma imagem de ultrassonografia renal.
+U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 foram avaliados no mesmo teste deduplicado. Dice, IoU, precisão, recall e FPS foram usados como métricas. A U-Net foi selecionada como modelo principal da cascata.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\textwidth]{figures/clahe_example.png}
-\caption{Exemplo de pré-processamento por CLAHE. A comparação visual evidencia o aumento de contraste local usado como apoio à entrada dos modelos de segmentação.}
-\label{fig:clahe_example}
-\end{figure}
+\subsection{Engenharia das imagens externas}
 
-A saída do pré-processamento é, portanto, uma imagem preparada para o modelo, enquanto a imagem original permanece preservada para visualização, curadoria e análises futuras que dependam de intensidade ou textura. Essa distinção é importante porque o CLAHE pode melhorar a delimitação anatômica, mas também modifica a distribuição local de intensidades. Por isso, o realce é tratado como transformação computacional de entrada, não como evidência clínica definitiva.
+Metadados do MONAI/NVIDIA foram filtrados por termos renais e retroperitoneais. Estudos candidatos foram baixados em lotes, DICOMs elegíveis foram convertidos para PNG em escala de cinza, frames RGB foram descartados por padrão e sequências cine foram reduzidas a frames representativos. No recorte utilizado, 4.479 imagens externas foram submetidas aos modelos.
 
-\subsection{Treinamento e seleção do modelo renal}
+\subsection{Pseudomáscaras e consenso entre modelos}
 
-A segmentação renal externa recebe como entrada as imagens pré-processadas e as máscaras da classe \textit{Capsule}. Quatro arquiteturas são avaliadas no mesmo protocolo de treino, validação e teste: U-Net~\cite{Ronneberger2015}, UNet++~\cite{Zhou2018UNetPP}, DeepLabV3~\cite{Chen2018DeepLab} e SegFormer~\cite{Xie2021SegFormer}. A saída de cada modelo é uma máscara binária que delimita o rim.
+A confiança média dos pixels positivos é registrada como
+\begin{equation}
+C=\frac{1}{|M|}\sum_{i\in M}p_i.
+\end{equation}
+O mesmo caso é processado pela DeepLabV3 e a concordância é calculada por
+\begin{equation}
+S(M_U,M_D)=\frac{2|M_U\cap M_D|}{|M_U|+|M_D|}.
+\end{equation}
+A calibração é realizada em cinco folds agrupados por exame. Os limiares operacionais 0,89 e 0,94 são usados para ordenar a fila de revisão, não para validar automaticamente a anatomia.
 
-Os modelos são comparados por Dice e IoU no conjunto de teste. O modelo com melhor desempenho é selecionado para gerar pseudomáscaras renais em imagens adicionais. No ciclo atual, a U-Net foi selecionada como modelo principal para a cápsula renal, enquanto o DeepLabV3 permanece como modelo de comparação por seu desempenho em ciclos anteriores. O Algoritmo 1 apresenta o pseudocódigo do procedimento de seleção do modelo renal.
+\subsection{Segmentação intrarrenal e concordância humana}
 
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.92\textwidth}
-\small
-\begin{verbatim}
-Algoritmo 1: seleção do modelo renal
-Entrada: imagens kidneyUS, máscaras Capsule, modelos candidatos
-Saída: melhor modelo renal e métricas de teste
-1. dividir imagens em treino, validação e teste
-2. para cada modelo candidato:
-3.     aplicar Lanczos quando necessário
-4.     aplicar CLAHE
-5.     treinar com as máscaras Capsule
-6.     avaliar Dice e IoU no teste
-7. selecionar o modelo com maior desempenho médio
-\end{verbatim}
-\end{minipage}
-\caption{Pseudocódigo da seleção do modelo renal.}
-\label{alg:renal_model}
-\end{figure}
+U-Net e DeepLabV3 multiclasse predizem fundo, córtex, medula e CEC dentro da região renal. A avaliação é calculada por classe. As duas séries de anotação do kidneyUS também são comparadas nas imagens em que ambos os anotadores marcaram a estrutura, fornecendo contexto para a dificuldade da tarefa.
 
-O Algoritmo 1 explicita que todos os modelos candidatos recebem o mesmo conjunto supervisionado e o mesmo pré-processamento. Essa padronização é necessária para que a comparação entre arquiteturas reflita o desempenho de segmentação e não diferenças na preparação dos dados. A saída dessa etapa é dupla: as métricas de teste de cada arquitetura e o modelo renal escolhido para gerar pseudomáscaras nas imagens adicionais.
+\subsection{Pseudo-expansão de Medulla}
 
-\subsection{Geração de pseudomáscaras renais em imagens adicionais}
+DeepLabV3 e MedullaROIUNet geraram máscaras independentes. Candidatos concordantes foram filtrados e 342 pseudomáscaras foram adicionadas ao treino manual de 236 imagens. Validação e teste permaneceram exclusivamente manuais.
 
-Após a seleção do modelo renal, o pipeline recebe como entrada as imagens adicionais do repositório local que ainda não possuem máscara confiável. Cada imagem passa pela mesma sequência de pré-processamento usada no treinamento. Em seguida, o modelo renal prediz uma máscara candidata. Para reduzir marcações espúrias, a máscara passa por pós-processamento com seleção do maior componente conectado, mantendo apenas a maior região renal detectada.
+\subsection{Estabilidade da cascata}
 
-A aceitação automática da pseudomáscara depende de um limiar de qualidade. Nesta versão, o limiar de confiança é mantido em 0,90. Máscaras abaixo desse limiar, sem área positiva suficiente ou com inconsistências geométricas são marcadas como rejeitadas ou pendentes de revisão. A saída desta etapa é um manifesto com imagens aceitas, imagens rejeitadas, caminho da máscara renal gerada e metadados de qualidade. O Algoritmo 2 apresenta o pseudocódigo usado para gerar e filtrar as pseudomáscaras renais.
+O modelo de Medulla é avaliado duas vezes: com a cápsula manual e com a cápsula produzida pelo segmentador renal. Essa comparação quantifica a propagação de erro entre as etapas.
 
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.92\textwidth}
-\small
-\begin{verbatim}
-Algoritmo 2: geração de pseudomáscaras renais
-Entrada: imagens adicionais, modelo U-Net renal, limiar 0,90
-Saída: máscaras renais aceitas e lista de rejeições
-1. para cada imagem adicional:
-2.     preservar a imagem original
-3.     aplicar Lanczos quando necessário
-4.     aplicar CLAHE
-5.     predizer máscara renal com U-Net
-6.     manter o maior componente conectado
-7.     calcular critérios de qualidade
-8.     se qualidade >= 0,90: salvar máscara aceita
-9.     caso contrário: registrar como rejeitada ou pendente
-\end{verbatim}
-\end{minipage}
-\caption{Pseudocódigo da geração e filtragem das pseudomáscaras renais.}
-\label{alg:pseudomask}
-\end{figure}
+\subsection{Curadoria human-in-the-loop}
 
-O Algoritmo 2 mostra que a geração de pseudomáscaras não consiste apenas em aplicar o modelo sobre novas imagens. Antes da predição, a imagem original é preservada e uma versão pré-processada é criada para inferência. Depois da predição, a máscara é filtrada pela seleção do maior componente conectado e por critérios de qualidade. Assim, a saída da etapa não é um conjunto definitivo de anotações, mas um conjunto de máscaras aceitas, rejeitadas ou pendentes de revisão.
+A interface permite revisar rim, córtex, medula e CEC separadamente. Os estados incluem pendente, aceita, corrigir, rejeitada e indisponível. Correções poligonais geram nova máscara sem sobrescrever a proposta original. O SQLite mantém imagem, revisor, camada, operação, timestamps, histórico e seleção das ROIs de ecogenicidade. A correção manual tem precedência sobre a máscara automática.
 
-\subsection{Segmentação intrarrenal}
+\subsection{Inferência integrada}
 
-A etapa intrarrenal recebe como entrada a imagem original, a máscara renal aceita e as máscaras internas supervisionadas do kidneyUS. A máscara renal define a ROI, restringindo a análise às regiões internas do rim e reduzindo interferência de fundo, textos da tela e tecidos adjacentes. Dentro dessa ROI, os modelos intrarrenais predizem três classes: córtex, medula e complexo ecogênico central.
+Uma nova imagem pode seguir o fluxo imagem $\rightarrow$ cápsula $\rightarrow$ ROI renal $\rightarrow$ U-Net intrarrenal $\rightarrow$ córtex/medula/CEC $\rightarrow$ ecogenicidade. A saída é armazenada separadamente e não entra automaticamente no treinamento.
 
-Foram avaliados modelos baseados em U-Net e DeepLabV3 para a tarefa intrarrenal. A saída é uma máscara multiclasse, posteriormente decomposta em máscaras binárias por estrutura anatômica. Essas máscaras internas são consideradas pseudomáscaras quando aplicadas a imagens adicionais, pois foram geradas automaticamente a partir de um modelo treinado com anotações humanas. A Tabela~\ref{tab:met_intrarenal} resume as entradas, o processamento e as saídas dessa etapa.
+\subsection{Ecogenicidade global}
 
-\begin{table}[H]
-\centering
-\caption{Entradas e saídas da segmentação intrarrenal.}
-\label{tab:met_intrarenal}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lll}
-\hline
-\textbf{Entrada} & \textbf{Processamento} & \textbf{Saída} \\
-\hline
-Imagem original & recorte lógico pela ROI renal & imagem restrita ao rim \\
-Máscara renal aceita & controle espacial da análise & região válida para estruturas internas \\
-Modelo intrarrenal & predição multiclasse & máscara de córtex, medula e CEC \\
-Máscaras dos anotadores & avaliação e comparação & métricas Dice e IoU por classe \\
-\hline
-\end{tabular}
-}
-\end{table}
+Sejam $\mu_C$, $\mu_M$ e $\mu_{CEC}$ as médias de intensidade na imagem original. São calculadas:
+\begin{equation}
+R_{C/CEC}=100\frac{\mu_C}{\mu_{CEC}},
+\end{equation}
+\begin{equation}
+D_{CEC-C}=\mu_{CEC}-\mu_C,
+\end{equation}
+\begin{equation}
+CN=100\frac{\mu_{CEC}-\mu_C}{\mu_{CEC}+\mu_C}.
+\end{equation}
+Também são armazenados mediana, IQR, cobertura e saturação.
 
-A Tabela~\ref{tab:met_intrarenal} explicita que a segmentação intrarrenal depende da máscara renal produzida na etapa anterior. A imagem original fornece a informação visual, mas a máscara renal define a região válida de análise. O modelo intrarrenal opera dentro dessa região e gera máscaras separadas para córtex, medula e complexo ecogênico central. As máscaras dos anotadores permanecem como referência para avaliação, permitindo calcular Dice e IoU por classe e comparar o comportamento dos modelos em cada estrutura anatômica.
+\subsection{ROIs pareadas córtex--CEC}
 
-\subsection{Curadoria humana e consolidação no banco}
-
-A etapa de curadoria recebe como entrada a imagem original, as máscaras renais, as máscaras intrarrenais e os metadados de origem. A interface permite visualizar a imagem com ou sem máscaras, alternar entre modelos internos, aplicar CLAHE e super-resolução apenas para apoio visual, e revisar cada estrutura anatômica separadamente. O revisor pode aceitar, rejeitar ou corrigir uma máscara.
-
-As correções são feitas por ferramentas de desenho: polígono, pincel e borracha. O polígono permite substituir, adicionar ou apagar regiões delimitadas por vértices. O pincel adiciona área à máscara existente, enquanto a borracha remove marcações incorretas. Cada correção gera uma nova máscara PNG e um registro em banco SQLite com identificador da imagem, revisor, camada anatômica, operação aplicada, caminho do arquivo e status de aprovação.
-
-O botão de salvamento da revisão registra a avaliação do caso atual. A exportação consolidada para o banco materializa as revisões e correções em uma tabela final, mantendo a trilha entre imagem original, máscara automática, correção manual e status de curadoria. A saída dessa etapa é um conjunto curado, rastreável e pronto para novo ciclo de treinamento. O Algoritmo 3 apresenta o pseudocódigo do fluxo de curadoria e consolidação das correções.
-
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.92\textwidth}
-\small
-\begin{verbatim}
-Algoritmo 3: curadoria e consolidação
-Entrada: imagem, máscaras automáticas, revisor
-Saída: máscaras corrigidas e registros consolidados
-1. carregar imagem e máscaras disponíveis
-2. revisor escolhe camada anatômica
-3. revisor aceita, rejeita ou corrige a máscara
-4. se houver correção:
-5.     salvar máscara PNG corrigida
-6.     registrar operação no SQLite
-7. salvar avaliação do caso atual
-8. exportar revisões e correções para tabela consolidada
-\end{verbatim}
-\end{minipage}
-\caption{Pseudocódigo da curadoria humana e consolidação das correções.}
-\label{alg:curation}
-\end{figure}
-
-\subsection{Saídas finais do método}
-
-Ao final do pipeline, são produzidas quatro saídas principais: (i) métricas comparativas dos modelos renais e intrarrenais; (ii) pseudomáscaras renais filtradas por qualidade; (iii) pseudomáscaras intrarrenais de córtex, medula e complexo ecogênico central; e (iv) registros de curadoria com máscaras corrigidas e consolidadas em banco. Essas saídas permitem ampliar gradualmente o conjunto supervisionado sem tratar automaticamente pseudomáscaras como verdade de referência.
+As máscaras de córtex e CEC são erodidas com elemento 5x5. A faixa vertical é dividida em três estratos e o sistema busca até um par de discos por estrato, com mesma área e profundidade aproximada. Para cada par $i$, calcula-se
+\begin{equation}
+R_i=100\frac{\mu_{C,i}}{\mu_{CEC,i}}, \qquad D_i=\mu_{CEC,i}-\mu_{C,i}.
+\end{equation}
+A mediana de $R_i$ é utilizada como estimativa principal e o IQR descreve dispersão. O revisor pode reposicionar as ROIs desde que permaneçam dentro das regiões válidas.
 
 \section{Resultados}
 
-\subsection{Resultados hist\'oricos de segmenta\c{c}\~ao renal}
-
-Dice e IoU medem sobreposi\c{c}\~ao entre a m\'ascara predita e a m\'ascara de refer\^encia. Ambas variam de 0 a 1; quanto mais pr\'oximo de 1, maior a concord\^ancia. Os resultados desta subse\c{c}\~ao s\~ao mantidos como hist\'orico do ciclo anterior, pois ainda usavam o \texttt{dataset\_geral} constru\'ido com bases agregadas. O novo ciclo com kidneyUS como fonte \'unica dever\'a ser treinado e reportado separadamente. A Tabela~\ref{tab:deeplab_cv} apresenta o desempenho hist\'orico do DeepLabV3 ResNet50 em valida\c{c}\~ao cruzada e teste fixo.
+\subsection{Segmentação da cápsula}
 
 \begin{table}[H]
 \centering
-\caption{Resultado hist\'orico do DeepLabV3 ResNet50 no \texttt{dataset\_geral}: valida\c{c}\~ao cruzada em 5 folds e teste fixo de 1.188 imagens.}
-\label{tab:deeplab_cv}
+\caption{Segmentação da cápsula no teste deduplicado do kidneyUS.}
+\label{tab:capsule}
 \begin{tabular}{lccccc}
-\hline
-\textbf{Fold} & \textbf{\'Epoca} & \textbf{Limiar} & \textbf{Dice Val.} & \textbf{Dice Teste} & \textbf{IoU Teste} \\
-\hline
-1 & 25 & 0,50 & 0,9298 & 0,9263 & 0,8782 \\
-2 & 16 & 0,50 & 0,9358 & 0,9371 & 0,8817 \\
-3 & 19 & 0,55 & 0,9401 & 0,9391 & 0,8851 \\
-4 & 18 & 0,50 & 0,9467 & \textbf{0,9420} & \textbf{0,8904} \\
-5 & 17 & 0,35 & 0,9400 & 0,9385 & 0,8841 \\
-\hline
-\textbf{M\'edia} & -- & -- & \textbf{0,9385} & \textbf{0,9366} & \textbf{0,8839} \\
-\hline
+\toprule
+\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Precisão} & \textbf{Recall} & \textbf{FPS} \\
+\midrule
+U-Net & \textbf{0,9290} & \textbf{0,8722} & \textbf{0,9236} & \textbf{0,9440} & 18,11 \\
+SegFormer-B0 & 0,9223 & 0,8598 & 0,9117 & 0,9426 & \textbf{31,34} \\
+DeepLabV3 R50 & 0,9203 & 0,8606 & 0,9219 & 0,9338 & 22,26 \\
+UNet++ & 0,9099 & 0,8419 & 0,8910 & 0,9419 & 16,57 \\
+\bottomrule
 \end{tabular}
 \end{table}
 
-A Tabela~\ref{tab:deeplab_cv} mostra que, no ciclo anterior, o DeepLabV3 ResNet50 teve Dice m\'edio de 0,9366 no teste fixo. O melhor fold atingiu Dice 0,9420 e IoU 0,8904. Esse valor documenta o ponto de partida, mas n\~ao substitui o retreinamento proposto com \textit{Capsule} do kidneyUS como refer\^encia principal. A Tabela~\ref{tab:historico} complementa essa leitura com uma linha de base anterior, obtida em outro conjunto experimental.
+\subsection{Consenso OOF e triagem externa}
+
+O consenso médio U-Net--DeepLabV3 foi 0,9416, com mediana 0,9627 e correlação 0,840 com o menor Dice frente à referência. Nas 4.479 imagens externas, a U-Net produziu 3.534 pseudomáscaras. Destas, 1.529 apresentaram consenso alto, 699 ficaram na faixa intermediária, 1.204 tiveram consenso inferior a 0,89 e 537 foram segmentadas por apenas um dos modelos. Em 510 imagens nenhum dos dois produziu máscara. Os números descrevem cobertura e estabilidade, não acurácia externa.
+
+\subsection{Segmentação intrarrenal}
 
 \begin{table}[H]
 \centering
-\caption{Linha de base hist\'orica no \texttt{dataset\_augmented}.}
-\label{tab:historico}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lccccc}
-\hline
-\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} & \textbf{Precis\~ao} & \textbf{Recall} & \textbf{FPS} \\
-\hline
-DeepLabV3 R50 & \textbf{0,8472} & \textbf{0,7732} & \textbf{0,8426} & 0,8718 & 28,98 \\
-SegFormer B2 & 0,8372 & 0,7700 & 0,8294 & \textbf{0,8782} & 35,66 \\
-U-Net & 0,8119 & 0,7309 & 0,8039 & 0,8545 & 26,43 \\
-UNet++ & 0,7924 & 0,6958 & 0,8189 & 0,7968 & 20,88 \\
-\hline
-\end{tabular}
-}
-\end{table}
-
-A Tabela~\ref{tab:historico} n\~ao deve ser lida como compara\c{c}\~ao direta com a Tabela~\ref{tab:deeplab_cv}, porque o protocolo e o tamanho do acervo s\~ao diferentes. Ela documenta o ponto de partida: antes da consolida\c{c}\~ao do \texttt{dataset\_geral}, o melhor resultado local era Dice 0,8472 com DeepLabV3 R50 no \texttt{dataset\_augmented}. A melhora posterior refor\c{c}a a import\^ancia da expans\~ao controlada e da curadoria dos dados.
-
-\subsection{Segmenta\c{c}\~ao intrarrenal e concord\^ancia entre anotadores}
-
-A etapa intrarrenal foi treinada com anota\c{c}\~oes multiclasse do kidneyUS. O modelo usa como entrada a regi\~ao renal em tons de cinza, a ROI renal mascarada e a m\'ascara do rim. A sa\'ida prediz c\'ortex, medula e complexo ecog\^enico central. A Tabela~\ref{tab:intrarenal} apresenta o desempenho no conjunto de teste.
-
-\begin{table}[H]
-\centering
-\caption{DeepLabV3 multiclasse para estruturas intrarrenais no teste do anotador 1.}
+\caption{Segmentação intrarrenal no teste manual de 50 imagens.}
 \label{tab:intrarenal}
-\begin{tabular}{lcc}
-\hline
-\textbf{Classe} & \textbf{Dice} & \textbf{IoU} \\
-\hline
-C\'ortex & 0,6822 & 0,5176 \\
-Medula & 0,7156 & 0,5571 \\
-Complexo ecog\^enico central & 0,8497 & 0,7387 \\
-\hline
-\textbf{M\'edia das classes internas} & \textbf{0,7492} & \textbf{0,6045} \\
-\hline
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Modelo} & \textbf{Córtex} & \textbf{Medula} & \textbf{CEC} & \textbf{Dice médio} & \textbf{IoU médio} \\
+\midrule
+U-Net & \textbf{0,7075} & \textbf{0,7237} & 0,8469 & \textbf{0,7594} & \textbf{0,6163} \\
+DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
+\bottomrule
 \end{tabular}
 \end{table}
 
-O melhor desempenho intrarrenal ocorreu no complexo ecog\^enico central, com Dice 0,8497. C\'ortex e medula tiveram resultados menores, o que \'e esperado pela maior ambiguidade visual e pela variabilidade entre anotadores. A concord\^ancia local entre anotadores refor\c{c}a essa leitura: \textit{Capsule} obteve Dice m\'edio 0,9461, \textit{Central Echo Complex} 0,8688, \textit{Medulla} 0,6936 e \textit{Cortex} 0,5961 quando ambos anotaram a classe. Assim, \textit{Capsule} \'e a melhor base para a m\'ascara renal, enquanto as classes internas devem ser avaliadas tamb\'em por estabilidade e consenso.
+\subsection{Concordância entre anotadores}
 
-\subsection{An\'alise qualitativa}
-
-A Figura~\ref{fig:reference_example} mostra a aplica\c{c}\~ao do fluxo em uma imagem concreta. O primeiro painel \'e a imagem original; os pain\'eis seguintes mostram a m\'ascara renal, a regi\~ao intrarrenal analisada, as regi\~oes internas candidatas e as ROIs de refer\^encia. A figura serve para mostrar que as medidas n\~ao s\~ao extra\'idas da imagem inteira, mas de uma regi\~ao anat\^omica delimitada.
-
-\begin{figure}[htb!]
+\begin{table}[H]
 \centering
-\includegraphics[width=0.58\textwidth]{figures/example_reference_high_ratio_1.png}
-\caption{Exemplo do fluxo de an\'alise: imagem original, m\'ascara renal, regi\~ao intrarrenal, regi\~oes internas candidatas e ROIs usadas para compara\c{c}\~ao de ecogenicidade quando h\'a \'org\~ao de refer\^encia vis\'ivel.}
-\label{fig:reference_example}
-\end{figure}
+\caption{Dice médio entre anotadores do kidneyUS.}
+\label{tab:interobserver}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Estrutura} & \textbf{Imagens comuns} & \textbf{Dice} \\
+\midrule
+Capsule & 486 & 0,9461 \\
+Cortex & 323 & 0,5961 \\
+Medulla & 325 & 0,6936 \\
+CEC & 468 & 0,8688 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-A Figura~\ref{fig:unet_deeplab_divergence} mostra um caso em que U-Net e DeepLabV3 produzem máscaras intrarrenais diferentes para a mesma imagem. Esse tipo de divergência é útil para a curadoria, pois indica regiões em que a decisão automática é menos estável e merece revisão humana.
+\subsection{Medulla: baseline, cascata e expansão}
 
-\begin{figure}[htb!]
+A heurística antiga de regiões escuras apresentou Dice médio de 0,3291 contra o anotador 1. O DeepLabV3 supervisionado de Medulla elevou o Dice de teste para 0,7528 e a MedullaROIUNet obteve 0,7326. Quando a ROI manual foi substituída pela máscara prevista do rim, o DeepLab variou de Dice global 0,7626 para 0,7610, diferença de 0,0016. A intensidade média em Medulla apresentou correlação 0,9508 entre referência manual e predição em cascata.
+
+\begin{table}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{figures/unet_deeplab_divergence.png}
-\caption{Exemplo de divergência entre modelos intrarrenais. A comparação entre U-Net e DeepLabV3 destaca regiões em que as máscaras candidatas diferem e devem ser priorizadas na revisão.}
-\label{fig:unet_deeplab_divergence}
-\end{figure}
+\caption{Efeito da expansão por pseudorrótulos de Medulla.}
+\label{tab:medulla_expand}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Configuração} & \textbf{Treino} & \textbf{Val. Dice} & \textbf{Teste Dice} & \textbf{IoU} \\
+\midrule
+Manual & 236 & 0,7235 & \textbf{0,7528} & \textbf{0,6035} \\
+Manual + 342 pseudo & 578 & \textbf{0,7424} & 0,7523 & 0,6030 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-A Figura~\ref{fig:quality_good} ilustra um caso favor\'avel de segmenta\c{c}\~ao externa. Da esquerda para a direita, aparecem a imagem original, a m\'ascara de refer\^encia, a predi\c{c}\~ao de um modelo associado ao kidneyUS e a predi\c{c}\~ao do DeepLab treinado localmente. O exemplo mostra que, quando o contorno renal \'e leg\'ivel, a segmenta\c{c}\~ao local preserva bem a geometria do rim.
+\subsection{Resultado histórico da base expandida}
 
-\begin{figure}[htb!]
-\centering
-\includegraphics[width=0.78\textwidth]{figures/quality_good_comparison.png}
-\caption{Caso qualitativo favor\'avel: imagem original, m\'ascara de refer\^encia, predi\c{c}\~ao kidneyUS e predi\c{c}\~ao DeepLab local.}
-\label{fig:quality_good}
-\end{figure}
+Um experimento anterior com DeepLabV3-ResNet50 no \texttt{dataset_geral} expandido obteve Dice médio de teste 0,9366. Esse resultado é mantido como histórico e não é comparado diretamente ao benchmark deduplicado do kidneyUS, pois os conjuntos e protocolos são diferentes.
 
-\section{Discuss\~ao}
+\section{Discussão}
 
-O principal resultado do trabalho não é afirmar que o sistema diagnostica fibrose, mas demonstrar que o repositório passou a ter um fluxo consistente para crescer com controle. O protocolo atual usa o kidneyUS como fonte supervisionada para aprender a segmentação do rim e de suas estruturas internas, preservando as imagens originais e registrando cada máscara automática ou corrigida de forma rastreável.
+A cápsula é a etapa mais estável do pipeline. O Dice de 0,9290 e a concordância humana de 0,9461 indicam uma referência relativamente consistente. Em contraste, córtex e medula apresentam menor desempenho automático e menor concordância entre anotadores, mostrando que o problema intrarrenal envolve também variabilidade da própria referência.
 
-Esse ciclo tamb\'em permite incorporar um especialista de maneira produtiva. Em vez de pedir que o especialista anote todas as imagens do zero, o sistema pode apresentar m\'ascaras candidatas j\'a geradas. O especialista revisa, aceita, corrige ou rejeita; as imagens aprovadas retornam ao conjunto supervisionado e alimentam um novo treinamento. Esse processo caracteriza uma abordagem \textit{human-in-the-loop}.
+A avaliação da cascata fornece evidência de que a primeira etapa pode sustentar a segunda: no DeepLab de Medulla, substituir a ROI manual pela prevista alterou o Dice global em apenas 0,0016. Isso não elimina falhas em casos difíceis, mas mostra viabilidade do encadeamento.
 
-O uso do kidneyUS para segmentação interna deve ser explicado como aproveitamento supervisionado de anotações anatômicas. As anotações multiclasse existentes permitem treinar modelos capazes de segmentar córtex, medula e complexo ecogênico central dentro da ROI renal. A comparação entre U-Net e DeepLabV3 nessa etapa ajuda a identificar divergências entre modelos e a priorizar casos para revisão humana.
+A pseudo-expansão de Medulla é igualmente informativa. O treino cresceu de 236 para 578 imagens sem ganho no teste manual. Esse resultado é compatível com a literatura que enfatiza qualidade de pseudorrótulos em vez de quantidade\~\cite{Su2024ReliablePseudo,Huang2025SemiPLC} e justifica a curadoria \textit{human-in-the-loop}.
 
-As limita\c{c}\~oes principais permanecem claras. O projeto ainda n\~ao possui um conjunto robusto de imagens vinculadas a bi\'opsia ou diagn\'ostico histol\'ogico de IFTA. Tamb\'em existe variabilidade entre anotadores nas estruturas internas, especialmente c\'ortex e medula. Por fim, imagens de ultrassom muito ruidosas ou com o rim pouco vis\'ivel continuam podendo gerar falhas de segmenta\c{c}\~ao, mesmo com filtros autom\'aticos.
+A ecogenicidade conecta anatomia revisada e caracterização quantitativa. A comparação córtex--CEC é motivada por medidas relativas descritas na literatura\~\cite{Zhao2025Echogenicity}. Entretanto, o protocolo de três pares, erosão e raio adaptativo é uma decisão operacional desta pesquisa e necessita análise de sensibilidade.
 
-\section{Conclus\~ao}
+A imagem original é usada para ecogenicidade porque CLAHE altera a distribuição de intensidade. Mesmo assim, ganho, TGC, profundidade e pós-processamento permanecem fatores de confusão\~\cite{Manley2001}.
 
-Este artigo apresentou uma versão atualizada do método: o kidneyUS é usado como fonte supervisionada das imagens, a classe \textit{Capsule} define a máscara principal do rim, e \textit{Cortex}, \textit{Medulla} e \textit{Central Echo Complex} definem a tarefa intrarrenal. O pipeline combina pré-processamento, seleção de modelos, geração de pseudomáscaras, pós-processamento por maior componente conectado e curadoria humana.
+Por fim, a pesquisa não equipara ecogenicidade a fibrose. Trabalhos que predizem IFTA utilizam biópsia como referência\~\cite{Athavale2021}, e abordagens multimodais associam diferentes informações ultrassonográficas a histopatologia\~\cite{Qin2024Fibrosis}. O presente projeto ainda não possui esse padrão-ouro.
 
-Nos experimentos históricos, o DeepLabV3 ResNet50 alcançou Dice médio de 0,9366 e IoU médio de 0,8839 no teste fixo do \texttt{dataset\_geral}. No protocolo atual, a seleção do modelo renal e a comparação intrarrenal passam a ser descritas separadamente, com ênfase no uso de U-Net e DeepLabV3, na geração controlada de pseudomáscaras e no reaproveitamento das correções humanas em ciclos posteriores.
+\section{Limitações e Ameaças à Validade}
 
-Como trabalhos futuros, pretende-se executar a curadoria especializada das m\'ascaras geradas, incorporar as corre\c{c}\~oes ao treinamento e avaliar a estabilidade do m\'etodo em novas imagens de ultrassom renal. Somente ap\'os a obten\c{c}\~ao de r\'otulos cl\'inicos ou histol\'ogicos adequados ser\'a poss\'ivel avaliar predi\c{c}\~ao de fibrose como tarefa cl\'inica.
+As principais limitações são: tamanho do conjunto manual para classes internas; variabilidade interobservador; ausência de referência manual externa no MONAI; dependência de parâmetros de aquisição para ecogenicidade; ausência de eGFR, laudo ou histopatologia pareados em escala suficiente; e necessidade de medir a reprodutibilidade e o custo da própria curadoria.
+
+\section{Continuidade da Dissertação}
+
+O próximo ciclo deve transformar a infraestrutura em um protocolo experimental fechado. Um lote piloto deve ser revisado independentemente por especialista e revisor treinado, medindo concordância, tempo de revisão e taxa de correção. Depois, um teste totalmente revisado deve ser congelado e três cenários comparados: treino manual original, treino com pseudorrótulos automáticos e treino com pseudorrótulos aceitos ou corrigidos por humano.
+
+Para ecogenicidade, devem ser avaliados raio das ROIs, número de pares, erosão, diferença vertical e seleção automática versus ajustada. O desfecho inicial deve ser reprodutibilidade. Em uma fase clínica posterior, uma coorte institucional poderá incorporar creatinina, eGFR, laudo e, quando disponível, histopatologia.
+
+\section{Conclusão}
+
+Esta pesquisa evoluiu de um benchmark de segmentação para uma infraestrutura rastreável de análise renal. O kidneyUS fornece a base supervisionada; a U-Net segmenta a cápsula com Dice 0,9290; o consenso com DeepLabV3 organiza a revisão de imagens externas; a segmentação intrarrenal produz córtex, medula e CEC; e a curadoria humana mantém decisões e correções auditáveis.
+
+Os experimentos mostram que a cascata pode ser estável e que mais pseudorrótulos não garantem melhor generalização. A contribuição mais recente integra anatomia revisada e ecogenicidade quantitativa utilizando a imagem B-mode original e ROIs pareadas. O trabalho estabelece, assim, uma base metodológica para futura validação clínica sem antecipar conclusões que os dados atuais ainda não sustentam.
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
