@@ -172,6 +172,39 @@ DeepLabV3 e MedullaROIUNet produzem candidatos independentes de máscara de medu
 
 A aplicação de curadoria permite examinar separadamente rim, córtex, medula e CEC, atribuir estados (pendente, aceita, corrigir, rejeitada e indisponível), editar máscaras por polígonos e registrar observações. As versões corrigidas não sobrescrevem a proposta automática. A persistência local em SQLite conserva a identificação do revisor, a camada, a operação, o horário, o histórico e a seleção manual de ROIs. Na visualização e no cálculo associado ao caso, a correção manual do revisor tem precedência sobre a predição automática. Esses recursos demonstram capacidade de revisão auditável; taxas de concordância, tempo de revisão e impactos no retreinamento dependem de um estudo de curadoria ainda não concluído.
 
+
+A aplicação constitui um artefato computacional da pesquisa, e não apenas um meio de apresentar os resultados dos segmentadores. As capturas da interface foram planejadas para documentar a organização da fila, a revisão de camadas e a correção manual. Os recursos de persistência e versionamento, por sua vez, são descritos a partir da implementação e devem ser avaliados separadamente em estudos de uso.
+
+\IfFileExists{figures/curadoria_visao_geral.png}{%
+A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização da fila de curadoria e os controles disponíveis ao revisor.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/curadoria_visao_geral.png}
+\caption{Visão geral da Curadoria Web desenvolvida nesta pesquisa, com fila de casos, filtros de seleção e indicadores de progresso da revisão. Fonte: elaboração própria.}
+\label{fig:curadoria_visao_geral}
+\end{figure}
+}{}
+
+\IfFileExists{figures/curadoria_revisao_caso.png}{%
+A Figura~\ref{fig:curadoria_revisao_caso} ilustra a inspeção de um caso e a visualização independente das estruturas anatômicas.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/curadoria_revisao_caso.png}
+\caption{Inspeção de um caso de ultrassonografia renal na Curadoria Web, com sobreposição das máscaras de rim, córtex, medula e complexo ecogênico central, além dos controles de revisão por camada. Fonte: elaboração própria.}
+\label{fig:curadoria_revisao_caso}
+\end{figure}
+}{}
+
+\IfFileExists{figures/curadoria_correcao_mascara.png}{%
+A Figura~\ref{fig:curadoria_correcao_mascara} documenta a interação utilizada para modificar uma proposta automática de segmentação. A captura representa a operação na interface, ao passo que o armazenamento das versões decorre dos mecanismos de persistência descritos nesta subseção.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/curadoria_correcao_mascara.png}
+\caption{Ferramenta de correção manual de máscaras, permitindo selecionar a estrutura anatômica e editar regiões por desenho interativo. A máscara automática original é preservada pelo sistema. Fonte: elaboração própria.}
+\label{fig:curadoria_correcao_mascara}
+\end{figure}
+}{}
+
 O módulo de inferência recebe uma nova imagem, executa a U-Net da cápsula, recorta a ROI renal, aplica a U-Net intrarrenal e reconstrói máscaras no espaço da imagem. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
@@ -193,6 +226,17 @@ Como médias de regiões extensas podem ser sensíveis a bordas, heterogeneidade
  \label{eq:paired_echo}
 \end{equation}
 A mediana dos $R_i$ é a medida exploratória principal e o IQR descreve sua dispersão. O revisor pode ajustar as posições e conservar a versão revisada. A coordenada vertical funciona apenas como aproximação operacional de profundidade; não corrige completamente ganho temporal, atenuação, compressão ou diferenças entre equipamentos. O protocolo ainda requer análise de sensibilidade e repetibilidade, não sendo interpretado como biomarcador clínico validado.
+
+
+\IfFileExists{figures/curadoria_rois_ecogenicidade.png}{%
+A Figura~\ref{fig:curadoria_rois_ecogenicidade} exemplifica a revisão visual das regiões de interesse utilizadas na mensuração de brilho, conectando as máscaras anatômicas ao protocolo exploratório de ecogenicidade.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/curadoria_rois_ecogenicidade.png}
+\caption{Interface de seleção e inspeção de regiões de interesse para a comparação de ecogenicidade entre córtex renal e complexo ecogênico central. As medidas são calculadas na imagem original, sem CLAHE, e não representam diagnóstico clínico. Fonte: elaboração própria.}
+\label{fig:curadoria_rois_ecogenicidade}
+\end{figure}
+}{}
 
 \section{Resultados}
 
