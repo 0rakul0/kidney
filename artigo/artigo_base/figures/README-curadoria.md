@@ -1,6 +1,6 @@
 # Capturas da Curadoria Web para o artigo-base
 
-Este diretório armazena as **capturas reais** da interface de Curadoria Web desenvolvida na pesquisa. O arquivo `../main.tex` contém quatro blocos LaTeX condicionais (`\IfFileExists`) que somente entram no PDF quando as respectivas imagens PNG estão presentes. Isso evita figuras fictícias, referências quebradas e erros de compilação enquanto as capturas não forem produzidas.
+Este diretório receberá as **capturas reais** da interface de Curadoria Web desenvolvida na pesquisa. As quatro capturas foram fornecidas pelo autor para inclusão no artigo e devem ser adicionadas ao repositório como arquivos de imagem. O arquivo `../main.tex` contém quatro blocos LaTeX condicionais (`\IfFileExists`) que somente entram no PDF quando as respectivas imagens PNG estão presentes. Isso evita figuras fictícias, referências quebradas e erros de compilação enquanto as capturas não forem produzidas.
 
 ## Como obter as capturas
 
@@ -14,10 +14,10 @@ Abra `http://127.0.0.1:8765`. Selecione um caso que possua imagens e máscaras r
 
 | Nome do arquivo | Captura necessária | Posição no artigo |
 | --- | --- | --- |
-| `curadoria_visao_geral.png` | Tela com fila de casos, filtros e resumo do progresso; evitar tela vazia. | Materiais e Métodos → Curadoria human-in-the-loop |
-| `curadoria_revisao_caso.png` | Caso de ultrassom com sobreposição das camadas e controles de revisão das máscaras. | Materiais e Métodos → Curadoria human-in-the-loop |
-| `curadoria_correcao_mascara.png` | Edição de uma máscara por polígono/pincel/borracha; mostrar os controles da operação. | Materiais e Métodos → Curadoria human-in-the-loop |
-| `curadoria_rois_ecogenicidade.png` | ROIs córtex--CEC visíveis e painel de ecogenicidade com referência ao CEC. | Materiais e Métodos → Mensuração quantitativa de ecogenicidade |
+| `curadoria_visao_geral.png` | Tela principal, com fila de casos, formulário de revisão e metadados. O painel de progresso/filtros está recolhido. | Materiais e Métodos → Curadoria human-in-the-loop |
+| `curadoria_revisao_caso.png` | Tela de visualização ampliada de um caso. As camadas estão desmarcadas no exemplo; não afirmar que há máscaras sobrepostas. | Materiais e Métodos → Curadoria human-in-the-loop |
+| `curadoria_correcao_mascara.png` | Ferramenta de pincel configurada para córtex e substituição da máscara; a captura não demonstra edição concluída. | Materiais e Métodos → Curadoria human-in-the-loop |
+| `curadoria_rois_ecogenicidade.png` | Comparação manual A/B com CEC (A) e córtex (B), máscaras visíveis e painel de brilho. A razão CEC/córtex mostrada é inversa à razão córtex/CEC do protocolo global. | Materiais e Métodos → Mensuração quantitativa de ecogenicidade |
 
 Salve os quatro arquivos **com os nomes exatos** na pasta `artigo/artigo_base/figures/`. O artigo passa a incorporar automaticamente cada figura existente na próxima compilação, sem precisar alterar `main.tex`.
 
@@ -32,3 +32,7 @@ Salve os quatro arquivos **com os nomes exatos** na pasta `artigo/artigo_base/fi
 7. Registre em caderno experimental a data, versão do sistema e origem dos casos usados nas capturas (informações sensíveis não devem ficar no repositório público).
 
 > Nota: As capturas ainda não foram inseridas nesta atualização. O arquivo LaTeX permanece compilável sem elas, porque as figuras são condicionais.
+
+## Integração dos quatro arquivos recebidos
+
+Os nomes listados acima correspondem às capturas fornecidas pelo autor nesta revisão. Após salvar os quatro PNGs na pasta indicada, compile novamente `main.tex` para ativar as figuras. Não altere valores percentuais exibidos nos prints e mantenha a distinção entre a ferramenta de comparação manual A/B e o protocolo automático de ROIs pareadas.
