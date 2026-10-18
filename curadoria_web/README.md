@@ -155,3 +155,19 @@ Exemplos de uso (substitua os caminhos entre aspas pelos arquivos reais de um me
 **Requisitos:** Python com `numpy`, `opencv-python` e `matplotlib`; todas as mascaras devem estar alinhadas a imagem original e ter exatamente a mesma resolucao. O programa interrompe a execucao quando recebe um caminho inexistente ou uma mascara em resolucao diferente.
 
 **Interpretacao:** a razao de brilho calculada em `rois` usa intensidade B-mode original e nao constitui diagnostico. As mascaras de comparacao manual precisam pertencer ao mesmo caso e revisao documentada; o script nao autentica a procedencia de arquivos externos. Na figura de diferencas, verde significa adicao e vermelho significa remocao. Recomenda-se legenda LaTeX com identificacao de cada painel e `Fonte: elaboracao propria (resultados do sistema desenvolvido).`
+
+### Selecao automatica de casos reais (manifesto + SQLite)
+
+O auxiliar `scripts/figuras/gerar_figuras_curadoria.py` consulta o manifesto visual, os resultados dos segmentadores e o banco SQLite **sem editar os dados**. O comando `listar` identifica IDs e revisoes existentes; `revisao` exige o par de mascara anterior e mascara efetivamente corrigida; `multiclasse` busca as quatro camadas disponiveis. O gerador exporta PNG e um arquivo `.proveniencia.json` com caminhos usados, ID, camada, modelo e revisor (quando aplicavel).
+
+Execute na raiz do repositorio:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras_curadoria.py listar
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras_curadoria.py revisao --image-id "ID_REAL" --reviewer "REVISOR" --layer cortex
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras_curadoria.py multiclasse --image-id "ID_REAL" --model unet
+```
+
+Diretorio padrao: `artigo/artigo_base/figures/geradas/`. Argumentos opcionais: `--manifest`, `--database`, `--output-dir` e `--model` (`unet` ou `deeplab`). Nao ha selecao arbitraria de "melhor caso": a revisao e escolhida pelo ID/revisor real. A aprovacao registrada e incluida na proveniencia e nao e interpretada automaticamente como validacao clinica.
+
+**Limites:** a versao automatica cobre `revisao` e `multiclasse`. As figuras `rois` e `casos` continuam acessiveis pelo gerador base com mascaras explicitamente fornecidas; nenhuma selecao automatica de ROI ou referencial manual foi suposta. Um caminho ausente ou uma mascara inconsistente interrompe a geracao em vez de fabricar resultado.
