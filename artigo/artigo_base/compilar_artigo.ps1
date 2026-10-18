@@ -28,7 +28,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Falha na execucao do bibtex" }
 
     # Confere se o BibTeX gerou a bibliografia antes de continuar.
-    if (-not (Test-Path "main.bbl") -or -not (Select-String -Path "main.bbl" -Pattern "\\bibitem" -Quiet)) {
+    if (-not (Test-Path "main.bbl") -or -not (Select-String -Path "main.bbl" -SimpleMatch -Pattern "\bibitem" -Quiet)) {
         throw "Bibliografia main.bbl ausente ou vazia apos BibTeX"
     }
 
