@@ -1,6 +1,6 @@
 # Capturas da Curadoria Web para o artigo-base
 
-Este diretório contém **quatro capturas reais** da Curadoria Web desenvolvida na pesquisa. As imagens foram fornecidas pelo autor e adicionadas à branch `main` do repositório. O `main.tex` as inclui automaticamente durante a compilação. O arquivo `../main.tex` contém quatro blocos LaTeX condicionais (`\IfFileExists`) que somente entram no PDF quando as respectivas imagens PNG estão presentes. Isso evita figuras fictícias, referências quebradas e erros de compilação enquanto as capturas não forem produzidas.
+Este diretório contém **quatro capturas reais** da Curadoria Web desenvolvida na pesquisa. As imagens foram fornecidas pelo autor e adicionadas à branch `main` do repositório. O `main.tex` as inclui explicitamente durante a compilação: a falta de qualquer PNG deve ser corrigida, pois as figuras não são mais opcionais. O arquivo `../main.tex` inclui explicitamente as quatro capturas PNG. A publicação do PDF depende da presença dos arquivos reais na pasta.
 
 ## Como obter as capturas
 
@@ -31,7 +31,7 @@ Salve os quatro arquivos **com os nomes exatos** na pasta `artigo/artigo_base/fi
 6. Se a captura não documentar exatamente o que a legenda diz, ajuste a legenda antes da publicação.
 7. Registre em caderno experimental a data, versão do sistema e origem dos casos usados nas capturas (informações sensíveis não devem ficar no repositório público).
 
-> Nota: As quatro capturas foram incorporadas ao repositório. Os blocos `\IfFileExists` permanecem para que o texto também possa ser compilado caso alguma imagem seja temporariamente removida.
+> Nota: As quatro capturas estão no repositório. O LaTeX não as oculta em caso de ausência: um arquivo faltante deve ser corrigido antes da publicação.
 
 ## Integração dos quatro arquivos recebidos
 
