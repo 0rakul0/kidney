@@ -1,0 +1,124 @@
+\begin{thebibliography}{}
+
+\bibitem[Athavale et~al. 2021]{Athavale2021}
+Athavale, A.~M., Hart, P.~D., Itteera, M., Cimbaluk, D., Patel, T., Alabkaa,
+  A., Arruda, J., Singh, A., Rosenberg, A., and Kulkarni, H. (2021).
+\newblock Development and validation of a deep learning model to quantify
+  interstitial fibrosis and tubular atrophy from kidney ultrasonography images.
+\newblock {\em JAMA Network Open}, 4(5):e2111176.
+
+\bibitem[Beutler et~al. 2024]{Beutler2024SRI}
+Beutler, B.~D., El-Sabawi, B., Walker, D.~K., Cen, S., and Tchelepi, H. (2024).
+\newblock An objective computer-assisted measurement of sonographic renal
+  cortical echogenicity: The splenorenal index.
+\newblock {\em Ultrasound Quarterly}, 40(1).
+
+\bibitem[Budd et~al. 2021]{Budd2021HITL}
+Budd, S., Robinson, E.~C., and Kainz, B. (2021).
+\newblock A survey on active learning and human-in-the-loop deep learning for
+  medical image analysis.
+\newblock {\em Medical Image Analysis}, 71:102062.
+
+\bibitem[Chen et~al. 2018]{Chen2018DeepLab}
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018).
+\newblock Encoder-decoder with atrous separable convolution for semantic image
+  segmentation.
+\newblock {\em European Conference on Computer Vision (ECCV)}, pages 801--818.
+
+\bibitem[Huang et~al. 2025]{Huang2025SemiPLC}
+Huang, S., Wang, S., Qiao, S., Liu, Y., and Liu, T. (2025).
+\newblock Semi-plc: A framework for semi-supervised medical images segmentation
+  with pseudo label correction.
+\newblock {\em Computer Methods and Programs in Biomedicine}, 271:109027.
+
+\bibitem[Jiao et~al. 2024]{Jiao2024SSLReview}
+Jiao, R., Zhang, Y., Ding, L., Xue, B., Zhang, J., Cai, R., and Jin, C. (2024).
+\newblock Learning with limited annotations: A survey on deep semi-supervised
+  learning for medical image segmentation.
+\newblock {\em Computers in Biology and Medicine}, 169:107840.
+
+\bibitem[Khan et~al. 2024]{Khan2024KidneySeg}
+Khan, R., Xiao, C., Liu, Y., Tian, J., Chen, Z., Su, L., Li, D., Hassan, H.,
+  Li, H., Xie, W., Zhong, W., and Huang, B. (2024).
+\newblock Transformative deep neural network approaches in kidney ultrasound
+  segmentation: Empirical validation with an annotated dataset.
+\newblock {\em Interdisciplinary Sciences: Computational Life Sciences},
+  16(2):439--454.
+
+\bibitem[Lee 2013]{Lee2013PseudoLabel}
+Lee, D.-H. (2013).
+\newblock Pseudo-label: The simple and efficient semi-supervised learning
+  method for deep neural networks.
+\newblock In {\em Workshop on Challenges in Representation Learning, ICML},
+  volume~3.
+
+\bibitem[Manley and O'Neill 2001]{Manley2001}
+Manley, J.~A. and O'Neill, W.~C. (2001).
+\newblock How echogenic is echogenic? quantitative acoustics of the renal
+  cortex.
+\newblock {\em American Journal of Kidney Diseases}, 37(4):706--711.
+
+\bibitem[Moghazi et~al. 2005]{Moghazi2005}
+Moghazi, S., Jones, E., Schroepple, J., et~al. (2005).
+\newblock Correlation of renal histopathology with sonographic findings.
+\newblock {\em Kidney International}, 67(4):1515--1520.
+
+\bibitem[Qin et~al. 2024]{Qin2024Fibrosis}
+Qin, X., Liu, X., Xia, L., Luo, Q., and Zhang, C. (2024).
+\newblock Multimodal ultrasound deep learning to detect fibrosis in early
+  chronic kidney disease.
+\newblock {\em Renal Failure}, 46(2):2417740.
+
+\bibitem[Ronneberger et~al. 2015]{Ronneberger2015}
+Ronneberger, O., Fischer, P., and Brox, T. (2015).
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In {\em Medical Image Computing and Computer-Assisted Intervention
+  (MICCAI)}, pages 234--241.
+
+\bibitem[Singla et~al. 2023]{Singla2023KidneyUS}
+Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and
+  Rohling, R. (2023).
+\newblock The open kidney ultrasound data set.
+\newblock In {\em Simplifying Medical Ultrasound}, volume 14337 of {\em Lecture
+  Notes in Computer Science}, pages 155--164. Springer Nature Switzerland.
+
+\bibitem[Su et~al. 2024]{Su2024ReliablePseudo}
+Su, J., Luo, Z., Lian, S., Lin, D., and Li, S. (2024).
+\newblock Mutual learning with reliable pseudo label for semi-supervised
+  medical image segmentation.
+\newblock {\em Medical Image Analysis}, 94:103111.
+
+\bibitem[Tajbakhsh et~al. 2020]{Tajbakhsh2020Imperfect}
+Tajbakhsh, N., Jeyaseelan, L., Li, Q., Chiang, J.~N., Wu, Z., and Ding, X.
+  (2020).
+\newblock Embracing imperfect datasets: A review of deep learning solutions for
+  medical image segmentation.
+\newblock {\em Medical Image Analysis}, 63:101693.
+
+\bibitem[Xie et~al. 2021]{Xie2021SegFormer}
+Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.~M., and Luo, P. (2021).
+\newblock Segformer: Simple and efficient design for semantic segmentation with
+  transformers.
+\newblock {\em Advances in Neural Information Processing Systems},
+  34:12077--12090.
+
+\bibitem[Zhao et~al. 2025]{Zhao2025Echogenicity}
+Zhao, L., Shang, J., Shi, Y., Yan, Y., Li, P., Niu, W., Zhang, G., Ding, Z.,
+  Chu, X., Wang, T., and Zheng, S. (2025).
+\newblock Quantifying ultrasound echogenicity difference for accurate chronic
+  kidney disease diagnosis.
+\newblock {\em Journal of Nephrology}, 38(8):2353--2362.
+
+\bibitem[Zhou et~al. 2018]{Zhou2018UNetPP}
+Zhou, Z., Siddiquee, M. M.~R., Tajbakhsh, N., and Liang, J. (2018).
+\newblock Unet++: A nested u-net architecture for medical image segmentation.
+\newblock {\em Deep Learning in Medical Image Analysis and Multimodal Learning
+  for Clinical Decision Support}, pages 3--11.
+
+\bibitem[Zuo et~al. 2025]{Zhang2025RenalAttention}
+Zuo, Y., Li, J., and Tian, J. (2025).
+\newblock A segmentation network with two distinct attention modules for the
+  segmentation of multiple renal structures in ultrasound images.
+\newblock {\em Diagnostics}, 15(15):1978.
+
+\end{thebibliography}
