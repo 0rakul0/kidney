@@ -91,3 +91,49 @@ de acesso, e migre a persistencia para um banco central como PostgreSQL.
 
 Evite usar email como armazenamento de respostas: ele dificulta consolidacao,
 versionamento e auditoria.
+
+## Guia de scripts e componentes
+
+Esta tabela documenta os arquivos **confirmados no repositorio**. Alguns sao modulos ou recursos web, nao scripts executados diretamente. Os caminhos mencionados representam configuracoes do codigo, nao uma garantia de que checkpoints e datasets estejam versionados.
+
+| Arquivo | O que faz | Objetivo | Entradas e saidas |
+| --- | --- | --- | --- |
+| `curadoria_web/app.py` | Servidor HTTP da curadoria: apresenta casos, imagens, mascaras, ferramentas de revisao e endpoints para exportacao. | Organizar revisao humana auditavel. | Le o manifesto visual e imagens; grava revisoes em `dataset_aumentado/curadoria/respostas/curadoria.sqlite3` e correcoes separadas. |
+| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/kidneyus_capsule_unet.pth` e `models/intrarenal_unet_multiclass_annotator1.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
+| `curadoria_web/static/app.js` | Logica do navegador: navegacao, zoom, camadas, desenho de correcoes e envio de revisoes ao servidor. | Oferecer ferramentas interativas para inspeção e curadoria. | Endpoints da aplicacao; altera o estado exibido e envia dados ao servidor. |
+| `curadoria_web/static/inferencia.html` | Pagina de upload e visualizacao da inferencia. | Permitir testar uma imagem sem incorpora-la automaticamente ao treino. | Usa a API de `app.py` e apresenta camadas e resultados no navegador. |
+| `src/segmentation/build_dataset_geral.py` | Organiza fontes de imagens e produz pseudomascaras candidatas com checkpoint configuravel; registra manifesto. | Preparar dados com proveniencia para revisao e possivel expansao supervisionada. | Imagens e modelo; padrao do checkpoint: `models/kidneyus_capsule_dedup_unet.pth`; produz `manifest.csv` no diretorio de saida definido. |
+| `src/segmentation/experiments/train_unet.py` | Treina U-Net usando a infraestrutura compartilhada de treinamento. | Aprender segmentacao renal e avaliar o modelo. | Conjuntos particionados e argumentos de treino; gera checkpoint e metricas conforme configuracao. |
+| `src/segmentation/experiments/train_inner_deeplab.py` | Treina DeepLabV3 multiclasse na ROI renal. | Identificar cortex, medula e complexo ecogenico central. | Dataset intrarrenal e parametros; checkpoint padrao `models/intrarenal_deeplab_resnet50_multiclass_annotator1.pth`, metadados e resultados. |
+| `artigo/artigo_base/compilar_artigo.ps1` | Executa LaTeX, BibTeX e repeticoes do LaTeX; verifica citacoes e rotulos das figuras. | Gerar um artigo com bibliografia e referencias cruzadas resolvidas. | `main.tex`, `.bib`, figuras e distribuicao LaTeX; produz `main.pdf`. |
+
+### Sequencia de utilizacao
+
+1. **Preparacao:** `build_dataset_geral.py` prepara o acervo e diferencia pseudomascaras de referencia manual.
+2. **Treinamento:** os scripts de `src/segmentation/experiments/` ajustam e avaliam redes e salvam checkpoints.
+3. **Inferencia:** `inference.py`, chamado pelo servidor, aplica modelos previamente treinados a uma imagem nova.
+4. **Curadoria:** `app.py` com a interface em `static/` permite aceitar, corrigir ou rejeitar mascaras e armazenar o historico.
+5. **Artigo:** `compilar_artigo.ps1` recompila o texto, atualiza as referencias e valida a saida.
+
+### Comandos de consulta e execucao (Windows, a partir da raiz)
+
+```powershell
+.\.venv\Scripts\python.exe .\curadoria_web\app.py
+.\.venv\Scripts\python.exe .\src\segmentation\build_dataset_geral.py --help
+.\.venv\Scripts\python.exe .\src\segmentation\experiments\train_unet.py --help
+.\.venv\Scripts\python.exe .\src\segmentation\experiments\train_inner_deeplab.py --help
+powershell -NoProfile -ExecutionPolicy Bypass -File .\artigo\artigo_base\compilar_artigo.ps1
+```
+
+Antes de preparar dados ou treinar modelos, confira argumentos, manifestos, particoes e checkpoints. Nem todos os scripts utilizam o mesmo checkpoint como padrao.
+
+### Geradores de figuras planejados (ainda nao implementados)
+
+| Script proposto | Figura e finalidade | Requisitos |
+| --- | --- | --- |
+| `gerar_figura_revisao_humana.py` | Original, mascara automatica, corrigida e diferencas; demonstrar a revisao humana real. | Caso com correcao persistida e versoes correspondentes. |
+| `gerar_figura_multiclasse.py` | Capsula, cortex, medula, CEC e overlays; explicar a cascata anatomica. | Modelos, imagem e mascaras geradas. |
+| `gerar_figura_rois_ecogenicidade.py` | ROIs e medidas cortex/CEC; vincular a imagem as equacoes. | Imagem B-mode original, mascaras e ROIs validas. |
+| `gerar_figura_sucesso_falha.py` | Casos favoravel e dificil; demonstrar limites da segmentacao. | Imagens, predicoes e referencias manuais comparaveis. |
+
+**Nota cientifica:** nao apresentar mascaras pseudorrotuladas como referencia manual, nem simular correcao humana para criar figura de resultado. As figuras devem conter descricao e fonte dos dados.
