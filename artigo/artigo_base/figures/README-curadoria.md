@@ -1,6 +1,6 @@
 # Capturas da Curadoria Web para o artigo-base
 
-Este diretório receberá as **capturas reais** da interface de Curadoria Web desenvolvida na pesquisa. As quatro capturas foram fornecidas pelo autor para inclusão no artigo e devem ser adicionadas ao repositório como arquivos de imagem. O arquivo `../main.tex` contém quatro blocos LaTeX condicionais (`\IfFileExists`) que somente entram no PDF quando as respectivas imagens PNG estão presentes. Isso evita figuras fictícias, referências quebradas e erros de compilação enquanto as capturas não forem produzidas.
+Este diretório contém **quatro capturas reais** da Curadoria Web desenvolvida na pesquisa. As imagens foram fornecidas pelo autor e adicionadas à branch `main` do repositório. O `main.tex` as inclui automaticamente durante a compilação. O arquivo `../main.tex` contém quatro blocos LaTeX condicionais (`\IfFileExists`) que somente entram no PDF quando as respectivas imagens PNG estão presentes. Isso evita figuras fictícias, referências quebradas e erros de compilação enquanto as capturas não forem produzidas.
 
 ## Como obter as capturas
 
@@ -31,8 +31,8 @@ Salve os quatro arquivos **com os nomes exatos** na pasta `artigo/artigo_base/fi
 6. Se a captura não documentar exatamente o que a legenda diz, ajuste a legenda antes da publicação.
 7. Registre em caderno experimental a data, versão do sistema e origem dos casos usados nas capturas (informações sensíveis não devem ficar no repositório público).
 
-> Nota: As capturas ainda não foram inseridas nesta atualização. O arquivo LaTeX permanece compilável sem elas, porque as figuras são condicionais.
+> Nota: As quatro capturas foram incorporadas ao repositório. Os blocos `\IfFileExists` permanecem para que o texto também possa ser compilado caso alguma imagem seja temporariamente removida.
 
 ## Integração dos quatro arquivos recebidos
 
-Os nomes listados acima correspondem às capturas fornecidas pelo autor nesta revisão. Após salvar os quatro PNGs na pasta indicada, compile novamente `main.tex` para ativar as figuras. Não altere valores percentuais exibidos nos prints e mantenha a distinção entre a ferramenta de comparação manual A/B e o protocolo automático de ROIs pareadas.
+Os nomes listados acima correspondem às capturas fornecidas pelo autor nesta revisão. Os quatro PNGs já estão na pasta indicada. Compile novamente `main.tex` para renderizá-los no PDF atualizado. Não altere valores percentuais exibidos nos prints e mantenha a distinção entre a ferramenta de comparação manual A/B e o protocolo automático de ROIs pareadas.
