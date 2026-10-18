@@ -168,42 +168,37 @@ A dependência entre estágios é investigada em um experimento de estabilidade:
 
 DeepLabV3 e MedullaROIUNet produzem candidatos independentes de máscara de medula. A seleção automática combina concordância e restrições geométricas; um experimento acrescentou 342 pseudomáscaras às 236 imagens de treino manual, totalizando 578 exemplos. As 50 imagens de validação e as 50 de teste permaneceram manuais. A comparação resultante examina o efeito desse conjunto específico de pseudorrótulos; não mede o efeito de uma curadoria humana completa nem garante equivalência entre conjuntos de tamanhos diferentes.
 
-\subsection{Curadoria \textit{human-in-the-loop} e inferência integrada}
+\subsection{Curadoria Web: implementação e fluxo de revisão humana}
 
-A aplicação de curadoria permite examinar separadamente rim, córtex, medula e CEC, atribuir estados (pendente, aceita, corrigir, rejeitada e indisponível), editar máscaras por polígonos e registrar observações. As versões corrigidas não sobrescrevem a proposta automática. A persistência local em SQLite conserva a identificação do revisor, a camada, a operação, o horário, o histórico e a seleção manual de ROIs. Na visualização e no cálculo associado ao caso, a correção manual do revisor tem precedência sobre a predição automática. Esses recursos demonstram capacidade de revisão auditável; taxas de concordância, tempo de revisão e impactos no retreinamento dependem de um estudo de curadoria ainda não concluído.
+Como artefato computacional desta pesquisa, foi desenvolvida a plataforma \textit{Curadoria Web}, implementada no diretório \texttt{curadoria\_web/} do repositório. Seu objetivo é integrar a inspeção de imagens ultrassonográficas, a conferência das predições anatômicas e a revisão humana em um mesmo ambiente. A arquitetura separa o servidor de aplicação em Python, responsável pelas operações sobre casos, máscaras e persistência, da interface desenvolvida com HTML, CSS e JavaScript. O sistema utiliza um manifesto de casos para carregar as imagens e suas versões de máscaras e mantém em banco SQLite os registros da curadoria.
 
+O fluxo de trabalho começa com a identificação do revisor e a seleção de um caso na fila. A tela permite filtrar a origem das anotações e o estado da revisão, consultar as informações do modelo e sobrepor ou ocultar individualmente as camadas de rim, córtex, medula e complexo ecogênico central. O revisor pode classificar cada estrutura como aceita, a corrigir, rejeitada ou indisponível. Quando necessária, a correção pode ser realizada por polígono, pincel ou borracha; as operações permitem substituir, adicionar ou remover áreas da máscara. As edições são registradas sem sobrescrever a predição original, de modo que a máscara revisada possa ser distinguida da máscara proposta pelo modelo.
 
-A aplicação constitui um artefato computacional da pesquisa, e não apenas um meio de apresentar os resultados dos segmentadores. As capturas da interface foram planejadas para documentar a organização da fila, a revisão de camadas e a correção manual. Os recursos de persistência e versionamento, por sua vez, são descritos a partir da implementação e devem ser avaliados separadamente em estudos de uso.
+A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente, ao passo que as Figuras~\ref{fig:curadoria_revisao_caso} e~\ref{fig:curadoria_correcao_mascara} documentam, respectivamente, a inspeção ampliada de um exame e a ferramenta utilizada para preparar uma correção manual. O sistema preserva informações como revisor, estrutura, estado, operação e data da atualização, além do histórico das máscaras corrigidas. Na recuperação de uma imagem, uma correção manual disponível tem precedência sobre a proposta automática para a visualização do próprio revisor. Esses mecanismos estabelecem rastreabilidade operacional; a medida do tempo gasto, a concordância entre revisores e o ganho decorrente de retreinamento com dados revisados permanecem questões experimentais em aberto.
 
-\IfFileExists{figures/curadoria_visao_geral.png}{%
 A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de curadoria, a identificação do revisor e os controles disponíveis na interface.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/curadoria_visao_geral.png}
+\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_visao_geral.png}
 \caption{Tela da Curadoria Web desenvolvida na pesquisa: fila de imagens à esquerda, visualizador central, metadados dos segmentadores e formulário de revisão à direita. No registro apresentado, o painel de progresso e filtros encontra-se recolhido. Fonte: captura de tela da implementação.}
 \label{fig:curadoria_visao_geral}
 \end{figure}
-}{}
 
-\IfFileExists{figures/curadoria_revisao_caso.png}{%
 A Figura~\ref{fig:curadoria_revisao_caso} mostra a modalidade de visualização ampliada do mesmo caso, útil para examinar a imagem renal sem distrações dos painéis laterais. Nessa captura, as máscaras estão desativadas; elas podem ser habilitadas individualmente na aplicação.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/curadoria_revisao_caso.png}
+\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
 \caption{Visualização ampliada de um caso no módulo de curadoria, com ferramentas de navegação, controles de ativação das camadas e metadados do modelo intrarrenal. Nesta captura, as sobreposições anatômicas estão desmarcadas. Fonte: captura de tela da implementação.}
 \label{fig:curadoria_revisao_caso}
 \end{figure}
-}{}
 
-\IfFileExists{figures/curadoria_correcao_mascara.png}{%
 A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a configuração de uma edição manual com a ferramenta de pincel, incluindo a seleção da classe e da operação. A captura não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída; a persistência e o histórico são propriedades verificáveis na implementação.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/curadoria_correcao_mascara.png}
+\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
 \caption{Ferramenta de edição manual configurada para a classe córtex e a operação de substituição de máscara por pincel. A captura documenta os controles de edição, sem apresentar o resultado de uma correção concluída. Fonte: captura de tela da implementação.}
 \label{fig:curadoria_correcao_mascara}
 \end{figure}
-}{}
 
 O módulo de inferência recebe uma nova imagem, executa a U-Net da cápsula, recorta a ROI renal, aplica a U-Net intrarrenal e reconstrói máscaras no espaço da imagem. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
@@ -228,15 +223,13 @@ Como médias de regiões extensas podem ser sensíveis a bordas, heterogeneidade
 A mediana dos $R_i$ é a medida exploratória principal e o IQR descreve sua dispersão. O revisor pode ajustar as posições e conservar a versão revisada. A coordenada vertical funciona apenas como aproximação operacional de profundidade; não corrige completamente ganho temporal, atenuação, compressão ou diferenças entre equipamentos. O protocolo ainda requer análise de sensibilidade e repetibilidade, não sendo interpretado como biomarcador clínico validado.
 
 
-\IfFileExists{figures/curadoria_rois_ecogenicidade.png}{%
 A Figura~\ref{fig:curadoria_rois_ecogenicidade} exemplifica o comparador interativo de duas ROIs circulares posicionadas manualmente. O exemplo seleciona CEC como região A e córtex como região B, de modo que a razão mostrada na interface é $100\,\mu_{CEC}/\mu_C$, inversa à razão global $R_{C/CEC}$ definida na Equação~\ref{eq:global_echo}. Os dois indicadores não devem ser comparados sem considerar a ordem das regiões; além disso, o exemplo interativo de um par não substitui a mediana do protocolo automático de até três pares.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/curadoria_rois_ecogenicidade.png}
+\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
 \caption{Comparador manual de ROIs na Curadoria Web, com sobreposição de máscaras anatômicas e razão de brilho CEC (A)/córtex (B) calculada sobre um par selecionado pelo revisor. A imagem original é utilizada sem CLAHE. Esse valor não representa o indicador global córtex/CEC nem um diagnóstico clínico. Fonte: captura de tela da implementação.}
 \label{fig:curadoria_rois_ecogenicidade}
 \end{figure}
-}{}
 
 \section{Resultados}
 
@@ -341,6 +334,12 @@ A expansão elevou numericamente o Dice de validação de $0{,}7235$ para $0{,}7
 \subsection{Resultados históricos e componentes ainda exploratórios}
 
 Um experimento anterior no \texttt{dataset\_geral} expandido registrou Dice médio de teste $0{,}9366$ para DeepLabV3-ResNet50. O valor é documentado como histórico porque a base, o tipo de referência e o protocolo diferem do teste manual deduplicado; não é utilizado para alegar progresso de $0{,}9290$ para $0{,}9366$. A Curadoria Web e a inferência integrada estão implementadas, mas ainda não há estudo de revisão humana com efeito quantitativo demonstrado no retreinamento. Da mesma forma, o cálculo das ROIs córtex--CEC constitui um procedimento operacional disponível, e não uma avaliação concluída de repetibilidade ou associação clínica.
+
+\subsection{Artefato computacional: plataforma Web de Curadoria}
+
+Além dos experimentos de segmentação, a pesquisa produziu uma aplicação Web funcional para inspeção, edição e documentação de máscaras de ultrassonografia renal. As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} apresentam a interface de triagem de casos, a visualização ampliada e os controles de correção de estruturas anatômicas. A Figura~\ref{fig:curadoria_rois_ecogenicidade} registra a integração entre máscaras intrarrenais e a comparação visual de duas regiões de interesse de ecogenicidade. A aplicação também disponibiliza um fluxo de inferência para novas imagens, separado da inclusão automática de dados na base de treinamento.
+
+O produto implementado demonstra a viabilidade técnica de reunir predição automática, conferência individual por estrutura, edição das máscaras e registro de decisões em uma infraestrutura local auditável. O histórico de alterações e a separação entre máscaras originais e corrigidas são propriedades da implementação; não constituem, isoladamente, evidência de melhora na acurácia, de concordância interobservador ou de utilidade clínica. A mensuração desses aspectos integra o planejamento experimental subsequente.
 
 \section{Discussão}
 
