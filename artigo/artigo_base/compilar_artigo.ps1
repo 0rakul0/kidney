@@ -45,6 +45,26 @@ try {
         throw "Ainda ha referencias indefinidas em main.log. Verifique a chave de citacao ou o rotulo."
     }
 
+    # Verifica especificamente os rotulos das capturas de Curadoria Web.
+    # A presenca de \label no TEX nao basta: \newlabel deve existir em main.aux
+    # apos as passagens de LaTeX, caso contrario o PDF exibe "Figura ??".
+    $figurasCuradoria = @(
+        "fig:curadoria_visao_geral",
+        "fig:curadoria_revisao_caso",
+        "fig:curadoria_correcao_mascara",
+        "fig:curadoria_rois_ecogenicidade"
+    )
+    if (-not (Test-Path -LiteralPath "main.aux")) {
+        throw "main.aux ausente: referencias de figuras nao foram processadas."
+    }
+    $auxContent = Get-Content -LiteralPath "main.aux" -Raw
+    foreach ($rotulo in $figurasCuradoria) {
+        $registro = "\\newlabel{" + $rotulo + "}"
+        if (-not $auxContent.Contains($registro)) {
+            throw "Referencia cruzada nao resolvida para $rotulo. A figura apareceria como ?? no PDF."
+        }
+    }
+
     if (-not (Test-Path "main.pdf")) {
         throw "A compilacao terminou sem criar main.pdf"
     }
