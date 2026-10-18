@@ -75,6 +75,26 @@ A arquitetura U-Net associa codificação e decodificação a conexões de salto
 
 A segmentação intrarrenal apresenta um grau adicional de dificuldade. Córtex, medula e CEC não têm necessariamente fronteiras visualmente inequívocas em todo exame; pequenas variações de anotação podem produzir diferenças substanciais de sobreposição, especialmente em estruturas menores. Por isso, este trabalho utiliza resultados por classe e concordância entre anotadores, evitando que uma média agregada esconda falhas localizadas.
 
+\subsection{Representação das máscaras e avaliação técnica}
+
+Em segmentação semântica, cada posição $(x,y)$ de uma imagem $I$ recebe um rótulo anatômico. Na tarefa binária, a máscara de referência $M(x,y)\in\{0,1\}$ distingue rim e fundo; uma rede produz valores contínuos, convertidos em probabilidades e posteriormente em máscaras mediante uma regra de decisão. No problema intrarrenal multiclasse, a predição distingue estruturas como córtex, medula e complexo ecogênico central (CEC). Essa separação implica duas fontes de erro: a delimitação externa incorreta pode deslocar o recorte de interesse e, mesmo dentro de um recorte correto, pode haver confusão entre estruturas de aparência semelhante.
+
+Para uma máscara prevista $P$ e uma referência $G$, os coeficientes de Dice e de interseção sobre união (IoU) são definidos por
+\begin{equation}
+ \mathrm{Dice}(P,G)=\frac{2|P\cap G|}{|P|+|G|},\qquad
+ \mathrm{IoU}(P,G)=\frac{|P\cap G|}{|P\cup G|}.
+ \label{eq:fundamentacao_dice_iou}
+\end{equation}
+Em máscaras binárias não vazias, $\mathrm{Dice}=2\,\mathrm{IoU}/(1+\mathrm{IoU})$. Ambas quantificam sobreposição, mas não demonstram por si só a exatidão de limites anatômicos, nem a validade clínica dos descritores extraídos. Sua interpretação pressupõe referência adequada e regras explícitas para regiões vazias, cálculo por imagem ou agregado e seleção do conjunto de teste~\cite{Taha2015Metrics}. Métricas por estrutura são particularmente necessárias em classes pequenas: deslocamentos de poucos pixels podem modificar fortemente Dice e IoU.
+
+A comparação entre segmentadores também exige diferenciar \emph{confiança de predição}, \emph{concordância entre modelos} e \emph{acurácia contra referência humana}. Probabilidades de saída podem não estar calibradas; alto Dice entre duas predições indica concordância recíproca, mas não comprova correção anatômica. Por isso, máscaras geradas automaticamente são tratadas como candidatas até passarem por verificação apropriada, e as máscaras de teste manual permanecem separadas dos dados utilizados para treinamento ou seleção~\cite{Lee2013PseudoLabel,Tajbakhsh2020Imperfect}.
+
+\subsection{Curadoria assistida, proveniência e controle de qualidade dos dados}
+
+Um fluxo de curadoria médica pode ser descrito como uma sequência de estados: caso não revisado, proposta automática disponível, avaliação humana, aceitação/correção/rejeição e eventual exportação para um conjunto elegível a treinamento. É importante armazenar o identificador da imagem, a origem da máscara, a arquitetura e a versão do modelo, a classe anatômica, a ação do revisor, a data e a versão resultante. O registro dessas informações permite reconstruir decisões e impedir que pseudorrótulos sejam confundidos com anotações manuais independentes. Revisões de ferramentas médicas destacam o papel da interface e dos procedimentos de anotação na qualidade dos conjuntos de dados~\cite{Aljabri2022AnnotationSurvey}.
+
+Em um ambiente \textit{human-in-the-loop}, a saída da rede é uma sugestão de trabalho, não uma referência definitiva. O revisor pode corrigir componentes, limites e classes; o sistema deve preservar a proposta anterior para permitir auditoria. O efeito científico desse processo precisa ser medido por estudos de tempo de anotação, concordância entre revisores e comparação de desempenho em dados de teste independentes. A disponibilização da interface, isoladamente, não demonstra economia de tempo nem ganho de generalização~\cite{Budd2021HITL,DiazPinto2024MONAILabel}.
+
 \subsection{Pseudorrótulos, consenso e confiabilidade das máscaras}
 
 Pseudorrotulação é a utilização de saídas de modelos como supervisão candidata para exemplos não rotulados~\cite{Lee2013PseudoLabel}. Sua vantagem operacional reside na possibilidade de ampliar a cobertura do conjunto sem repetir integralmente o esforço de anotação. O risco é incorporar erros sistemáticos e reforçar padrões inadequados em sucessivos treinamentos. Revisões e propostas recentes discutem aprendizado semi-supervisionado, consistência, estimativas de incerteza e correção de pseudorrótulos em imagens médicas~\cite{Jiao2024SSLReview,Tajbakhsh2020Imperfect,Su2024ReliablePseudo,Huang2025SemiPLC}.
@@ -92,6 +112,28 @@ O sistema desenvolvido mantém a predição original e a máscara corrigida como
 A ecogenicidade cortical tem sido quantificada por comparação com órgãos ou estruturas de referência. Manley e O'Neill discutem a quantificação cortical; estudos posteriores exploram medidas relativas envolvendo baço ou seio renal e suas associações com indicadores funcionais~\cite{Manley2001,Beutler2024SRI,Zhao2025Echogenicity}. Esses trabalhos motivam o uso de razões, diferenças e contrastes normalizados, mas seus protocolos e órgãos de referência não são automaticamente intercambiáveis. A comparação córtex--CEC desta pesquisa é um protocolo intrarrenal específico, cuja equivalência a medidas da literatura não foi demonstrada.
 
 A interpretação de aumento de ecogenicidade também requer cautela. Moghazi et al. investigaram relações entre características ultrassonográficas e biópsia, evidenciando associações que não tornam uma medida isolada específica para fibrose~\cite{Moghazi2005}. Pesquisas voltadas a IFTA ou fibrose utilizam desfechos histopatológicos e, em alguns casos, combinações de modalidades de imagem~\cite{Athavale2021,Qin2024Fibrosis}. Como o presente projeto não dispõe de uma coorte histopatológica pareada suficiente, sua contribuição limita-se à caracterização quantitativa de padrões de imagem, não à classificação validada de fibrose.
+
+\subsection{Plataformas de anotação e trabalhos relacionados à Curadoria Web}
+
+A contribuição de uma plataforma de curadoria precisa ser situada diante de ferramentas existentes. A revisão de Aljabri et al.~\cite{Aljabri2022AnnotationSurvey} organiza soluções de anotação médica por recursos de interação, tipos de imagem e suporte ao processo de rotulação. No campo de anotação assistida por IA, o MONAI Label~\cite{DiazPinto2024MONAILabel} combina serviços de inferência com interfaces como 3D Slicer e OHIF, oferece estratégias de aprendizado ativo e apresenta experimentos de redução do tempo de anotação. Assim, inferência associada à revisão humana e integração cliente--servidor não constituem, isoladamente, novidades desta pesquisa.
+
+Entre as ferramentas disponíveis, o CVAT oferece anotação e correção visual de máscaras em ambiente web, enquanto o OHIF constitui um visualizador web de imagens médicas e pode servir como interface para fluxos de segmentação~\cite{CVATDocumentation,OHIFDocumentation}. Tais sistemas são referências funcionais importantes, porém sua disponibilidade não significa que tragam, como fluxo padrão, as regras anatômicas e as medidas de ecogenicidade específicas deste estudo. O MedSAM~\cite{Ma2024MedSAM} demonstra a relevância de modelos de segmentação médica de propósito amplo e pode auxiliar a produção de propostas de máscara, mas não deve ser confundido com uma solução completa de governança da curadoria.
+
+A Curadoria Web deste trabalho é posicionada como \emph{artefato especializado}, e não como substituto genérico dessas plataformas. O seu recorte é a revisão separada de rim, córtex, medula e CEC em ultrassonografias renais, a preservação da proposta automática e da máscara modificada, e a vinculação dessas decisões a descritores de ecogenicidade. Uma contribuição verificável decorre da integração e rastreabilidade de tais etapas; uma possível superioridade sobre ferramentas existentes ou um ganho no treinamento são hipóteses a testar, não resultados já demonstrados.
+
+\subsection{Fundamentos técnicos das medidas de ecogenicidade}
+
+Em ultrassonografia B-mode, a intensidade registrada depende da interação acústica com o tecido e também da aquisição: ganho, compensação temporal de ganho, profundidade, compressão e processamento do equipamento. Consequentemente, brilho em tons de cinza não é uma medida absoluta de fibrose. Comparações quantitativas requerem identificar as regiões anatômicas e declarar precisamente qual transformação foi aplicada à imagem~\cite{Manley2001,Moghazi2005}.
+
+Se $C$ e $E$ representam conjuntos de pixels válidos de córtex e CEC, respectivamente, as médias de intensidade na imagem original $I$ podem ser expressas por
+\begin{equation}
+ \mu_C=\frac{1}{|C|}\sum_{(x,y)\in C}I(x,y),\qquad
+ \mu_{CEC}=\frac{1}{|E|}\sum_{(x,y)\in E}I(x,y).
+ \label{eq:fundamentacao_media_echo}
+\end{equation}
+Dessas médias derivam uma razão orientada $R_{C/CEC}=\mu_C/\mu_{CEC}$ e um contraste normalizado $(\mu_{CEC}-\mu_C)/(\mu_{CEC}+\mu_C)$, quando seus denominadores são positivos. A inversão da razão altera sua interpretação; por isso, a ordem córtex/CEC deve permanecer consistente entre interface, equações e tabelas. Valores percentuais correspondem à multiplicação dessas razões por 100, não a outra grandeza física.
+
+O uso de regiões de interesse (ROIs) internas e pareadas procura diminuir a influência de bordas, sombras e posições muito distintas na imagem, sem eliminar a dependência dos parâmetros de aquisição. Estatísticas robustas, como mediana e intervalo interquartil, complementam médias sujeitas a regiões heterogêneas. Se uma máscara é revisada, as ROIs e suas estatísticas podem mudar mesmo sem alterar a imagem original: este é um mecanismo testável para avaliar como a curadoria afeta a estabilidade das medidas. Realces como CLAHE podem auxiliar a visualização ou a inferência, mas sua utilização para quantificação precisa ser explicitamente separada da análise em B-mode original, conforme o protocolo efetivamente implementado.
 
 \subsection{Lacuna e posicionamento da proposta}
 
