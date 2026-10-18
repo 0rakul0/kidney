@@ -127,13 +127,31 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\artigo\artigo_base\compila
 
 Antes de preparar dados ou treinar modelos, confira argumentos, manifestos, particoes e checkpoints. Nem todos os scripts utilizam o mesmo checkpoint como padrao.
 
-### Geradores de figuras planejados (ainda nao implementados)
+### Geracao das quatro figuras cientificas
 
-| Script proposto | Figura e finalidade | Requisitos |
+O arquivo **`scripts/figuras/gerar_figuras.py`** implementa quatro subcomandos para produzir PNGs de alta resolucao (300 DPI por padrao) a partir de **imagens e mascaras ja existentes**. Este utilitario nao executa inferencia, nao carrega checkpoints e nao altera os dados originais. Para produzir mascaras novas, use antes a inferencia disponibilizada pela Curadoria Web.
+
+| Modo | Objetivo | Entradas obrigatorias |
 | --- | --- | --- |
-| `gerar_figura_revisao_humana.py` | Original, mascara automatica, corrigida e diferencas; demonstrar a revisao humana real. | Caso com correcao persistida e versoes correspondentes. |
-| `gerar_figura_multiclasse.py` | Capsula, cortex, medula, CEC e overlays; explicar a cascata anatomica. | Modelos, imagem e mascaras geradas. |
-| `gerar_figura_rois_ecogenicidade.py` | ROIs e medidas cortex/CEC; vincular a imagem as equacoes. | Imagem B-mode original, mascaras e ROIs validas. |
-| `gerar_figura_sucesso_falha.py` | Casos favoravel e dificil; demonstrar limites da segmentacao. | Imagens, predicoes e referencias manuais comparaveis. |
+| `revisao` | Mostrar original, mascara automatica, revisada e pixels adicionados/removidos. | `--image`, `--automatic`, `--reviewed`, `--output`. Use **somente revisoes realmente registradas** no sistema. |
+| `multiclasse` | Mostrar original, composicao de rim/cortex/medula/CEC e sobreposicao. | `--image`, `--rim`, `--cortex`, `--medulla`, `--cec`, `--output`. |
+| `rois` | Mostrar as regioes selecionadas de cortex e CEC e calcular medias e a razao cortex/CEC. | `--image`, `--cortex`, `--cec`, `--output`. Os argumentos representam as **ROIs escolhidas**, nao necessariamente a mascara completa de cada classe. |
+| `casos` | Apresentar dois exemplos lado a lado, cada um com imagem, referencia manual e predicao. | `--good-image`, `--good-reference`, `--good-prediction`, `--hard-image`, `--hard-reference`, `--hard-prediction`, `--output`. |
 
-**Nota cientifica:** nao apresentar mascaras pseudorrotuladas como referencia manual, nem simular correcao humana para criar figura de resultado. As figuras devem conter descricao e fonte dos dados.
+Exemplos de uso (substitua os caminhos entre aspas pelos arquivos reais de um mesmo caso):
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py --help
+
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py revisao --image "imagem.png" --automatic "mascara_automatica.png" --reviewed "mascara_revisada.png" --output "artigo/artigo_base/figures/curadoria_antes_depois_revisao.png"
+
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py multiclasse --image "imagem.png" --rim "rim.png" --cortex "cortex.png" --medulla "medulla.png" --cec "cec.png" --output "artigo/artigo_base/figures/segmentacao_anatomica_multiclasse.png"
+
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py rois --image "imagem.png" --cortex "roi_cortex.png" --cec "roi_cec.png" --output "artigo/artigo_base/figures/rois_ecogenicidade_exemplo.png"
+
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py casos --good-image "imagem_favoravel.png" --good-reference "gt_favoravel.png" --good-prediction "pred_favoravel.png" --hard-image "imagem_dificil.png" --hard-reference "gt_dificil.png" --hard-prediction "pred_dificil.png" --output "artigo/artigo_base/figures/casos_sucesso_falha_segmentacao.png"
+```
+
+**Requisitos:** Python com `numpy`, `opencv-python` e `matplotlib`; todas as mascaras devem estar alinhadas a imagem original e ter exatamente a mesma resolucao. O programa interrompe a execucao quando recebe um caminho inexistente ou uma mascara em resolucao diferente.
+
+**Interpretacao:** a razao de brilho calculada em `rois` usa intensidade B-mode original e nao constitui diagnostico. As mascaras de comparacao manual precisam pertencer ao mesmo caso e revisao documentada; o script nao autentica a procedencia de arquivos externos. Na figura de diferencas, verde significa adicao e vermelho significa remocao. Recomenda-se legenda LaTeX com identificacao de cada painel e `Fonte: elaboracao propria (resultados do sistema desenvolvido).`
