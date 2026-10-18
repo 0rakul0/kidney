@@ -39,4 +39,4 @@ Se houver erros, consulte `main.log` (LaTeX) e `main.blg` (BibTeX). Rodar soment
 
 ## Imagens da Curadoria Web
 
-Os blocos das quatro capturas são condicionais: elas são exibidas quando existirem, em `figures/`, os PNGs previstos pelo arquivo `figures/README-curadoria.md`. A ausência de qualquer captura não deve ser resolvida inventando resultados ou fotografias.
+As quatro capturas reais já estão em `figures/` e foram incorporadas diretamente ao texto. Elas são imagens obrigatórias do artigo; se faltar algum arquivo, a compilação deve acusar erro em vez de ocultá-lo silenciosamente. Consulte `figures/README-curadoria.md` para nomes e descrição das capturas.
