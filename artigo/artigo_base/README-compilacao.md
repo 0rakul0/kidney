@@ -1,8 +1,8 @@
 # Compilação do artigo-base e referências bibliográficas
 
-O artigo-base está em `main.tex`. A bibliografia está em `sbc-template.bib` e utiliza o estilo BibTeX da SBC (`sbc.bst`).
+O artigo-base está em `main.tex`. A bibliografia fonte está em `sbc-template.bib` e utiliza o estilo BibTeX da SBC (`sbc.bst`). O arquivo `main.bbl`, gerado a partir do `.bib`, é mantido no repositório para evitar o desaparecimento das referências em compilações que não executam BibTeX.
 
-**Atenção:** o repositório continha os arquivos `main.aux`, `main.bbl` e `main.blg` produzidos para uma versão anterior do texto. Eles foram removidos do versionamento e ignorados para que não provoquem citações como `[?, ?]` ou referências como `Tabela ??`. Esses arquivos são produzidos novamente a cada compilação.
+**Correção de bibliografia:** o arquivo `main.bbl` é mantido no repositório para incluir todas as 19 referências do texto atual, inclusive quando o editor apenas executa `pdflatex`. Os arquivos temporários `main.aux` e `main.blg` continuam fora do versionamento por poderem conter referências obsoletas. A compilação completa regenera o `main.bbl` a partir do arquivo fonte `sbc-template.bib`.
 
 ## Windows: compilação recomendada
 
@@ -13,7 +13,7 @@ cd D:\kidney\artigo\artigo_base
 powershell -NoProfile -ExecutionPolicy Bypass -File .\compilar_artigo.ps1
 ```
 
-O script limpa os arquivos auxiliares, executa `pdflatex`, `bibtex`, `pdflatex` e `pdflatex`, e verifica se o log ainda reporta citações ou rótulos indefinidos.
+O script limpa os arquivos auxiliares locais, executa `pdflatex`, `bibtex`, `pdflatex` e `pdflatex`, e verifica se o log ainda reporta citações ou rótulos indefinidos. Ele também regenera localmente o arquivo `main.bbl`; quando houver mudanças na bibliografia, inclua esse arquivo no mesmo commit do `main.tex` e do `.bib`.
 
 ## Linux, macOS ou terminal do Overleaf
 
