@@ -13,7 +13,7 @@ try {
     }
 
     # Evita herdar citacoes e numeracoes de versoes anteriores do artigo.
-    foreach ($arquivo in @("main.aux", "main.bbl", "main.blg", "main.out", "main.fdb_latexmk", "main.fls")) {
+    foreach ($arquivo in @("main.aux", "main.blg", "main.out", "main.fdb_latexmk", "main.fls")) {
         if (Test-Path -LiteralPath $arquivo) {
             Remove-Item -LiteralPath $arquivo -Force
         }
@@ -26,6 +26,11 @@ try {
     Write-Host "2/4: BibTeX - gerar bibliografia a partir de sbc-template.bib"
     & bibtex main
     if ($LASTEXITCODE -ne 0) { throw "Falha na execucao do bibtex" }
+
+    # Confere se o BibTeX gerou a bibliografia antes de continuar.
+    if (-not (Test-Path "main.bbl") -or -not (Select-String -Path "main.bbl" -Pattern "\\bibitem" -Quiet)) {
+        throw "Bibliografia main.bbl ausente ou vazia apos BibTeX"
+    }
 
     Write-Host "3/4: LaTeX - associar bibliografia e rotulos"
     & pdflatex -interaction=nonstopmode -halt-on-error -file-line-error main.tex
