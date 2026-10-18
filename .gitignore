@@ -83,3 +83,12 @@ external_tools/SwinIR/
 /.playwright-cli
 /archive_local
 /results
+
+# Artefatos temporarios do artigo-base (regenerados via BibTeX)
+/artigo/artigo_base/main.aux
+/artigo/artigo_base/main.bbl
+/artigo/artigo_base/main.blg
+/artigo/artigo_base/main.fdb_latexmk
+/artigo/artigo_base/main.fls
+/artigo/artigo_base/main.out
+/artigo/artigo_base/main.synctex.gz
