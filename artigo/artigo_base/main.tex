@@ -71,9 +71,74 @@ A contribuição apresentada não consiste em propor uma nova arquitetura neural
 
 A segmentação de ultrassonografias renais é dificultada pela variabilidade do formato do órgão, pelo contraste heterogêneo e pela presença de artefatos que compartilham intensidade com o parênquima. O \texttt{Open Kidney Ultrasound Data Set} (\texttt{kidneyUS}) foi disponibilizado com imagens e anotações de estruturas renais, incluindo marcações independentes que possibilitam estudar tanto o desempenho computacional quanto a variabilidade de referência~\cite{Singla2023KidneyUS}. A existência de dois observadores é particularmente importante: uma métrica obtida contra um único anotador não representa, por si só, um limite universal de precisão anatômica.
 
-A arquitetura U-Net associa codificação e decodificação a conexões de salto e tornou-se um baseline recorrente em segmentação biomédica~\cite{Ronneberger2015}. UNet++ propõe conexões de salto densas; DeepLabV3 explora contexto multiescala por convoluções atrous; e SegFormer combina representação hierárquica e mecanismos baseados em transformadores~\cite{Zhou2018UNetPP,Chen2018DeepLab,Xie2021SegFormer}. A comparação dessas famílias não deve se restringir ao maior Dice: características de borda, custo de inferência, estabilidade em casos difíceis e sensibilidade aos dados de treinamento também influenciam a escolha do modelo para a cascata. Estudos específicos de ultrassom renal reforçam a relevância de qualidade de imagem, preparação da entrada e contexto anatômico~\cite{Khan2024KidneySeg,Zhang2025RenalAttention}.
+No comparador de cápsula renal, foram consideradas quatro famílias de arquiteturas: U-Net e U-Net++, baseadas em redes convolucionais com conexões de salto; DeepLabV3, que explora contexto multiescala por convoluções dilatadas; e SegFormer, cujo codificador hierárquico utiliza Transformers~\cite{Ronneberger2015,Zhou2018UNetPP,Chen2017DeepLabV3,Xie2021SegFormer}. O \texttt{kidneyUS} é utilizado aqui como referência de imagens e anotações, não como fonte de uma arquitetura específica do comparador~\cite{Singla2023KidneyUS}. Características de borda, custo de inferência, estabilidade em casos difíceis e sensibilidade aos dados de treinamento influenciam a escolha dos modelos. Estudos específicos de ultrassom renal reforçam a relevância da qualidade de imagem, preparação da entrada e contexto anatômico~\cite{Khan2024KidneySeg,Zhang2025RenalAttention}.
 
 A segmentação intrarrenal apresenta um grau adicional de dificuldade. Córtex, medula e CEC não têm necessariamente fronteiras visualmente inequívocas em todo exame; pequenas variações de anotação podem produzir diferenças substanciais de sobreposição, especialmente em estruturas menores. Por isso, este trabalho utiliza resultados por classe e concordância entre anotadores, evitando que uma média agregada esconda falhas localizadas.
+
+\subsection{Redes neurais convolucionais e segmentação semântica}
+
+Redes neurais convolucionais (\textit{Convolutional Neural Networks}, CNNs) aprendem representações espaciais de uma imagem por meio de filtros aplicados localmente, com compartilhamento de parâmetros. Uma convolução bidimensional pode ser expressa, de forma simplificada, como
+\begin{equation}
+ F^{(l)}_k(x,y)=\sigma\!\left(b_k+\sum_c\sum_{u,v}W^{(l)}_{k,c}(u,v)\,F^{(l-1)}_c(x+u,y+v)\right),
+ \label{eq:cnn_convolution}
+\end{equation}
+em que $F^{(l)}_k$ é o mapa de características do filtro $k$ na camada $l$, $W$ representa os pesos, $b_k$ o viés e $\sigma$ uma não linearidade. Camadas sucessivas aprendem representações desde bordas e padrões de textura até relações espaciais de maior alcance. Operações de \textit{pooling} reduzem resolução e ampliam o campo receptivo, mas podem suprimir detalhes que são relevantes para contornos anatômicos finos. Em segmentação semântica, o resultado não é apenas uma classe global da imagem: é um mapa de rótulos por pixel, obtido por um decodificador e convertido em máscara segundo a regra de decisão da tarefa.
+
+Uma comparação de segmentadores deve distinguir a arquitetura de base, as estratégias de inicialização dos pesos e as escolhas de treinamento. As CNNs U-Net, U-Net++ e DeepLabV3 apresentam diferentes maneiras de combinar textura local e contexto; o SegFormer constitui uma alternativa hierárquica com atenção baseada em Transformers. No experimento binário do rim, todas as saídas foram adaptadas a um canal, mas isso não torna idênticas as capacidades representacionais ou os custos computacionais das redes.
+
+\subsection{U-Net: codificação, expansão e conexões de salto}
+
+A U-Net foi concebida para segmentação biomédica e apresenta um caminho contrativo e outro expansivo ligados por \textit{skip connections}~\cite{Ronneberger2015}. O codificador utiliza blocos convolucionais e redução progressiva da resolução para capturar características e contexto; a região central (\textit{bottleneck}) processa representações de maior abstração; o decodificador recupera resolução combinando as características ampliadas com mapas provenientes do codificador. Essa concatenação ajuda a reconstruir limites espaciais que seriam difíceis de recuperar apenas a partir das representações de baixa resolução.
+
+A implementação do comparador, em \texttt{src/segmentation/experiments/train\_unet.py}, recebe três canais e emprega quatro blocos de codificação com 64, 128, 256 e 512 canais, intercalados por \textit{max-pooling} $2\times2$. O \textit{bottleneck} utiliza 1.024 canais; quatro operações de convolução transposta recompõem a resolução, com concatenação de características de igual escala. Cada bloco \texttt{DoubleConv} aplica duas convoluções $3\times3$ com \textit{Batch Normalization} e ReLU. A convolução final $1\times1$ produz um \textit{logit} por pixel para a máscara binária. Essa descrição corresponde ao código de treinamento analisado, e não implica que todos os checkpoints intrarrenais reutilizem parâmetros idênticos.
+
+A vantagem conceitual da U-Net está na combinação entre contexto e localização, relevante para distinguir a cápsula renal de tecidos adjacentes com ecogenicidade semelhante. Entretanto, \textit{skip connections} não garantem correção de fronteiras em imagens de baixo contraste, e a perda de detalhes durante o \textit{downsampling} permanece uma limitação a investigar.
+
+\subsection{U-Net++: caminhos de salto densos e decodificação aninhada}
+
+A U-Net++ modifica a topologia do codificador--decodificador ao introduzir caminhos de salto aninhados, nos quais mapas de características passam por blocos convolucionais intermediários antes de serem integrados à decodificação~\cite{Zhou2018UNetPP}. Em lugar de uma conexão direta por nível, cada nó pode combinar características de nós anteriores da mesma resolução e informações ampliadas de um nível mais profundo. O objetivo arquitetural é reduzir a diferença de representação entre as características encaminhadas pelo codificador e aquelas utilizadas pelo decodificador, preservando informações de múltiplas escalas.
+
+A organização dos nós pode ser sintetizada por
+\begin{equation}
+X^{i,j}=H\!\left(\left[X^{i,0},\ldots,X^{i,j-1},U(X^{i+1,j-1})\right]\right),\quad j>0,
+\label{eq:unetpp_nested}
+\end{equation}
+em que $H$ representa o bloco convolucional, $U$ a interpolação para a resolução do nível superior e os colchetes a concatenação por canais. Na implementação disponível em \texttt{train\_unetplusplus.py}, há quatro níveis de codificação com 64, 128, 256 e 512 canais e nós intermediários \texttt{conv0\_1}, \texttt{conv0\_2} e \texttt{conv0\_3}, além de outros nós associados a resoluções inferiores. O aumento espacial é feito por interpolação bilinear; os blocos contêm duas convoluções $3\times3$, normalização em lote e ReLU.
+
+Diferentemente de variantes da proposta original que utilizam múltiplas saídas supervisionadas, o código examinado termina em uma única convolução $1\times1$ aplicada ao nó \texttt{conv0\_3}; portanto, não implementa \textit{deep supervision}. A estrutura aninhada oferece mais caminhos de fusão, mas também modifica o custo de treinamento e não assegura desempenho superior em um conjunto renal pequeno. Essa possibilidade é avaliada empiricamente pelo comparador.
+
+\subsection{DeepLabV3: convoluções dilatadas e contexto multiescala}
+
+O DeepLabV3 explora convoluções dilatadas (\textit{atrous}) e o módulo \textit{Atrous Spatial Pyramid Pooling} (ASPP) para combinar contexto em diferentes escalas sem depender de um decodificador simétrico como o da U-Net~\cite{Chen2017DeepLabV3}. Na convolução dilatada, o deslocamento entre posições amostradas é controlado por uma taxa $r$:
+\begin{equation}
+y(p)=\sum_k w(k)\,x(p+r\,k).
+\label{eq:atrous_convolution}
+\end{equation}
+Para $r=1$, a operação corresponde à convolução comum. Com taxas maiores, o campo receptivo efetivo aumenta sem alterar a quantidade de posições do filtro. No ASPP, diferentes taxas operam em paralelo e são combinadas com informações globais, permitindo representar estruturas em várias escalas.
+
+Em \texttt{src/segmentation/experiments/train\_deeplab.py}, utiliza-se \texttt{torchvision.models.segmentation.deeplabv3\_resnet50} por padrão, com opção para ResNet-101. O código inicializa pesos previamente treinados quando a opção \texttt{--no-pretrained} não é utilizada e substitui a camada final do classificador por uma convolução $1\times1$ de saída binária. Na implementação convencional do ASPP do \texttt{torchvision}, há uma ramificação $1\times1$, convoluções atrous com taxas 12, 24 e 36 e uma ramificação de \textit{pooling} global. O modelo retorna \textit{logits} de segmentação, posteriormente processados no fluxo compartilhado de avaliação.
+
+O DeepLabV3 pode aproveitar contexto para diferenciar a região renal de outras estruturas com texturas parecidas; em contrapartida, a reconstrução de contornos pequenos pode ser desafiadora. Deve-se observar que o artigo sobre DeepLabV3+ descreve uma extensão com decodificador para refinamento espacial~\cite{Chen2018DeepLab}; **essa extensão não é a arquitetura instanciada no comparador** e, por isso, o trabalho original do DeepLabV3 constitui a referência principal deste modelo.
+
+\subsection{SegFormer: codificador hierárquico com Transformers}
+
+O SegFormer difere das três arquiteturas anteriores por utilizar o \textit{Mix Transformer} (MiT) como codificador hierárquico, seguido de um decodificador leve baseado em projeções e fusão multiescala~\cite{Xie2021SegFormer}. A imagem é transformada em representações progressivamente mais compactas, enquanto mecanismos de autoatenção permitem integrar relações entre posições do mapa de características. Uma forma geral da atenção escalada é
+\begin{equation}
+\operatorname{Attention}(Q,K,V)=
+\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V,
+\label{eq:segformer_attention}
+\end{equation}
+em que $Q$, $K$ e $V$ representam consultas, chaves e valores, e $d_k$ controla o escalonamento dos produtos internos. No MiT, a atenção é empregada em uma estrutura hierárquica com redução espacial, evitando operar apenas sobre uma representação plana de resolução única.
+
+O script \texttt{src/segmentation/experiments/train\_segformer.py} utiliza a biblioteca \texttt{transformers} e, por padrão, carrega \texttt{nvidia/segformer-b0-finetuned-ade-512-512}; a variante B2 é uma opção de linha de comando, não o padrão. A configuração B0 organiza características em quatro escalas com 32, 64, 160 e 256 canais. O classificador é adaptado por \texttt{num\_labels=1}, com \texttt{ignore\_mismatched\_sizes=True} para permitir a reinicialização de componentes cuja dimensionalidade não corresponde à tarefa renal. Na inferência, os \textit{logits} do decodificador precisam ser redimensionados para coincidir com a resolução da máscara de referência.
+
+O uso de pesos provenientes de um conjunto de imagens naturais, como ADE20K, constitui uma condição experimental distinta da inicialização das redes convolucionais sem pré-treinamento. O SegFormer permite examinar o efeito de características hierárquicas baseadas em atenção, mas diferenças de desempenho também podem refletir o pré-treinamento e o protocolo de otimização, não somente a arquitetura.
+
+\subsection{Síntese comparativa das arquiteturas}
+
+U-Net e U-Net++ recuperam informação espacial por caminhos expansivos e concatenação com características do codificador; a U-Net++ aprofunda essa integração por conexões intermediárias densas. DeepLabV3 privilegia a extração de contexto multiescala por convoluções dilatadas e ASPP, sem o decodificador especializado do DeepLabV3+. SegFormer utiliza um codificador MiT baseado em Transformers e uma fusão multiescala leve. Assim, o comparador reúne diferentes estratégias de representação e reconstrução da região renal, avaliadas por métricas de sobreposição e de contorno, sem pressupor superioridade geral de uma família arquitetural.
+
+A descrição acima refere-se aos scripts de comparação binária da cápsula. Os modelos posteriormente empregados para segmentação intrarrenal e na Curadoria Web constituem experimentos próprios; suas configurações e rótulos devem ser descritos na metodologia correspondente, evitando transferir automaticamente para eles as características ou os resultados dos checkpoints do benchmark.
 
 \subsection{Representação das máscaras e avaliação técnica}
 
