@@ -105,7 +105,7 @@ A Figura~\ref{fig:arquitetura_unet} apresenta esquematicamente os principais com
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.94\linewidth]{figures/arquitetura_unet.png}
-\caption{Representação esquemática da arquitetura U-Net utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \\cite{Ronneberger2015}.}
+\caption{Representação esquemática da arquitetura U-Net utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Ronneberger2015}.}
 \label{fig:arquitetura_unet}
 \end{figure}
 }{}
@@ -126,7 +126,7 @@ A Figura~\ref{fig:arquitetura_unetplusplus} apresenta esquematicamente os princi
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.94\linewidth]{figures/arquitetura_unetplusplus.png}
-\caption{Representação esquemática da arquitetura U-Net++ utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \\cite{Zhou2018UNetPP}.}
+\caption{Representação esquemática da arquitetura U-Net++ utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Zhou2018UNetPP}.}
 \label{fig:arquitetura_unetplusplus}
 \end{figure}
 }{}
@@ -146,16 +146,38 @@ Diferentemente de variantes da proposta original que utilizam múltiplas saídas
 \subsection{DeepLabV3: convoluções dilatadas e contexto multiescala}
 
 % Figura gerada pelo projeto; veja README de figuras para publicacao dos PNGs.
-\IfFileExists{figures/arquitetura_deeplabv3.png}{%
-A Figura~\ref{fig:arquitetura_deeplabv3} apresenta esquematicamente os principais componentes da arquitetura DeepLabV3 discutida nesta subseção.
+A Figura~\ref{fig:arquitetura_deeplabv3} apresenta a arquitetura DeepLabV3 empregada e suas taxas de dilatação.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.94\linewidth]{figures/arquitetura_deeplabv3.png}
-\caption{Representação esquemática da arquitetura DeepLabV3 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \\cite{Chen2017DeepLabV3}.}
+\resizebox{0.94\linewidth}{!}{%
+\begin{tikzpicture}[
+>=Latex,
+every node/.style={font=\scriptsize,align=center},
+block/.style={draw,rounded corners=2pt,minimum height=9mm,text width=23mm,inner sep=3pt,fill=gray!8},
+rate/.style={draw,rounded corners=2pt,text width=22mm,minimum height=7mm,inner sep=2pt,fill=blue!7},
+arr/.style={->,thick}
+]
+\node[block] (input) {Ultrassom\\256$\times$256$\times$3};
+\node[block,right=6mm of input] (backbone) {ResNet-50\\mapas de atributos};
+\node[rate,right=12mm of backbone,yshift=18mm] (r1) {ASPP $1\times1$};
+\node[rate,below=2mm of r1] (r12) {Atrous $3\times3$\\taxa 12};
+\node[rate,below=2mm of r12] (r24) {Atrous $3\times3$\\taxa 24};
+\node[rate,below=2mm of r24] (r36) {Atrous $3\times3$\\taxa 36};
+\node[rate,below=2mm of r36] (pool) {Pooling global};
+\node[block,right=12mm of r24] (fusion) {Concatenação\\e projeção};
+\node[block,right=6mm of fusion] (out) {Classificador $1\times1$\\e interpolação};
+\draw[arr] (input) -- (backbone);
+\foreach \n in {r1,r12,r24,r36,pool} {
+  \draw[arr] (backbone.east) -- ++(5mm,0) |- (\n.west);
+  \draw[arr] (\n.east) -- ++(5mm,0) |- (fusion.west);
+}
+\draw[arr] (fusion) -- (out);
+\end{tikzpicture}%
+}
+\caption{Arquitetura DeepLabV3 empregada na segmentação renal, com ResNet-50 e ASPP com taxas de dilatação 12, 24 e 36. Fonte: elaboração própria, com base em \cite{Chen2017DeepLabV3} e na implementação estudada.}
 \label{fig:arquitetura_deeplabv3}
 \end{figure}
-}{}
 
 
 O DeepLabV3 explora convoluções dilatadas (\textit{atrous}) e o módulo \textit{Atrous Spatial Pyramid Pooling} (ASPP) para combinar contexto em diferentes escalas sem depender de um decodificador simétrico como o da U-Net~\cite{Chen2017DeepLabV3}. Na convolução dilatada, o deslocamento entre posições amostradas é controlado por uma taxa $r$:
@@ -178,7 +200,7 @@ A Figura~\ref{fig:arquitetura_segformer_b0} apresenta esquematicamente os princi
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.94\linewidth]{figures/arquitetura_segformer_b0.png}
-\caption{Representação esquemática da arquitetura SegFormer-B0 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \\cite{Xie2021SegFormer}.}
+\caption{Representação esquemática da arquitetura SegFormer-B0 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Xie2021SegFormer}.}
 \label{fig:arquitetura_segformer_b0}
 \end{figure}
 }{}
@@ -306,7 +328,7 @@ A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas et
 \draw[seta] (fontes) -- (pseudo);
 \draw[seta] (treino1.east) -- (pseudo.west);
 \node[fase,below=13mm of treino1,xshift=25mm] (e2) {\textbf{Etapa 2 -- Segmentação intrarrenal e Curadoria Web}};
-\draw[seta] (pseudo.south) |- (e2.east);
+\draw[seta] (pseudo.south) -- ++(0,-5mm) -| (e2.north);
 \node[bloco,below=9mm of e2,xshift=-25mm] (roi) {Máscara da cápsula\\delimitação da ROI renal};
 \node[bloco,right=8mm of roi] (interior) {Modelos intrarrenais\\córtex, medula e CEC};
 \draw[seta] (e2.south) -- ++(0,-3mm) -| (roi.north);
