@@ -88,6 +88,19 @@ Uma comparação de segmentadores deve distinguir a arquitetura de base, as estr
 
 \subsection{U-Net: codificação, expansão e conexões de salto}
 
+% O arquivo PNG deve ser copiado para figures/ antes da compilacao.
+\IfFileExists{figures/arquitetura_unet.png}{%
+A Figura~\ref{fig:arquitetura_unet} apresenta esquematicamente os principais componentes da arquitetura U-Net discutida nesta subseção.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\linewidth]{figures/arquitetura_unet.png}
+\caption{Representação esquemática da arquitetura U-Net utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada.}
+\label{fig:arquitetura_unet}
+\end{figure}
+}{}
+
+
 A U-Net foi concebida para segmentação biomédica e apresenta um caminho contrativo e outro expansivo ligados por \textit{skip connections}~\cite{Ronneberger2015}. O codificador utiliza blocos convolucionais e redução progressiva da resolução para capturar características e contexto; a região central (\textit{bottleneck}) processa representações de maior abstração; o decodificador recupera resolução combinando as características ampliadas com mapas provenientes do codificador. Essa concatenação ajuda a reconstruir limites espaciais que seriam difíceis de recuperar apenas a partir das representações de baixa resolução.
 
 A implementação do comparador, em \texttt{src/segmentation/experiments/train\_unet.py}, recebe três canais e emprega quatro blocos de codificação com 64, 128, 256 e 512 canais, intercalados por \textit{max-pooling} $2\times2$. O \textit{bottleneck} utiliza 1.024 canais; quatro operações de convolução transposta recompõem a resolução, com concatenação de características de igual escala. Cada bloco \texttt{DoubleConv} aplica duas convoluções $3\times3$ com \textit{Batch Normalization} e ReLU. A convolução final $1\times1$ produz um \textit{logit} por pixel para a máscara binária. Essa descrição corresponde ao código de treinamento analisado, e não implica que todos os checkpoints intrarrenais reutilizem parâmetros idênticos.
@@ -95,6 +108,19 @@ A implementação do comparador, em \texttt{src/segmentation/experiments/train\_
 A vantagem conceitual da U-Net está na combinação entre contexto e localização, relevante para distinguir a cápsula renal de tecidos adjacentes com ecogenicidade semelhante. Entretanto, \textit{skip connections} não garantem correção de fronteiras em imagens de baixo contraste, e a perda de detalhes durante o \textit{downsampling} permanece uma limitação a investigar.
 
 \subsection{U-Net++: caminhos de salto densos e decodificação aninhada}
+
+% O arquivo PNG deve ser copiado para figures/ antes da compilacao.
+\IfFileExists{figures/arquitetura_unetplusplus.png}{%
+A Figura~\ref{fig:arquitetura_unetplusplus} apresenta esquematicamente os principais componentes da arquitetura U-Net++ discutida nesta subseção.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\linewidth]{figures/arquitetura_unetplusplus.png}
+\caption{Representação esquemática da arquitetura U-Net++ utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada.}
+\label{fig:arquitetura_unetplusplus}
+\end{figure}
+}{}
+
 
 A U-Net++ modifica a topologia do codificador--decodificador ao introduzir caminhos de salto aninhados, nos quais mapas de características passam por blocos convolucionais intermediários antes de serem integrados à decodificação~\cite{Zhou2018UNetPP}. Em lugar de uma conexão direta por nível, cada nó pode combinar características de nós anteriores da mesma resolução e informações ampliadas de um nível mais profundo. O objetivo arquitetural é reduzir a diferença de representação entre as características encaminhadas pelo codificador e aquelas utilizadas pelo decodificador, preservando informações de múltiplas escalas.
 
@@ -109,6 +135,19 @@ Diferentemente de variantes da proposta original que utilizam múltiplas saídas
 
 \subsection{DeepLabV3: convoluções dilatadas e contexto multiescala}
 
+% O arquivo PNG deve ser copiado para figures/ antes da compilacao.
+\IfFileExists{figures/arquitetura_deeplabv3.png}{%
+A Figura~\ref{fig:arquitetura_deeplabv3} apresenta esquematicamente os principais componentes da arquitetura DeepLabV3 discutida nesta subseção.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\linewidth]{figures/arquitetura_deeplabv3.png}
+\caption{Representação esquemática da arquitetura DeepLabV3 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada.}
+\label{fig:arquitetura_deeplabv3}
+\end{figure}
+}{}
+
+
 O DeepLabV3 explora convoluções dilatadas (\textit{atrous}) e o módulo \textit{Atrous Spatial Pyramid Pooling} (ASPP) para combinar contexto em diferentes escalas sem depender de um decodificador simétrico como o da U-Net~\cite{Chen2017DeepLabV3}. Na convolução dilatada, o deslocamento entre posições amostradas é controlado por uma taxa $r$:
 \begin{equation}
 y(p)=\sum_k w(k)\,x(p+r\,k).
@@ -121,6 +160,19 @@ Em \texttt{src/segmentation/experiments/train\_deeplab.py}, utiliza-se \texttt{t
 O DeepLabV3 pode aproveitar contexto para diferenciar a região renal de outras estruturas com texturas parecidas; em contrapartida, a reconstrução de contornos pequenos pode ser desafiadora. Deve-se observar que o artigo sobre DeepLabV3+ descreve uma extensão com decodificador para refinamento espacial~\cite{Chen2018DeepLab}; **essa extensão não é a arquitetura instanciada no comparador** e, por isso, o trabalho original do DeepLabV3 constitui a referência principal deste modelo.
 
 \subsection{SegFormer: codificador hierárquico com Transformers}
+
+% O arquivo PNG deve ser copiado para figures/ antes da compilacao.
+\IfFileExists{figures/arquitetura_segformer_b0.png}{%
+A Figura~\ref{fig:arquitetura_segformer_b0} apresenta esquematicamente os principais componentes da arquitetura SegFormer-B0 discutida nesta subseção.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\linewidth]{figures/arquitetura_segformer_b0.png}
+\caption{Representação esquemática da arquitetura SegFormer-B0 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada.}
+\label{fig:arquitetura_segformer_b0}
+\end{figure}
+}{}
+
 
 O SegFormer difere das três arquiteturas anteriores por utilizar o \textit{Mix Transformer} (MiT) como codificador hierárquico, seguido de um decodificador leve baseado em projeções e fusão multiescala~\cite{Xie2021SegFormer}. A imagem é transformada em representações progressivamente mais compactas, enquanto mecanismos de autoatenção permitem integrar relações entre posições do mapa de características. Uma forma geral da atenção escalada é
 \begin{equation}
