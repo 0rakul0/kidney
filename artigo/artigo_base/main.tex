@@ -464,6 +464,30 @@ DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
 \end{tabular}
 \end{table}
 
+\subsection{Comparação descritiva com resultados publicados}
+
+Para situar o desempenho obtido, a Tabela~\ref{tab:comparacao_literatura} apresenta, lado a lado, os coeficientes Dice desta pesquisa e os relatados por Zuo et al.~\cite{Zuo2025RenalAttention} para a MAT-UNet. A escolha dessa referência decorre da utilização do \texttt{Open Kidney Ultrasound Data Set} e do interesse nas mesmas quatro estruturas anatômicas. Os números são reproduzidos nas escalas de Dice entre zero e um; a tabela é uma comparação \emph{descritiva entre publicações}, e não uma reavaliação dos modelos sobre as mesmas imagens.
+
+\begin{table}[htb]
+\centering
+\caption{Comparação descritiva do Dice com a MAT-UNet de Zuo et al.~\cite{Zuo2025RenalAttention}. Os resultados provêm de protocolos independentes e não constituem um ranking experimental.}
+\label{tab:comparacao_literatura}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Estrutura} & \textbf{MAT-UNet (2025)} & \textbf{U-Net deste trabalho} \\
+\midrule
+Cápsula & 0,9383 & 0,9290 \\
+Córtex & 0,5893 & 0,7075 \\
+Medula & 0,6634 & 0,7237 \\
+CEC & 0,8434 & 0,8469 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Embora a MAT-UNet apresente valor numérico maior para cápsula e os resultados deste trabalho sejam numericamente maiores para córtex, medula e CEC, tais diferenças não demonstram superioridade de uma arquitetura: os conjuntos de teste, procedimentos de divisão, critérios de elegibilidade, referência de anotação e forma de agregação podem divergir. Neste estudo, por exemplo, a cápsula foi avaliada em 70 imagens deduplicadas e a segmentação intrarrenal em 50 imagens, sem que essas avaliações correspondam necessariamente ao mesmo protocolo da MAT-UNet. A comparação controlada exigiria reproduzir as abordagens sob um conjunto de teste comum, com as mesmas anotações e métricas.
+
+Outros trabalhos relacionados possuem objetivos complementares, mas seus desfechos não permitem preencher essa tabela de Dice. Athavale et al.~\cite{Athavale2021} investigaram classificação de fibrose intersticial e atrofia tubular com referência histopatológica, enquanto Zhao et al.~\cite{Zhao2025Echogenicity} avaliaram diferenças de ecogenicidade e sua associação com doença renal crônica. Essas publicações orientam a escolha de desfechos clínicos e de medidas quantitativas para validação futura; os resultados exploratórios aqui apresentados não são equivalentes a seus diagnósticos ou indicadores de desempenho clínico. No eixo de curadoria, o MONAI Label~\cite{DiazPinto2024MONAILabel} fornece referência funcional para anotação interativa, mas sua comparação com a Curadoria Web deve priorizar rastreabilidade, operações de revisão e, em estudo futuro, tempo e concordância dos revisores, em vez de métricas de segmentação não pareadas.
+
 \subsection{Variabilidade da referência humana}
 
 Na comparação das anotações disponíveis de ambos os observadores, o Dice médio variou por estrutura, como mostra a Tabela~\ref{tab:interobserver}. A cápsula apresentou concordância mais elevada ($0{,}9461$), ao passo que córtex ($0{,}5961$) e medula ($0{,}6936$) concentraram divergências maiores. As quantidades de imagens comuns também diferem por classe; por isso, a tabela não representa uma avaliação pareada única de quatro estruturas em exatamente os mesmos casos. A menor concordância humana ajuda a interpretar a dificuldade de obter referências internas estáveis, sem constituir prova de que os modelos alcançaram desempenho equivalente ao de especialistas.
@@ -518,7 +542,7 @@ O produto implementado demonstra a viabilidade técnica de reunir predição aut
 
 Os resultados mostram uma assimetria entre as tarefas anatômicas. A delimitação da cápsula apresentou Dice de $0{,}9290$ no teste manual deduplicado, enquanto o Dice médio intrarrenal foi $0{,}7594$. A diferença, entretanto, não pode ser interpretada como redução mensurada da qualidade do mesmo modelo em uma única população, porque os conjuntos e as tarefas não coincidem. O que os dois experimentos evidenciam, em seus respectivos protocolos, é que o projeto dispõe de um segmentador externo competitivo e que o detalhamento de córtex e medula ainda constitui um gargalo.
 
-A variabilidade entre anotadores reforça essa leitura. Enquanto a cápsula tem concordância humana relativamente elevada, córtex e medula apresentam menor sobreposição entre referências. Isso expõe duas fontes de erro que devem ser distinguidas: a imprecisão da predição computacional e a ambiguidade da própria anotação. Comparações externas, como os resultados de MAT-UNet no \texttt{kidneyUS}, ajudam a situar a dificuldade relativa das classes, mas diferenças de divisão, anotadores e execução impedem um ranking direto entre estudos~\cite{Zuo2025RenalAttention}. Um experimento futuro mais informativo deverá apresentar medidas por exame, distribuição de casos difíceis e, quando viável, múltiplas referências humanas.
+A variabilidade entre anotadores reforça essa leitura. Enquanto a cápsula tem concordância humana relativamente elevada, córtex e medula apresentam menor sobreposição entre referências. Isso expõe duas fontes de erro que devem ser distinguidas: a imprecisão da predição computacional e a ambiguidade da própria anotação. A comparação descritiva com a MAT-UNet (Tabela~\ref{tab:comparacao_literatura}) ajuda a situar a dificuldade relativa das classes, mas diferenças de divisão, anotadores, treinamento e execução impedem um ranking direto entre estudos~\cite{Zuo2025RenalAttention}. O contraste indica valores publicados próximos para a cápsula e o CEC e maior dispersão para córtex e medula; não constitui teste de significância nem comprovação de superioridade de nossa U-Net. Um experimento futuro mais informativo deverá apresentar medidas por exame, distribuição de casos difíceis e, quando viável, múltiplas referências humanas.
 
 O experimento de estabilidade oferece evidência inicial de viabilidade do encadeamento anatômico. Na avaliação específica de medula, substituir a cápsula manual pela prevista teve pequeno efeito na métrica global e preservou elevada correlação de intensidade média. Ainda assim, médias agregadas podem ocultar falhas importantes em exames difíceis. Particularmente em uma cadeia de mensuração, uma região deslocada pode modificar a ROI cortical ou do CEC mesmo quando a sobreposição global é satisfatória. Portanto, a análise de propagação deve ser aprofundada para os três compartimentos intrarrenais e para as medidas pareadas, não apenas para um único descritor de medula.
 
