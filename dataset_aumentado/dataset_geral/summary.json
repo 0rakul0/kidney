@@ -1,0 +1,36 @@
+{
+  "total_unique_images": 4947,
+  "with_mask": 2713,
+  "without_mask": 2234,
+  "existing_masks": 468,
+  "generated_masks_accepted": 2245,
+  "generated_masks_rejected": 2234,
+  "missing_not_generated": 0,
+  "by_source": {
+    "kidneyus_capsule_train": {
+      "images": 329,
+      "with_mask": 329
+    },
+    "kidneyus_capsule_val": {
+      "images": 70,
+      "with_mask": 70
+    },
+    "kidneyus_capsule_test": {
+      "images": 69,
+      "with_mask": 69
+    },
+    "monai_renal_png": {
+      "images": 4479,
+      "with_mask": 2245
+    }
+  },
+  "output_root": "D:\\kidney\\dataset_aumentado\\dataset_geral",
+  "image_dir": "D:\\kidney\\dataset_aumentado\\dataset_geral\\imagens",
+  "mask_dir": "D:\\kidney\\dataset_aumentado\\dataset_geral\\mascaras",
+  "model": "unet",
+  "checkpoint": "D:\\kidney\\models\\kidneyus_capsule_unet.pth",
+  "device": "cuda",
+  "confidence_threshold": 0.9,
+  "duplicates_skipped": 26,
+  "excluded_256x256": 0
+}
