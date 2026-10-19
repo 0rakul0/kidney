@@ -24,6 +24,7 @@ from src.segmentation.experiments.train_unet import build_model as capsule_unet
 from src.segmentation.experiments.train_unetplusplus import build_model as capsule_unetpp
 from src.segmentation.experiments.train_deeplab import build_model as capsule_deeplab
 from src.segmentation.experiments.train_segformer import build_model as capsule_segformer
+from src.segmentation.core.dataset import KidneyDataset
 from src.segmentation.experiments.train_inner_unet import build_model as inner_unet
 from src.segmentation.experiments.train_inner_deeplab import (
     build_model as inner_deeplab,
@@ -85,6 +86,8 @@ def main():
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--img-size", type=int, default=256)
+    parser.add_argument("--clahe", action=argparse.BooleanOptionalAction, default=True,
+                        help="Aplicar CLAHE como no treinamento de referencia; consulte metadata.")
     parser.add_argument("--threshold", type=float, default=None)
     parser.add_argument("--spacing", type=float, nargs=2, metavar=("Y", "X"), default=(1., 1.))
     args = parser.parse_args()
@@ -106,7 +109,8 @@ def main():
         raise RuntimeError(f"Checkpoint parece ponteiro Git LFS: {ckpt}. Execute git lfs pull.")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = load_model(args.task, args.model, ckpt, device)
-    inner_ds = IntrarenalMulticlassDataset(test, img_size=args.img_size, augment=False, clahe=True) if args.task == "intrarenal" else None
+    inner_ds = IntrarenalMulticlassDataset(test, img_size=args.img_size, augment=False, clahe=args.clahe) if args.task == "intrarenal" else None
+    capsule_ds = KidneyDataset(test, img_size=args.img_size, augment=False, clahe=args.clahe) if args.task == "capsule" else None
     if inner_ds is not None:
         images = [test / "image" / name for name in inner_ds.names]
     rows = []
@@ -118,14 +122,9 @@ def main():
                 x = x[None].to(device)
                 gt = y.numpy()
             else:
-                raw = cv2.imread(str(f), cv2.IMREAD_GRAYSCALE)
-                mask = cv2.imread(str(test / "mask" / f.name), cv2.IMREAD_GRAYSCALE)
-                if raw is None or mask is None:
-                    raise FileNotFoundError(f)
-                raw = cv2.resize(raw, (args.img_size, args.img_size))
-                mask = cv2.resize(mask, (args.img_size, args.img_size), interpolation=cv2.INTER_NEAREST)
-                x = torch.from_numpy(np.repeat(raw[None, :, :], 3, axis=0).copy()).float()[None].to(device) / 255.
-                gt = (mask > 0).astype(np.uint8)
+                x, y = capsule_ds[idx]
+                x = x[None].to(device)
+                gt = (y.numpy() > 0).astype(np.uint8)
             prediction = model(x)
             if hasattr(prediction, "logits"):
                 prediction = prediction.logits
