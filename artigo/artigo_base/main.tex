@@ -282,6 +282,45 @@ A etapa mais recente encadeia cápsula, estruturas intrarrenais e mensuração d
 
 \section{Materiais e Métodos}
 
+A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas etapas, distinguindo as máscaras originais do \texttt{kidneyUS} daquelas produzidas pela pesquisa, a expansão com imagens MONAI e o papel posterior da Curadoria Web. O diagrama representa a organização do sistema; a aplicação sobre imagens sem referência manual permanece sujeita a revisão e não constitui validação clínica.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{0.96\linewidth}{!}{%
+\begin{tikzpicture}[
+ >=Latex,
+ every node/.style={font=\footnotesize,align=center},
+ bloco/.style={draw,rounded corners=3pt,fill=gray!8,minimum height=9mm,text width=42mm,inner sep=4pt},
+ fase/.style={draw,rounded corners=3pt,fill=blue!8,minimum height=8mm,text width=93mm,inner sep=4pt},
+ seta/.style={->,thick},
+ node distance=7mm
+]
+\node[fase] (e1) {\textbf{Etapa 1 -- SBBD: segmentação da cápsula e expansão dos dados}};
+\node[bloco,below=7mm of e1,xshift=-25mm] (kidney) {kidneyUS\\imagens e máscaras originais};
+\node[bloco,right=8mm of kidney] (fontes) {MONAI e subconjuntos locais\\imagens externas};
+\node[bloco,below=12mm of kidney] (treino1) {Treino e avaliação\\da segmentação renal};
+\node[bloco,below=12mm of fontes] (pseudo) {Predição de cápsula e seleção\\de pseudomáscaras próprias};
+\draw[seta] (e1.south) -- ++(0,-3mm) -| (kidney.north);
+\draw[seta] (e1.south) -- ++(0,-3mm) -| (fontes.north);
+\draw[seta] (kidney) -- (treino1);
+\draw[seta] (fontes) -- (pseudo);
+\draw[seta] (treino1.east) -- (pseudo.west);
+\node[fase,below=13mm of treino1,xshift=25mm] (e2) {\textbf{Etapa 2 -- Segmentação intrarrenal e Curadoria Web}};
+\draw[seta] (pseudo.south) |- (e2.east);
+\node[bloco,below=9mm of e2,xshift=-25mm] (roi) {Máscara da cápsula\\delimitação da ROI renal};
+\node[bloco,right=8mm of roi] (interior) {Modelos intrarrenais\\córtex, medula e CEC};
+\draw[seta] (e2.south) -- ++(0,-3mm) -| (roi.north);
+\draw[seta] (roi) -- (interior);
+\node[bloco,below=11mm of interior] (curadoria) {Curadoria Web\\revisão, correção e proveniência};
+\draw[seta] (interior) -- (curadoria);
+\node[bloco,left=8mm of curadoria] (eco) {Medidas exploratórias\\de ecogenicidade nas ROIs};
+\draw[seta] (curadoria.west) -- (eco.east);
+\end{tikzpicture}%
+}
+\caption{Fluxo metodológico das duas etapas da pesquisa. O \texttt{kidneyUS} fornece as anotações originais; as máscaras adicionais e respectivas correções são produzidas pelo projeto. A segunda etapa integra segmentação intrarrenal, Curadoria Web e medidas exploratórias de ecogenicidade. Fonte: elaboração própria.}
+\label{fig:fluxo_metodologico}
+\end{figure}
+
 \subsection{Desenho experimental e unidades de avaliação}
 
 A organização histórica da pesquisa compreende a etapa inicial documentada no SBBD e uma segunda etapa de segmentação intrarrenal e Curadoria Web. Para avaliar os experimentos atuais, o estudo compreende três eixos: (i) segmentação supervisionada da cápsula; (ii) segmentação e estabilidade de estruturas intrarrenais; e (iii) engenharia de dados, curadoria e quantificação exploratória. Esses eixos não compartilham necessariamente as mesmas amostras nem os mesmos protocolos. Por isso, cada resultado é apresentado juntamente com sua tarefa, a origem do dado e o tipo de referência. Resultados de conjuntos expandidos com pseudorrótulos não são comparados diretamente com testes manuais deduplicados.
