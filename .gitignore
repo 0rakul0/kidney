@@ -62,28 +62,6 @@ Thumbs.db
 *.safetensors
 
 
-# Local image datasets
-dataset_inicial/
-dataset_aumentado/
-dataset/
-dataset_loader/
-identificada/
-nao_identificada/
-reference_masks/
-kidneyUS_images_25_june_2025/
-pseudo_labels/
-dataset_augmented/
-external_data/
-.kaggle/
-dataset_geral/
-dataset_geral_cv/
-dataset_intrarrenal/
-/tmp
-external_tools/SwinIR/
-/.playwright-cli
-/archive_local
-/results
-
 # Artefatos temporarios do artigo-base (regenerados via BibTeX)
 /artigo/artigo_base/main.aux
 /artigo/artigo_base/main.blg
@@ -91,3 +69,9 @@ external_tools/SwinIR/
 /artigo/artigo_base/main.fls
 /artigo/artigo_base/main.out
 /artigo/artigo_base/main.synctex.gz
+*.mjs
+*.yml
+/archive_local
+/.playwright-cli
+/tmp
+*.gz
