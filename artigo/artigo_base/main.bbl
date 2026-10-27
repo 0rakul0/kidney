@@ -1,5 +1,26 @@
 \begin{thebibliography}{}
 
+\bibitem[Aljabri et~al. 2022]{Aljabri2022AnnotationSurvey}
+Aljabri, M., AlAmir, M., AlGhamdi, M., Abdel-Mottaleb, M., and Collado-Mesa, F.
+  (2022).
+\newblock Towards a better understanding of annotation tools for medical
+  imaging: A survey.
+\newblock {\em Multimedia Tools and Applications}, 81(18):25877--25911.
+
+\bibitem[Araújo et~al. 2026]{Araujo2026GlomerularUS}
+Araújo, N.~C., da~Silveira~Rioja, L., and Suassuna, J. H.~R. (2026).
+\newblock Correlation between computer-assisted ultrasonographic parameters and
+  histological findings in glomerular diseases: A multivariate ordinal
+  analysis.
+\newblock {\em Journal of Clinical Ultrasound}, 54(8):1885--1893.
+
+\bibitem[Artsi et~al. 2025]{Artsi2025RadiologyLLMReview}
+Artsi, Y., Klang, E., Collins, J.~D., Glicksberg, B.~S., Nadkarni, G.~N.,
+  Korfiatis, P., and Sorin, V. (2025).
+\newblock Large language models in radiology reporting - a systematic review of
+  performance, limitations, and clinical implications.
+\newblock {\em Intelligence-Based Medicine}, 12:100287.
+
 \bibitem[Athavale et~al. 2021]{Athavale2021}
 Athavale, A.~M., Hart, P.~D., Itteera, M., Cimbaluk, D., Patel, T., Alabkaa,
   A., Arruda, J., Singh, A., Rosenberg, A., and Kulkarni, H. (2021).
@@ -7,11 +28,22 @@ Athavale, A.~M., Hart, P.~D., Itteera, M., Cimbaluk, D., Patel, T., Alabkaa,
   interstitial fibrosis and tubular atrophy from kidney ultrasonography images.
 \newblock {\em JAMA Network Open}, 4(5):e2111176.
 
+\bibitem[Bai et~al. 2025]{Bai2025Qwen25VL}
+Bai, S., Chen, K., Liu, X., Wang, J., Ge, W., Song, S., Dang, K., Wang, P.,
+  et~al. (2025).
+\newblock Qwen2.5-vl technical report.
+
 \bibitem[Beutler et~al. 2024]{Beutler2024SRI}
 Beutler, B.~D., El-Sabawi, B., Walker, D.~K., Cen, S., and Tchelepi, H. (2024).
 \newblock An objective computer-assisted measurement of sonographic renal
   cortical echogenicity: The splenorenal index.
 \newblock {\em Ultrasound Quarterly}, 40(1).
+
+\bibitem[Bluethgen et~al. 2025]{Bluethgen2025RadiologyLLMBestPractices}
+Bluethgen, C., Van~Veen, D., Zakka, C., Link, K.~E., Fanous, A.~H., Daneshjou,
+  R., Frauenfelder, T., Langlotz, C.~P., Gatidis, S., and Chaudhari, A. (2025).
+\newblock Best practices for large language models in radiology.
+\newblock {\em Radiology}, 315(1).
 
 \bibitem[Budd et~al. 2021]{Budd2021HITL}
 Budd, S., Robinson, E.~C., and Kainz, B. (2021).
@@ -19,11 +51,67 @@ Budd, S., Robinson, E.~C., and Kainz, B. (2021).
   medical image analysis.
 \newblock {\em Medical Image Analysis}, 71:102062.
 
+\bibitem[Busch et~al. 2025]{Busch2025RadiologyStructuredLLM}
+Busch, F., Hoffmann, L., Pinto~dos Santos, D., Makowski, M.~R., Saba, L.,
+  Prucker, P., Hadamitzky, M., Navab, N., Kather, J.~N., Truhn, D., Cuocolo,
+  R., Adams, L.~C., and Bressem, K.~K. (2025).
+\newblock Large language models for structured reporting in radiology: past,
+  present, and future.
+\newblock {\em European Radiology}, 35(5):2589--2602.
+
+\bibitem[Chen et~al. 2017]{Chen2017DeepLabV3}
+Chen, L.-C., Papandreou, G., Schroff, F., and Adam, H. (2017).
+\newblock Rethinking atrous convolution for semantic image segmentation.
+
 \bibitem[Chen et~al. 2018]{Chen2018DeepLab}
 Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018).
 \newblock Encoder-decoder with atrous separable convolution for semantic image
   segmentation.
-\newblock {\em European Conference on Computer Vision (ECCV)}, pages 801--818.
+\newblock In {\em Proceedings of the European Conference on Computer Vision
+  (ECCV)}, pages 801--818.
+
+\bibitem[Chen et~al. 2026]{Chen2026ThyroidVLM}
+Chen, Z., Wang, Y., and Chen, F. (2026).
+\newblock Comparative performance of multimodal large language models in
+  grayscale ultrasound-based classification of thyroid nodules.
+\newblock {\em Seminars in Ultrasound, CT and MRI}.
+
+\bibitem[Cheng et~al. 2026]{Cheng2026BreastUSLLM}
+Cheng, Y., Wang, R., Hong, X., Wang, C., Yin, Y., Wang, J., Liu, X., Yang, L.,
+  Yi, L., Zhao, X., and Wang, Z. (2026).
+\newblock Benchmarking open-source large language models for breast ultrasound
+  report processing: A multicenter study.
+\newblock {\em Diagnostics}, 16(21):3502.
+
+\bibitem[Cui et~al. 2024]{Cui2024BioMedVITAL}
+Cui, H., Mao, L., Liang, X., Zhang, J., Ren, H., Li, Q., Li, X., and Yang, C.
+  (2024).
+\newblock Biomedical visual instruction tuning with clinician preference
+  alignment.
+
+\bibitem[{CVAT.ai} 2026]{CVATDocumentation}
+{CVAT.ai} (2026).
+\newblock {CVAT}: Computer vision annotation tool documentation.
+\newblock \url{https://docs.cvat.ai/}.
+\newblock Documentacao tecnica consultada em outubro de 2026.
+
+\bibitem[Diaz-Pinto et~al. 2024]{DiazPinto2024MONAILabel}
+Diaz-Pinto, A., Alle, S., Nath, V., Tang, Y., Ihsani, A., et~al. (2024).
+\newblock {MONAI Label}: A framework for {AI}-assisted interactive labeling of
+  {3D} medical images.
+\newblock {\em Medical Image Analysis}, 95:103207.
+
+\bibitem[Elhaie et~al. 2026]{Elhaie2026RenalUSMeta}
+Elhaie, M., Koozari, A., Nasab, A.~S., and Dehaghi, F.~T. (2026).
+\newblock Diagnostic accuracy of ai-augmented renal ultrasound for degenerative
+  kidney disorders: a systematic review and meta-analysis.
+\newblock {\em Future Science OA}, 12(1).
+
+\bibitem[Hao et~al. 2026]{Hao2026UltraReporter}
+Hao, P., Zhang, J., Zhang, S., Wu, F., and Tian, S. (2026).
+\newblock Ultrareporter for transforming spoken diagnostic cues into structured
+  ultrasound reports with large language models.
+\newblock {\em Scientific Reports}, 16(1).
 
 \bibitem[Huang et~al. 2025]{Huang2025SemiPLC}
 Huang, S., Wang, S., Qiao, S., Liu, Y., and Liu, T. (2025).
@@ -52,6 +140,17 @@ Lee, D.-H. (2013).
 \newblock In {\em Workshop on Challenges in Representation Learning, ICML},
   volume~3.
 
+\bibitem[Li et~al. 2023]{Li2023LLaVAMed}
+Li, C., Wong, C., Zhang, S., Usuyama, N., Liu, H., Yang, J., Naumann, T., Poon,
+  H., and Gao, J. (2023).
+\newblock Llava-med: Training a large language-and-vision assistant for
+  biomedicine in one day.
+
+\bibitem[Ma et~al. 2024]{Ma2024MedSAM}
+Ma, J., He, Y., Li, F., Han, L., You, C., and Wang, B. (2024).
+\newblock Segment anything in medical images.
+\newblock {\em Nature Communications}, 15:654.
+
 \bibitem[Manley and O'Neill 2001]{Manley2001}
 Manley, J.~A. and O'Neill, W.~C. (2001).
 \newblock How echogenic is echogenic? quantitative acoustics of the renal
@@ -63,17 +162,40 @@ Moghazi, S., Jones, E., Schroepple, J., et~al. (2005).
 \newblock Correlation of renal histopathology with sonographic findings.
 \newblock {\em Kidney International}, 67(4):1515--1520.
 
+\bibitem[{MONAI Development Team} 2026]{MONAIClinicalUltrasound}
+{MONAI Development Team} (2026).
+\newblock Clinical ultrasound image repository.
+\newblock AWS Open Data Registry.
+\newblock Accessed May 2026.
+
+\bibitem[{OHIF} 2026]{OHIFDocumentation}
+{OHIF} (2026).
+\newblock {OHIF} medical imaging viewer documentation.
+\newblock \url{https://docs.ohif.org/}.
+\newblock Documentacao tecnica consultada em outubro de 2026.
+
 \bibitem[Qin et~al. 2024]{Qin2024Fibrosis}
 Qin, X., Liu, X., Xia, L., Luo, Q., and Zhang, C. (2024).
 \newblock Multimodal ultrasound deep learning to detect fibrosis in early
   chronic kidney disease.
 \newblock {\em Renal Failure}, 46(2):2417740.
 
+\bibitem[Reichenpfader et~al. 2024]{Reichenpfader2024RadiologyIE}
+Reichenpfader, D., Müller, H., and Denecke, K. (2024).
+\newblock A scoping review of large language model based approaches for
+  information extraction from radiology reports.
+\newblock {\em npj Digital Medicine}, 7(1).
+
 \bibitem[Ronneberger et~al. 2015]{Ronneberger2015}
 Ronneberger, O., Fischer, P., and Brox, T. (2015).
 \newblock U-net: Convolutional networks for biomedical image segmentation.
 \newblock In {\em Medical Image Computing and Computer-Assisted Intervention
   (MICCAI)}, pages 234--241.
+
+\bibitem[Sellergren et~al. 2026]{Sellergren2026MedGemma}
+Sellergren, A., Kazemzadeh, S., Mahvar, F., et~al. (2026).
+\newblock An open vision-language model for diverse medical applications.
+\newblock {\em Nature Medicine}, 32(10):3695--3704.
 
 \bibitem[Singla et~al. 2023]{Singla2023KidneyUS}
 Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and
@@ -88,6 +210,12 @@ Su, J., Luo, Z., Lian, S., Lin, D., and Li, S. (2024).
   medical image segmentation.
 \newblock {\em Medical Image Analysis}, 94:103111.
 
+\bibitem[Taha and Hanbury 2015]{Taha2015Metrics}
+Taha, A.~A. and Hanbury, A. (2015).
+\newblock Metrics for evaluating 3d medical image segmentation: Analysis,
+  selection, and tool.
+\newblock {\em BMC Medical Imaging}, 15(29).
+
 \bibitem[Tajbakhsh et~al. 2020]{Tajbakhsh2020Imperfect}
 Tajbakhsh, N., Jeyaseelan, L., Li, Q., Chiang, J.~N., Wu, Z., and Ding, X.
   (2020).
@@ -95,12 +223,33 @@ Tajbakhsh, N., Jeyaseelan, L., Li, Q., Chiang, J.~N., Wu, Z., and Ding, X.
   medical image segmentation.
 \newblock {\em Medical Image Analysis}, 63:101693.
 
+\bibitem[Wang et~al. 2025]{Wang2025KidneyNLP}
+Wang, C., Banerjee, R., Kuperstein, H., Malick, H., Bano, R., Cunningham,
+  R.~L., Tahir, H., Sakhuja, P., Hajagos, J., and Koraishy, F.~M. (2025).
+\newblock Natural language processing for kidney ultrasound analysis:
+  correlating imaging reports with chronic kidney disease diagnosis.
+\newblock {\em Renal Failure}, 47(1).
+
 \bibitem[Xie et~al. 2021]{Xie2021SegFormer}
 Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.~M., and Luo, P. (2021).
 \newblock Segformer: Simple and efficient design for semantic segmentation with
   transformers.
 \newblock {\em Advances in Neural Information Processing Systems},
   34:12077--12090.
+
+\bibitem[Zhang et~al. 2026a]{Zhang2026ThyroidStructured}
+Zhang, L., Li, X., Qi, R., Wang, S., Shi, X., Song, Y., Li, L., Zhang, N., and
+  Ge, H. (2026a).
+\newblock A comparative study of large language models (chatgpt/deepseek) in
+  generating structured thyroid ultrasound reports.
+\newblock {\em Scientific Reports}, 16(1).
+
+\bibitem[Zhang et~al. 2026b]{Zhang2026RenalUSDLReview}
+Zhang, Y., Hou, Y., Qiu, T., Zhuang, Y., Chen, K., Ling, W., Luo, Y., and Lin,
+  J. (2026b).
+\newblock Deep learning in renal ultrasound: applications, challenges, and
+  future outlook.
+\newblock {\em Frontiers in Oncology}, 15:1730628.
 
 \bibitem[Zhao et~al. 2025]{Zhao2025Echogenicity}
 Zhao, L., Shang, J., Shi, Y., Yan, Y., Li, P., Niu, W., Zhang, G., Ding, Z.,
@@ -112,10 +261,11 @@ Zhao, L., Shang, J., Shi, Y., Yan, Y., Li, P., Niu, W., Zhang, G., Ding, Z.,
 \bibitem[Zhou et~al. 2018]{Zhou2018UNetPP}
 Zhou, Z., Siddiquee, M. M.~R., Tajbakhsh, N., and Liang, J. (2018).
 \newblock Unet++: A nested u-net architecture for medical image segmentation.
-\newblock {\em Deep Learning in Medical Image Analysis and Multimodal Learning
-  for Clinical Decision Support}, pages 3--11.
+\newblock In {\em Deep Learning in Medical Image Analysis and Multimodal
+  Learning for Clinical Decision Support}, volume 11045 of {\em Lecture Notes
+  in Computer Science}, pages 3--11. Springer.
 
-\bibitem[Zuo et~al. 2025]{Zhang2025RenalAttention}
+\bibitem[Zuo et~al. 2025]{Zuo2025RenalAttention}
 Zuo, Y., Li, J., and Tian, J. (2025).
 \newblock A segmentation network with two distinct attention modules for the
   segmentation of multiple renal structures in ultrasound images.

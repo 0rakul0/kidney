@@ -66,7 +66,11 @@ O objetivo geral é desenvolver e avaliar um pipeline de visão computacional pa
 
 A contribuição apresentada não consiste em propor uma nova arquitetura neural, mas em articular problemas normalmente avaliados separadamente. O \texttt{kidneyUS}, com anotações independentes, sustenta os testes supervisionados~\cite{Singla2023KidneyUS}; imagens externas são destinadas à geração de candidatos para revisão; e o mesmo encadeamento anatômico alimenta um protocolo quantitativo exploratório. O texto distingue resultados efetivamente medidos, componentes implementados e estudos planejados, prevenindo que uma boa métrica de segmentação seja interpretada como evidência de identificação de doença renal.
 
-\section{Fundamentação e Trabalhos Relacionados}
+O restante do artigo está organizado da seguinte forma: a próxima seção apresenta a fundamentação teórica e os trabalhos relacionados; em seguida, descreve-se a evolução do protocolo e os materiais e métodos; depois são apresentados os resultados, a discussão, as limitações e as ameaças à validade; por fim, a conclusão sintetiza as contribuições e os experimentos ainda necessários.
+
+\section{Fundamentação Teórica e Trabalhos Relacionados}
+
+Esta seção distingue os conceitos necessários para compreender o pipeline dos estudos que delimitam seu posicionamento. As subseções sobre arquiteturas, representação das máscaras e medidas de ecogenicidade apresentam a fundamentação técnica; as subseções sobre dados, anotação assistida, modelos multimodais e plataformas de curadoria sintetizam trabalhos relacionados e explicitam a lacuna abordada. Essa separação evita que resultados publicados em outros protocolos sejam apresentados como validação do sistema proposto.
 
 \subsection{Dados anotados e desafios da segmentação renal}
 
@@ -85,6 +89,24 @@ A pesquisa de Zuo, Li e Tian~\cite{Zuo2025RenalAttention} aproxima-se particular
 Quanto à motivação clínica, Athavale et al.~\cite{Athavale2021} desenvolveram e validaram um modelo de aprendizado profundo para quantificar fibrose intersticial e atrofia tubular a partir de ultrassonografias, utilizando desfechos histopatológicos. A proximidade temática é relevante, mas não autoriza inferir que medidas de intensidade extraídas pelo nosso sistema predigam fibrose: o presente trabalho não dispõe de validação equivalente por biópsia. Em outra frente, Zhao et al.~\cite{Zhao2025Echogenicity} investigaram diferenças de ecogenicidade entre estruturas renais para avaliação de doença renal crônica. Seu protocolo mostra a importância de referências anatômicas internas, embora as ROIs, as definições de região de comparação e os desfechos clínicos não sejam automaticamente equivalentes à razão córtex--CEC aqui estudada.
 
 A dimensão de anotação assistida tem paralelo no MONAI Label, descrito por Diaz-Pinto et al.~\cite{DiazPinto2024MONAILabel}, que integra modelos de inferência, interfaces médicas e interação humana durante a rotulação. Assim, a Curadoria Web desenvolvida neste projeto não é apresentada como invenção do conceito de anotação assistida, mas como implementação especializada para estruturas renais, com persistência de propostas e correções, revisão rastreável e vínculo com análises de ecogenicidade. A contribuição científica a ser examinada resulta da integração dessas etapas e da avaliação de seus efeitos, não de uma alegação de superioridade sobre cada trabalho relacionado.
+
+\subsection{NLP, LLMs e modelos de visão e linguagem em ultrassonografia}
+
+O uso de processamento de linguagem natural em ultrassonografia renal oferece uma ponte entre os achados descritos pelo especialista e as medidas produzidas pelo pipeline de imagem. Wang et al.~\cite{Wang2025KidneyNLP} analisaram laudos de ultrassonografia renal para reconhecer indicadores como ecogenicidade aumentada e redução do comprimento renal, relacionando-os a diagnóstico de doença renal crônica. Esse tipo de abordagem atua sobre o texto já produzido e não substitui a análise da imagem; sua relevância para esta pesquisa está na definição de entidades, negações, incertezas e lateralidades que podem ser confrontadas com as máscaras e os descritores quantitativos. Revisões recentes da aprendizagem profunda em ultrassonografia renal também destacam a necessidade de integrar segmentação, mensuração, dados clínicos e validação externa~\cite{Zhang2026RenalUSDLReview}.
+
+Uma revisão sistemática e metanálise sobre IA aplicada à ultrassonografia renal reuniu estudos de acurácia, mas ressaltou a heterogeneidade dos protocolos e a escassez de validação externa~\cite{Elhaie2026RenalUSMeta}. Essa evidência não pode ser transferida diretamente para o Kidney Assistant, pois os desfechos publicados incluem classificação e predição clínica que não fazem parte do teste conversacional atual. Ainda assim, ela reforça a necessidade de separar o desempenho anatômico das máscaras, a qualidade dos descritores e a fidelidade da resposta gerada. No mesmo sentido, a correlação entre parâmetros ultrassonográficos assistidos por computador e achados histológicos pode motivar a seleção de razões de ecogenicidade, mas não autoriza converter uma medida isolada em diagnóstico individual~\cite{Araujo2026GlomerularUS}.
+
+Na tarefa de estruturação textual em documentação médica por imagem, Busch et al.~\cite{Busch2025RadiologyStructuredLLM} revisaram o emprego de LLMs para transformar informação livre em formatos estruturados. A revisão mostra que estruturação, resumo e extração de entidades são tarefas diferentes da interpretação diagnóstica direta da imagem. A scoping review de Reichenpfader, Müller e Denecke~\cite{Reichenpfader2024RadiologyIE} complementa essa distinção ao apontar variação na granularidade das anotações, pouca validação externa e dificuldade de comparação entre conjuntos e tarefas. Essas evidências metodológicas adjacentes sustentam a utilidade de vocabulários controlados e variantes lexicais, mas não substituem as regras explícitas usadas no projeto para preservar negações, incertezas e lateralidade por achado.
+
+As recomendações metodológicas para LLMs aplicados à documentação por imagem enfatizam que respostas plausíveis podem conter omissões, confabulações e afirmações não sustentadas. Por isso, devem ser avaliadas por especialistas, com prompts e parâmetros registrados, além de comparação com métodos mais simples quando estes forem suficientes~\cite{Artsi2025RadiologyLLMReview,Bluethgen2025RadiologyLLMBestPractices}. Essa orientação fundamenta a decisão de tratar a resposta do assistente como proposta de pesquisa, vinculada às evidências recuperadas pela Curadoria Web, e não como laudo ou decisão clínica autônoma.
+
+Modelos de visão e linguagem ampliam a estruturação textual ao receberem uma imagem juntamente com uma instrução. O LLaVA-Med demonstrou uma estratégia de adaptação de um modelo conversacional para imagens biomédicas~\cite{Li2023LLaVAMed}, enquanto o BioMed-VITAL investigou a seleção de dados de instrução alinhada a preferências de especialistas~\cite{Cui2024BioMedVITAL}. O MedGemma representa uma alternativa especializada em tarefas médicas de imagem e texto~\cite{Sellergren2026MedGemma}. Essas referências fundamentam a arquitetura conceitual do assistente, mas seus resultados não são tratados como evidência de desempenho em ultrassonografia renal.
+
+O Qwen2.5-VL foi escolhido como modelo local porque seu relatório técnico descreve processamento de resolução dinâmica, localização espacial e extração estruturada de informações visuais~\cite{Bai2025Qwen25VL}. No entanto, as capacidades gerais descritas no relatório não validam automaticamente o checkpoint 3B quantizado usado na RTX 3050. O experimento deste artigo mede esse checkpoint específico, com a mesma imagem, máscaras, métricas e prompt registrados para cada condição.
+
+Na geração de respostas fundamentadas, a associação entre cada afirmação e a região anatômica ou evidência utilizada é relevante para o desenho da Curadoria Web. Estudos recentes de estruturação de relatórios de ultrassonografia, incluindo UltraReporter, modelos para tireoide e processamento de relatórios mamários, mostram a relevância do domínio, mas também utilizam tarefas, idiomas, dados e referências clínicas diferentes~\cite{Hao2026UltraReporter,Zhang2026ThyroidStructured,Cheng2026BreastUSLLM,Chen2026ThyroidVLM}. Portanto, esses trabalhos são utilizados como fundamentação e trabalhos relacionados, não como resultados replicados neste estudo.
+
+O escopo experimental multimodal fica restrito a dois modelos. O Qwen2.5-VL-3B-Instruct-AWQ é executado localmente, permitindo registrar latência, uso de memória e reprodutibilidade na GPU disponível. O GPT-6 Luna é utilizado como referência externa, recebendo o mesmo conjunto de evidências e a mesma pergunta. Os demais modelos citados nesta seção não são incluídos na comparação quantitativa, seja por exigirem infraestrutura adicional, por dependerem de acesso ou treinamento específico, ou por terem sido desenvolvidos para outra modalidade. Essa delimitação evita que resultados publicados em protocolos incomparáveis sejam apresentados como uma validação do Kidney Assistant.
 
 \subsection{Redes neurais convolucionais e segmentação semântica}
 
@@ -114,7 +136,7 @@ A Figura~\ref{fig:arquitetura_unet} apresenta esquematicamente os principais com
 
 A U-Net foi concebida para segmentação biomédica e apresenta um caminho contrativo e outro expansivo ligados por \textit{skip connections}~\cite{Ronneberger2015}. O codificador utiliza blocos convolucionais e redução progressiva da resolução para capturar características e contexto; a região central (\textit{bottleneck}) processa representações de maior abstração; o decodificador recupera resolução combinando as características ampliadas com mapas provenientes do codificador. Essa concatenação ajuda a reconstruir limites espaciais que seriam difíceis de recuperar apenas a partir das representações de baixa resolução.
 
-A implementação do comparador, em \texttt{src/segmentation/experiments/train\_unet.py}, recebe três canais e emprega quatro blocos de codificação com 64, 128, 256 e 512 canais, intercalados por \textit{max-pooling} $2\times2$. O \textit{bottleneck} utiliza 1.024 canais; quatro operações de convolução transposta recompõem a resolução, com concatenação de características de igual escala. Cada bloco \texttt{DoubleConv} aplica duas convoluções $3\times3$ com \textit{Batch Normalization} e ReLU. A convolução final $1\times1$ produz um \textit{logit} por pixel para a máscara binária. Essa descrição corresponde ao código de treinamento analisado, e não implica que todos os checkpoints intrarrenais reutilizem parâmetros idênticos.
+A implementação do comparador, em \texttt{train\_unet.py}, recebe três canais e emprega quatro blocos de codificação com 64, 128, 256 e 512 canais, intercalados por \textit{max-pooling} $2\times2$. O \textit{bottleneck} utiliza 1.024 canais; quatro operações de convolução transposta recompõem a resolução, com concatenação de características de igual escala. Cada bloco \texttt{DoubleConv} aplica duas convoluções $3\times3$ com \textit{Batch Normalization} e ReLU. A convolução final $1\times1$ produz um \textit{logit} por pixel para a máscara binária. Essa descrição corresponde ao código de treinamento analisado, e não implica que todos os checkpoints intrarrenais reutilizem parâmetros idênticos.
 
 A vantagem conceitual da U-Net está na combinação entre contexto e localização, relevante para distinguir a cápsula renal de tecidos adjacentes com ecogenicidade semelhante. Entretanto, \textit{skip connections} não garantem correção de fronteiras em imagens de baixo contraste, e a perda de detalhes durante o \textit{downsampling} permanece uma limitação a investigar.
 
@@ -289,7 +311,9 @@ O uso de regiões de interesse (ROIs) internas e pareadas procura diminuir a inf
 
 Os trabalhos anteriores sustentam três frentes complementares: segmentar estruturas, aproveitar dados pouco anotados e investigar descritores de ecogenicidade. A questão abordada aqui é a ligação rastreável entre elas. Uma máscara com bom desempenho médio pode falhar em uma imagem específica; uma pseudomáscara pode ser plausível sem estar correta; e uma medida de brilho pode variar por razões não patológicas. O pipeline proposto reúne essas dependências em um mesmo protocolo, tornando explícito quais resultados já foram medidos e quais precisam de avaliação futura.
 
-\section{Evolução Metodológica da Pesquisa}
+\section{Materiais e Métodos}
+
+\subsection{Contexto e evolução do protocolo}
 
 A pesquisa foi organizada em duas etapas: a primeira, apresentada no artigo SBBD, desenvolveu a segmentação da cápsula renal e a expansão do conjunto de imagens; a segunda, posterior, incorporou a segmentação intrarrenal de córtex, medula e CEC e a Curadoria Web para revisão rastreável das máscaras. A pesquisa iniciou-se com a comparação de arquiteturas para segmentação binária do rim. Nessa configuração, o principal resultado era uma máscara externa e sua concordância com anotações manuais. A limitação de imagens supervisionadas levou à busca por fontes adicionais e à construção de procedimentos de download, conversão, deduplicação e organização de dados externos. Essa evolução ampliou a diversidade potencial de imagens, mas introduziu um problema de procedência: dados externos sem anotações não poderiam ser tratados como equivalentes ao conjunto manual.
 
@@ -302,8 +326,6 @@ Na segunda etapa, as anotações de córtex, medula e complexo ecogênico centra
 As máscaras originais fornecidas pelo \texttt{kidneyUS} são atribuídas aos anotadores desse conjunto~\cite{Singla2023KidneyUS}. Todas as outras máscaras do acervo foram produzidas no âmbito desta pesquisa: algumas são propostas geradas automaticamente pelos segmentadores, outras são pseudomáscaras selecionadas segundo critérios operacionais e outras podem apresentar correções e decisões registradas pela Curadoria Web. Portanto, a autoria das máscaras deve ser distinguida de seu nível de validação: a produção pelo projeto não caracteriza, por si só, anotação manual ou aprovação especializada. As imagens externas, inclusive as oriundas do repositório MONAI/NVIDIA~\cite{MONAIClinicalUltrasound}, constituem fontes de imagens, não fontes das máscaras produzidas aqui. A investigação avançou da cápsula para a medula e, posteriormente, para segmentação multiclasse de córtex, medula e CEC. O experimento de pseudo-expansão da medula forneceu uma observação decisiva: o aumento do treino não produziu melhora no teste manual. Isso justificou incorporar, na segunda etapa da pesquisa, a Curadoria Web como componente explícito de revisão \textit{human-in-the-loop}, com edição, aprovação, histórico e persistência de versões.
 
 A etapa mais recente encadeia cápsula, estruturas intrarrenais e mensuração de ecogenicidade. Nesse momento, tornou-se necessário separar ainda mais claramente o pré-processamento usado na inferência do dado usado na análise quantitativa. A mensuração passou a ser realizada na imagem original, por ROIs anatomicamente delimitadas, com resultados exploratórios. Esta seção descreve a origem das escolhas experimentais; as seções seguintes apresentam os protocolos que podem ser reproduzidos e os limites das evidências já obtidas.
-
-\section{Materiais e Métodos}
 
 A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas etapas, distinguindo as máscaras originais do \texttt{kidneyUS} daquelas produzidas pela pesquisa, a expansão com imagens MONAI e o papel posterior da Curadoria Web. O diagrama representa a organização do sistema; a aplicação sobre imagens sem referência manual permanece sujeita a revisão e não constitui validação clínica.
 
@@ -349,6 +371,8 @@ A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas et
 A organização histórica da pesquisa compreende a etapa inicial documentada no SBBD e uma segunda etapa de segmentação intrarrenal e Curadoria Web. Para avaliar os experimentos atuais, o estudo compreende três eixos: (i) segmentação supervisionada da cápsula; (ii) segmentação e estabilidade de estruturas intrarrenais; e (iii) engenharia de dados, curadoria e quantificação exploratória. Esses eixos não compartilham necessariamente as mesmas amostras nem os mesmos protocolos. Por isso, cada resultado é apresentado juntamente com sua tarefa, a origem do dado e o tipo de referência. Resultados de conjuntos expandidos com pseudorrótulos não são comparados diretamente com testes manuais deduplicados.
 
 A referência supervisionada original para os experimentos anatômicos é o \texttt{kidneyUS}~\cite{Singla2023KidneyUS}; as demais máscaras presentes no conjunto expandido são produtos dos fluxos de segmentação e curadoria desta pesquisa, com proveniência própria. Os polígonos fornecidos nas anotações são rasterizados para produzir máscaras. A análise da cápsula parte de 486 registros do primeiro anotador que correspondem a 468 imagens únicas; após deduplicação e agrupamento por exame, foram destinadas 328 imagens a treino, 70 a validação e 70 a teste. A tarefa intrarrenal multiclasse utiliza 335 imagens (235/50/50) e a tarefa binária de medula utiliza 336 imagens (236/50/50), conforme os respectivos critérios de elegibilidade. Na divisão intrarrenal, o agrupamento por paciente evita que imagens de um mesmo indivíduo sejam distribuídas entre conjuntos de desenvolvimento e teste.
+
+A Tabela~\ref{tab:datasets} resume os conjuntos supervisionados e torna explícito que os tamanhos de amostra não são intercambiáveis entre tarefas.
 
 \begin{table}[htb]
 \centering
@@ -490,6 +514,8 @@ UNet++ & 0,9099 & 0,8419 & 0,8910 & 0,9419 & 16,57 \\
 
 A escolha da U-Net para localizar a ROI renal baseou-se no desempenho observado e no papel crítico da máscara externa. Essa escolha não implica que o modelo apresente a mesma qualidade em imagens externas. A diversidade de qualidade visual exige análise de erros e validação específica para novas fontes.
 
+A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que as condições de aquisição favorecem a delimitação; a imagem não substitui a avaliação agregada da Tabela~\ref{tab:capsule}.
+
 \begin{figure}[htb]
 \centering
 \includegraphics[width=\linewidth]{figures/quality_good_comparison.png}
@@ -500,6 +526,8 @@ A escolha da U-Net para localizar a ROI renal baseou-se no desempenho observado 
 \subsection{Consenso \textit{out-of-fold} e imagens externas}
 
 Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. Nas 4.479 imagens externas do MONAI, a U-Net produziu 3.534 pseudomáscaras candidatas; as outras 945 não receberam predição não vazia desse modelo no recorte analisado. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam cobertura e não acurácia anatômica.
+
+A Figura~\ref{fig:divergencia} ilustra um caso em que a discordância entre modelos justifica a inspeção humana.
 
 \begin{figure}[htb]
 \centering
@@ -537,6 +565,8 @@ conjunto de evidências e a mesma sobreposição visual foram enviados ao
 Qwen2.5-VL-3B-Instruct-AWQ local e ao GPT-6 Luna. O recorte da cápsula foi
 delimitado por $\texttt{capsule\_bbox}=(120,159,805,742)$.
 
+A Tabela~\ref{tab:assistente_piloto} resume a comparação descritiva. Como o estudo possui um único caso e não utiliza um gabarito independente para os achados multimodais, os critérios de resposta devem ser lidos como observações qualitativas dos pesquisadores, e não como métricas de desempenho.
+
 \begin{table}[htb]
 \centering
 \caption{Comparação qualitativa do estudo piloto multimodal ($N=1$).}
@@ -549,8 +579,8 @@ Evidências recebidas & Imagem, quatro máscaras e métricas & Mesma entrada \\
 Região prioritária & Não delimitada claramente & Região central/CEC, faixa média \\
 Separação CEC--foco & Parcial e genérica & Explicitamente cautelosa \\
 Uso da ecogenicidade & Parcial; saída limitada pelo contexto & CEC 130,4; córtex 71,6; diferença 58,7 \\
-Resultado qualitativo & Menor especificidade & Maior especificidade e rastreabilidade \\
-Acurácia estatística & Não calculável & Não calculável \\
+Resultado qualitativo & Localização menos explícita; rastreabilidade parcial & Localização mais explícita; rastreabilidade maior \\
+Acurácia estatística & Não estimável ($N=1$) & Não estimável ($N=1$) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -558,8 +588,9 @@ Acurácia estatística & Não calculável & Não calculável \\
 O resultado não deve ser interpretado como acurácia clínica, pois o piloto
 possui apenas um caso e não dispõe de uma referência humana independente para
 presença, localização e natureza de um foco ecogênico. Ele demonstra a
-viabilidade operacional da integração e sugere maior especificidade da saída
-do GPT-6 Luna neste caso. A avaliação quantitativa da interpretação requer uma
+viabilidade operacional da integração e, neste caso, apresentou uma resposta
+mais explicitamente vinculada às regiões e métricas fornecidas. Essa observação
+qualitativa não estabelece superioridade de modelo. A avaliação quantitativa da interpretação requer uma
 amostra anotada por especialistas, com sensibilidade, especificidade,
 precisão, F1, concordância por região e taxa de afirmações não sustentadas.
 
@@ -610,6 +641,8 @@ CEC & 468 & 0,8688 \\
 \subsection{Medula: heurística, estabilidade e expansão}
 
 Uma heurística inicial para localizar regiões escuras apresentou Dice médio $0{,}3291$ frente à referência do primeiro anotador. No experimento supervisionado específico de medula, a DeepLabV3 atingiu Dice de teste $0{,}7528$ e a MedullaROIUNet, $0{,}7326$. Em avaliação específica da estabilidade da cascata, a troca da ROI de cápsula manual pela cápsula prevista alterou o Dice global da DeepLabV3 de $0{,}7626$ para $0{,}7610$, uma diferença absoluta de $0{,}0016$. Nesse protocolo, a intensidade média estimada na medula teve correlação de $0{,}9508$ entre os dois cenários. Essa correlação descreve o conjunto avaliado; não descarta erros individuais nem certifica estabilidade de outras medidas.
+
+A Tabela~\ref{tab:medulla_expand} apresenta a comparação da pseudo-expansão com validação e teste manuais preservados.
 
 \begin{table}[htb]
 \centering
