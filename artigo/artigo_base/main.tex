@@ -43,11 +43,11 @@ Felipe da R. Henriques\inst{1}}
 \maketitle
 
 \begin{abstract}
-Renal ultrasound is widely available, but anatomical segmentation and image quantification remain sensitive to acquisition variability, ambiguous tissue boundaries and scarce expert annotations. This study develops a traceable pipeline linking renal capsule segmentation, model-agreement analysis, human-in-the-loop curation, multiclass intrarenal segmentation and quantitative echogenicity measurements. The kidneyUS dataset provides the manually annotated reference. In a deduplicated 70-image test set, U-Net achieved Dice 0.9290 and IoU 0.8722 for capsule segmentation. Applied to 4,479 external MONAI images, the selected model produced 3,534 candidate pseudomasks, which were not treated as manually validated ground truth. For cortex, medulla and central echo complex, multiclass U-Net achieved mean Dice 0.7594 in 50 manually annotated test images. A preliminary medulla training-set expansion from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). These findings motivate a controlled comparison between automatic pseudolabeling and expert-reviewed data. Echogenicity measures are computed from the original B-mode image using anatomically constrained regions of interest; their repeatability and clinical associations remain to be established. The contribution is an auditable methodological framework, not an automatic diagnosis of fibrosis or chronic kidney disease.
+Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, U-Net produced 3,534 candidates; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
 \end{abstract}
 
 \begin{resumo}
-A ultrassonografia renal é amplamente disponível, mas sua análise computacional depende da delimitação de estruturas com fronteiras pouco definidas, de condições variáveis de aquisição e de anotações especializadas escassas. Este trabalho desenvolve um pipeline rastreável que integra segmentação da cápsula, concordância entre modelos, curadoria \textit{human-in-the-loop}, segmentação intrarrenal multiclasse e medidas quantitativas de ecogenicidade. O \texttt{kidneyUS} constitui a referência manual. No teste deduplicado de 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722 para a cápsula. Em 4.479 imagens externas do MONAI, o modelo produziu 3.534 pseudomáscaras candidatas, mantidas separadas da referência manual. Para córtex, medula e complexo ecogênico central, a U-Net multiclasse obteve Dice médio de 0,7594 em 50 imagens de teste. A expansão preliminar de 236 para 578 imagens no treinamento da medula não aumentou o Dice de teste (0,7528 contra 0,7523), reforçando a necessidade de avaliar a qualidade dos pseudorrótulos. As medidas de ecogenicidade são obtidas da imagem original por regiões de interesse anatomicamente restritas; sua repetibilidade e suas associações clínicas ainda precisam ser demonstradas. A contribuição atual é metodológica e auditável, sem alegação de diagnóstico automático de fibrose ou doença renal crônica.
+A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a U-Net produziu 3.534 candidatas; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
 \end{resumo}
 
 \section{Introdução}
@@ -366,11 +366,13 @@ A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas et
 \label{fig:fluxo_metodologico}
 \end{figure}
 
+O fluxo representado separa a origem das imagens e máscaras na primeira etapa e conduz as candidatas à segmentação intrarrenal e à revisão na segunda. A mensuração de ecogenicidade aparece como saída exploratória da curadoria, e não como consequência automática de uma predição não revisada.
+
 \subsection{Desenho experimental e unidades de avaliação}
 
 A organização histórica da pesquisa compreende a etapa inicial documentada no SBBD e uma segunda etapa de segmentação intrarrenal e Curadoria Web. Para avaliar os experimentos atuais, o estudo compreende três eixos: (i) segmentação supervisionada da cápsula; (ii) segmentação e estabilidade de estruturas intrarrenais; e (iii) engenharia de dados, curadoria e quantificação exploratória. Esses eixos não compartilham necessariamente as mesmas amostras nem os mesmos protocolos. Por isso, cada resultado é apresentado juntamente com sua tarefa, a origem do dado e o tipo de referência. Resultados de conjuntos expandidos com pseudorrótulos não são comparados diretamente com testes manuais deduplicados.
 
-A referência supervisionada original para os experimentos anatômicos é o \texttt{kidneyUS}~\cite{Singla2023KidneyUS}; as demais máscaras presentes no conjunto expandido são produtos dos fluxos de segmentação e curadoria desta pesquisa, com proveniência própria. Os polígonos fornecidos nas anotações são rasterizados para produzir máscaras. A análise da cápsula parte de 486 registros do primeiro anotador que correspondem a 468 imagens únicas; após deduplicação e agrupamento por exame, foram destinadas 328 imagens a treino, 70 a validação e 70 a teste. A tarefa intrarrenal multiclasse utiliza 335 imagens (235/50/50) e a tarefa binária de medula utiliza 336 imagens (236/50/50), conforme os respectivos critérios de elegibilidade. Na divisão intrarrenal, o agrupamento por paciente evita que imagens de um mesmo indivíduo sejam distribuídas entre conjuntos de desenvolvimento e teste.
+A referência supervisionada original para os experimentos anatômicos é o \texttt{kidneyUS}~\cite{Singla2023KidneyUS}; as demais máscaras presentes no conjunto expandido são produtos dos fluxos de segmentação e curadoria desta pesquisa, com proveniência própria. Os polígonos fornecidos nas anotações são rasterizados para produzir máscaras.
 
 A Tabela~\ref{tab:datasets} resume os conjuntos supervisionados e torna explícito que os tamanhos de amostra não são intercambiáveis entre tarefas.
 
@@ -388,6 +390,8 @@ Medula binária & 336 & 236 & 50 & 50 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+A análise da cápsula parte de 486 registros do primeiro anotador que correspondem a 468 imagens únicas; após deduplicação e agrupamento por exame, foram destinadas 328 imagens a treino, 70 a validação e 70 a teste. A tarefa intrarrenal multiclasse utiliza 335 imagens (235/50/50) e a tarefa binária de medula utiliza 336 imagens (236/50/50), conforme os respectivos critérios de elegibilidade. Na divisão intrarrenal, o agrupamento por paciente evita que imagens de um mesmo indivíduo sejam distribuídas entre conjuntos de desenvolvimento e teste.
 
 A deduplicação por hash identifica conteúdos idênticos; o agrupamento por exame ou paciente busca reduzir vazamento de informação por imagens correlacionadas. Quando existem múltiplas representações de anotação para o mesmo conteúdo, o procedimento de preparação define a amostra de referência usada no experimento. A estratégia de divisão, os manifestos e as configurações dos modelos devem acompanhar os resultados para permitir auditoria. A separação reduz, mas não exclui, o risco de semelhanças residuais e de mudança de distribuição entre fontes.
 
@@ -433,7 +437,7 @@ Como artefato computacional desta pesquisa, foi desenvolvida a plataforma \texti
 
 O fluxo de trabalho começa com a identificação do revisor e a seleção de um caso na fila. A tela permite filtrar a origem das anotações e o estado da revisão, consultar as informações do modelo e sobrepor ou ocultar individualmente as camadas de rim, córtex, medula e complexo ecogênico central. O revisor pode classificar cada estrutura como aceita, a corrigir, rejeitada ou indisponível. Quando necessária, a correção pode ser realizada por polígono, pincel ou borracha; as operações permitem substituir, adicionar ou remover áreas da máscara. As edições são registradas sem sobrescrever a predição original, de modo que a máscara revisada possa ser distinguida da máscara proposta pelo modelo.
 
-A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente, ao passo que as Figuras~\ref{fig:curadoria_revisao_caso} e~\ref{fig:curadoria_correcao_mascara} documentam, respectivamente, a inspeção ampliada de um exame e a ferramenta utilizada para preparar uma correção manual. O sistema preserva informações como revisor, estrutura, estado, operação e data da atualização, além do histórico das máscaras corrigidas. Na recuperação de uma imagem, uma correção manual disponível tem precedência sobre a proposta automática para a visualização do próprio revisor. Esses mecanismos estabelecem rastreabilidade operacional; a medida do tempo gasto, a concordância entre revisores e o ganho decorrente de retreinamento com dados revisados permanecem questões experimentais em aberto.
+A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente. As Figuras~\ref{fig:curadoria_revisao_caso} e~\ref{fig:curadoria_correcao_mascara} apresentam, respectivamente, a inspeção ampliada de um exame e a ferramenta utilizada para preparar uma correção manual.
 
 A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de curadoria, a identificação do revisor e os controles disponíveis na interface.
 \begin{figure}[H]
@@ -443,7 +447,9 @@ A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de cur
 \label{fig:curadoria_visao_geral}
 \end{figure}
 
-A Figura~\ref{fig:curadoria_revisao_caso} mostra a modalidade de visualização ampliada do mesmo caso, útil para examinar a imagem renal sem distrações dos painéis laterais. Nessa captura, as máscaras estão desativadas; elas podem ser habilitadas individualmente na aplicação.
+A visão geral reúne a fila de casos, o visualizador e os controles de revisão em uma única tela. Os metadados do modelo e o estado da curadoria ficam associados ao caso selecionado, enquanto o painel de progresso e os filtros podem permanecer recolhidos durante a inspeção.
+
+A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do mesmo caso, destinada ao exame da imagem renal sem distrações dos painéis laterais.
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
@@ -451,13 +457,17 @@ A Figura~\ref{fig:curadoria_revisao_caso} mostra a modalidade de visualização 
 \label{fig:curadoria_revisao_caso}
 \end{figure}
 
-A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a configuração de uma edição manual com a ferramenta de pincel, incluindo a seleção da classe e da operação. A captura não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída; a persistência e o histórico são propriedades verificáveis na implementação.
+Na captura ampliada, as máscaras estão desativadas; na aplicação, elas podem ser habilitadas individualmente para comparar rim, córtex, medula e CEC com a imagem original.
+
+A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração de uma edição manual com a ferramenta de pincel.
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
 \caption{Tela de correção manual de máscaras na Curadoria Web: ferramenta pincel selecionada para substituir a máscara da classe córtex. A imagem documenta a configuração da edição, não uma correção concluída. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
 \label{fig:curadoria_correcao_mascara}
 \end{figure}
+
+A tela mostra a seleção da classe e da operação, mas não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída. A persistência e o histórico são propriedades verificáveis na implementação.
 
 O módulo de inferência recebe uma nova imagem, executa a U-Net da cápsula, recorta a ROI renal, aplica a U-Net intrarrenal e reconstrói máscaras no espaço da imagem. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
@@ -482,7 +492,7 @@ Como médias de regiões extensas podem ser sensíveis a bordas, heterogeneidade
 A mediana dos $R_i$ é a medida exploratória principal e o IQR descreve sua dispersão. O revisor pode ajustar as posições e conservar a versão revisada. A coordenada vertical funciona apenas como aproximação operacional de profundidade; não corrige completamente ganho temporal, atenuação, compressão ou diferenças entre equipamentos. O protocolo ainda requer análise de sensibilidade e repetibilidade, não sendo interpretado como biomarcador clínico validado.
 
 
-A Figura~\ref{fig:curadoria_rois_ecogenicidade} exemplifica o comparador interativo de duas ROIs circulares posicionadas manualmente. O exemplo seleciona CEC como região A e córtex como região B, de modo que a razão mostrada na interface é $100\,\mu_{CEC}/\mu_C$, inversa à razão global $R_{C/CEC}$ definida na Equação~\ref{eq:global_echo}. Os dois indicadores não devem ser comparados sem considerar a ordem das regiões; além disso, o exemplo interativo de um par não substitui a mediana do protocolo automático de até três pares.
+A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativo de duas ROIs circulares posicionadas manualmente sobre as máscaras anatômicas.
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
@@ -490,11 +500,13 @@ A Figura~\ref{fig:curadoria_rois_ecogenicidade} exemplifica o comparador interat
 \label{fig:curadoria_rois_ecogenicidade}
 \end{figure}
 
+No exemplo, o CEC é selecionado como região A e o córtex como região B; por isso, a razão exibida é $100\,\mu_{CEC}/\mu_C$, inversa à razão global $R_{C/CEC}$ definida na Equação~\ref{eq:global_echo}. Os indicadores não devem ser comparados sem considerar a ordem das regiões, e o exemplo interativo de um par não substitui a mediana do protocolo automático de até três pares.
+
 \section{Resultados}
 
 \subsection{Delimitação da cápsula renal}
 
-A Tabela~\ref{tab:capsule} apresenta os resultados no teste manual deduplicado, comum às quatro arquiteturas. A U-Net obteve o maior Dice ($0{,}9290$), IoU ($0{,}8722$), precisão ($0{,}9236$) e \textit{recall} ($0{,}9440$) entre as configurações comparadas. O SegFormer-B0 alcançou a maior taxa de inferência ($31{,}34$ FPS), em contraste com $18{,}11$ FPS da U-Net. O ganho de sobreposição da U-Net em relação ao SegFormer foi de $0{,}0067$ em Dice nesse teste; sem intervalo de confiança por exame ou comparação pareada de diferenças, não se deve converter essa distância numérica em alegação de superioridade estatística.
+A Tabela~\ref{tab:capsule} apresenta os resultados da segmentação da cápsula no teste manual deduplicado, comum às quatro arquiteturas comparadas.
 
 \begin{table}[htb]
 \centering
@@ -512,6 +524,8 @@ UNet++ & 0,9099 & 0,8419 & 0,8910 & 0,9419 & 16,57 \\
 \end{tabular}
 \end{table}
 
+A U-Net obteve o maior Dice ($0{,}9290$), IoU ($0{,}8722$), precisão ($0{,}9236$) e \textit{recall} ($0{,}9440$) entre as configurações comparadas. O SegFormer-B0 alcançou a maior taxa de inferência ($31{,}34$ FPS), em contraste com $18{,}11$ FPS da U-Net. O ganho de sobreposição da U-Net em relação ao SegFormer foi de $0{,}0067$ em Dice nesse teste; sem intervalo de confiança por exame ou comparação pareada de diferenças, não se deve converter essa distância numérica em alegação de superioridade estatística.
+
 A escolha da U-Net para localizar a ROI renal baseou-se no desempenho observado e no papel crítico da máscara externa. Essa escolha não implica que o modelo apresente a mesma qualidade em imagens externas. A diversidade de qualidade visual exige análise de erros e validação específica para novas fontes.
 
 A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que as condições de aquisição favorecem a delimitação; a imagem não substitui a avaliação agregada da Tabela~\ref{tab:capsule}.
@@ -522,6 +536,8 @@ A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que a
 \caption{Exemplo qualitativo de segmentação em imagem com condições favoráveis de delimitação renal. A inspeção visual complementa, mas não substitui, as métricas agregadas.}
 \label{fig:qualidade_favoravel}
 \end{figure}
+
+Na imagem apresentada, o contorno previsto acompanha visualmente a região renal em condições de contraste favoráveis. Esse exemplo não permite inferir o comportamento do modelo em imagens com sombras, baixo contraste ou limites ambíguos.
 
 \subsection{Consenso \textit{out-of-fold} e imagens externas}
 
@@ -536,9 +552,11 @@ A Figura~\ref{fig:divergencia} ilustra um caso em que a discordância entre mode
 \label{fig:divergencia}
 \end{figure}
 
+O caso ilustra a função do consenso como mecanismo de triagem: a diferença entre as máscaras indica a necessidade de inspeção, mas a concordância entre modelos também não constitui prova de correção anatômica.
+
 \subsection{Segmentação de córtex, medula e CEC}
 
-A Tabela~\ref{tab:intrarenal} apresenta a avaliação no teste manual de 50 imagens. A U-Net multiclasse obteve Dice médio $0{,}7594$ e maior Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). Em ambas, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
+A Tabela~\ref{tab:intrarenal} apresenta o desempenho dos modelos no teste manual de 50 imagens, discriminado por estrutura intrarrenal.
 
 \begin{table}[htb]
 \centering
@@ -553,6 +571,8 @@ DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). Em ambas, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
 
 \subsection{Estudo piloto do assistente multimodal}
 
@@ -620,7 +640,7 @@ Outros trabalhos relacionados possuem objetivos complementares, mas seus desfech
 
 \subsection{Variabilidade da referência humana}
 
-Na comparação das anotações disponíveis de ambos os observadores, o Dice médio variou por estrutura, como mostra a Tabela~\ref{tab:interobserver}. A cápsula apresentou concordância mais elevada ($0{,}9461$), ao passo que córtex ($0{,}5961$) e medula ($0{,}6936$) concentraram divergências maiores. As quantidades de imagens comuns também diferem por classe; por isso, a tabela não representa uma avaliação pareada única de quatro estruturas em exatamente os mesmos casos. A menor concordância humana ajuda a interpretar a dificuldade de obter referências internas estáveis, sem constituir prova de que os modelos alcançaram desempenho equivalente ao de especialistas.
+A Tabela~\ref{tab:interobserver} apresenta a concordância Dice entre os dois anotadores, organizada por estrutura e pelo número de imagens comuns disponíveis.
 
 \begin{table}[htb]
 \centering
@@ -637,6 +657,8 @@ CEC & 468 & 0,8688 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+A cápsula apresentou concordância mais elevada ($0{,}9461$), ao passo que córtex ($0{,}5961$) e medula ($0{,}6936$) concentraram divergências maiores. As quantidades de imagens comuns também diferem por classe; por isso, a tabela não representa uma avaliação pareada única de quatro estruturas em exatamente os mesmos casos. A menor concordância humana ajuda a interpretar a dificuldade de obter referências internas estáveis, sem constituir prova de que os modelos alcançaram desempenho equivalente ao de especialistas.
 
 \subsection{Medula: heurística, estabilidade e expansão}
 
