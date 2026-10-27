@@ -574,16 +574,23 @@ DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
 
 A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). Em ambas, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
 
-\subsection{Estudo piloto do assistente multimodal}
+\subsection{Estudo piloto do comportamento do assistente multimodal}
 
-Para verificar a integração entre a Curadoria Web, as máscaras anatômicas e os
-modelos multimodais, foi executado um estudo piloto com a imagem
+Para avaliar o comportamento do assistente como apoio à interpretação da imagem,
+e verificar sua integração com a Curadoria Web e as máscaras anatômicas, foi
+executado um estudo piloto com a imagem
 \texttt{kidneyus\_capsule\_test\_\_122\_IM-0144-0001\_anon.png}. A inferência
 da cascata foi executada na RTX 3050 de 8~GB, com dispositivo CUDA, imagem de
 $1024\times768$ pixels e máscaras de rim, córtex, medula e CEC. O mesmo
 conjunto de evidências e a mesma sobreposição visual foram enviados ao
 Qwen2.5-VL-3B-Instruct-AWQ local e ao GPT-6 Luna. O recorte da cápsula foi
 delimitado por $\texttt{capsule\_bbox}=(120,159,805,742)$.
+
+O piloto não foi desenhado para estabelecer um diagnóstico, mas para observar
+se os modelos conseguem utilizar as evidências fornecidas, localizar regiões
+anatômicas relevantes, relacionar métricas de ecogenicidade e expressar
+limitações. Esses comportamentos são tratados como apoio à triagem e à revisão
+especializada, não como decisão clínica autônoma.
 
 A Figura~\ref{fig:assistente_piloto_mascaras} documenta visualmente o conjunto de evidências utilizado no piloto: a imagem B-mode original, cada máscara anatômica individual e a sobreposição conjunta das regiões segmentadas.
 
@@ -616,14 +623,23 @@ Acurácia estatística & Não estimável ($N=1$) & Não estimável ($N=1$) \\
 \end{tabular}
 \end{table}
 
+\textbf{Desfecho do piloto.} Considerando os comportamentos observados, o
+desfecho operacional foi favorável à utilização do assistente como apoio à
+triagem baseada em evidências: os dois modelos receberam a mesma imagem, as
+quatro máscaras e as métricas, mas o GPT-6 Luna produziu, neste caso, uma
+resposta mais explicitamente vinculada às regiões e aos valores fornecidos,
+enquanto a resposta do Qwen local exigiu maior mediação interpretativa. Essa
+diferença é uma observação qualitativa de um único caso, e não uma demonstração
+de superioridade geral.
+
 O resultado não deve ser interpretado como acurácia clínica, pois o piloto
 possui apenas um caso e não dispõe de uma referência humana independente para
-presença, localização e natureza de um foco ecogênico. Ele demonstra a
-viabilidade operacional da integração e, neste caso, apresentou uma resposta
-mais explicitamente vinculada às regiões e métricas fornecidas. Essa observação
-qualitativa não estabelece superioridade de modelo. A avaliação quantitativa da interpretação requer uma
-amostra anotada por especialistas, com sensibilidade, especificidade,
-precisão, F1, concordância por região e taxa de afirmações não sustentadas.
+presença, localização e natureza de um foco ecogênico. Portanto, a conclusão
+adequada é que a integração é tecnicamente viável e pode apoiar a organização
+da análise pelo especialista, mas ainda não demonstra detecção confiável de
+artefatos ecogênicos nem diagnóstico. A avaliação quantitativa requer uma
+amostra anotada por especialistas, com sensibilidade, especificidade, precisão,
+F1, concordância por região e taxa de afirmações não sustentadas.
 
 \subsection{Comparação descritiva com resultados publicados}
 
