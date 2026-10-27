@@ -34,9 +34,19 @@ Exemplo de proposta de normalizacao:
 curl -X POST http://127.0.0.1:8010/api/notes/luna-suggest -H "Content-Type: application/json" -d '{"image_id":"US_001","observation":"Rim direito com ecogenicidade cortical aumentada.","consent_external_processing":true}'
 ```
 
-## Limites e proxima integracao
+## Integração automática com a Curadoria Web
 
-A sugestao JSON pode falhar se o modelo nao obedecer ao formato; o servidor retorna erro e nao aprova nenhuma observacao. Nao ha persistencia nem fluxo de aprovacao clinica implementados. Os artefatos de segmentacao ainda precisam ser integrados pelo identificador da sessao, com controle de acesso, auditoria, revisao do especialista, anonimização e validacao em imagens anotadas. Testes usam cliente simulado, **nao realizam chamadas reais nem comprovam disponibilidade da API na conta**.
+A Curadoria Web agora recebe somente `image_id`, `reviewer`, pergunta e modo visual. O servidor recupera os artefatos da própria inferência ou do `CurationStore`, incluindo imagem, máscaras efetivas, `capsule_bbox`, medidor de brilho e métricas. O cliente não envia caminhos locais nem pode substituir uma máscara por outra imagem.
+
+Endpoints locais, disponíveis apenas no servidor da Curadoria:
+
+- `POST /api/assistant/analyze`: Qwen local ou GPT-6 Luna, conforme `provider`.
+- `POST /api/assistant/compare`: executa os dois modelos com os mesmos artefatos e retorna uma lista adequada para tabela.
+- `GET /api/assistant/runs`: recupera as execuções persistidas por imagem e revisor.
+
+O campo `visual_mode` aceita `capsule` e `full`. Ambos recebem uma sobreposição visual da imagem com as máscaras de rim, córtex, medula e CEC. No modo `capsule`, a sobreposição é recortada pelo `capsule_bbox`; no modo `full`, a imagem completa preserva referências anatômicas externas. O modo externo exige `consent_external_processing=true` e o revisor é obrigatório.
+
+Cada execução é registrada em `assistant_runs`. A resposta só entra na observação curatorial quando o especialista a copia para o formulário e salva a revisão; o `assistant_run_id` fica associado ao registro aprovado. A sugestão continua sendo uma evidência de pesquisa, nunca aprovação ou diagnóstico automático.
 
 ## Contratos Pydantic v2
 
@@ -71,7 +81,7 @@ para `1024`.
 
 Se houver CUDA OOM, reduza `--max-model-len` para `1024`, feche outros processos da GPU e diminua `--gpu-memory-utilization`. A quantização AWQ pode caber em uma RTX 3050 de 8 GB, mas o carregamento real depende da versão do vLLM, do driver e da memória livre.
 
-Endpoints locais: `/health`, `/api/notes/normalize`, `/api/notes/local-suggest`, `/api/chat/local`, `/api/chat/local-image`. `local-suggest` exige schema JSON gerado a partir de `LLMNoteProposal`; o resultado e revalidado por Pydantic e permanece `approved=false`. O chat recebe imagem como `image_url` base64 no protocolo OpenAI Chat Completions. Quando `evidence_json` inclui `capsule_bbox` em pixels absolutos (`x1`, `y1`, `x2`, `y2`), a imagem e recortada com margem antes de ser enviada ao Qwen. O endpoint `/api/inferences` da Curadoria Web ja devolve esse bounding box. Sem `capsule_bbox`, a imagem original e usada como fallback. Nao ha diagnostico automatizado. O sistema nao autentica usuarios nem persiste historico; mantenha a API restrita a localhost e use somente dados autorizados/anonimizados.
+Endpoints locais: `/health`, `/api/notes/normalize`, `/api/notes/local-suggest`, `/api/chat/local`, `/api/chat/local-image`. `local-suggest` exige schema JSON gerado a partir de `LLMNoteProposal`; o resultado e revalidado por Pydantic e permanece `approved=false`. O chat recebe imagem como `image_url` base64 no protocolo OpenAI Chat Completions. Os uploads da inferência passam por validação de contêiner, formato, dimensões, pixels descomprimidos e carregamento integral antes do PyTorch. A API deve permanecer restrita a localhost e usar somente dados autorizados/anonimizados.
 
 Exemplo de evidência para acionar o recorte da cápsula:
 
@@ -82,4 +92,4 @@ Exemplo de evidência para acionar o recorte da cápsula:
 }
 ```
 
-Teste sem GPU: `pytest -q tests/kidney_assistant` (mock do servidor). O teste real de inferencia requer WSL2, modelo baixado e VRAM suficiente.
+Teste sem GPU: `pytest -q` (24 testes, incluindo validação de imagem, lateralidade local por achado e negação). O teste real da configuração atual foi executado na RTX 3050 de 8 GB: Qwen2.5-VL-3B-Instruct-AWQ no Docker, `cuda`, imagem 1024 × 768, quatro camadas e medidor de brilho disponível. O limite de contexto permanece 2048 tokens; o adaptador local usa no máximo 512 tokens de saída para reservar espaço às evidências.

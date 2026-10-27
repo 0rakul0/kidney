@@ -163,9 +163,19 @@ def ask_about_session(question: str, evidence: dict, image: bytes | None = None,
     response = _client().chat.completions.create(
         model=MODEL,
         messages=[{'role': 'system', 'content': SYSTEM}, {'role': 'user', 'content': content}],
-        temperature=0, max_tokens=650,
+        # O servidor está fixado em --max-model-len 2048. As evidências da
+        # Curadoria ocupam parte do contexto; 512 deixa margem para a saída.
+        temperature=0, max_tokens=512,
     )
     answer = _message_text(response.choices[0].message)
     if not answer:
         raise RuntimeError('Resposta vazia do vLLM')
-    return ChatResponse(answer=answer, model=MODEL, image_sent=image is not None, research_only=True).model_dump()
+    return ChatResponse(
+        answer=answer,
+        model=MODEL,
+        image_sent=image is not None,
+        research_only=True,
+        evidence_refs=list(evidence.get('evidence_refs', [])) if isinstance(evidence, dict) else [],
+        limitations=list(evidence.get('limitacoes', [])) if isinstance(evidence, dict) else [],
+        regions=list((evidence.get('legenda_mascaras') or {}).values()) if isinstance(evidence, dict) else [],
+    ).model_dump()

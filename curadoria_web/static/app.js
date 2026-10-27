@@ -17,6 +17,9 @@ const state = {
   comparing: false,
   comparatorStart: null,
   comparatorEnd: null,
+  assistantRunId: "",
+  assistantResults: [],
+  assistantSelected: 0,
 };
 const $ = (id) => document.getElementById(id);
 const form = $("review-form");
@@ -171,6 +174,83 @@ function fillReview(review, available) {
     group.classList.toggle("unavailable", !exists);
     group.querySelectorAll("button").forEach((button) => { button.disabled = !exists; });
   });
+}
+function assistantMessage(text, error = false) {
+  $("assistant-message").textContent = text;
+  $("assistant-message").classList.toggle("error", error);
+}
+function resetAssistantResult() {
+  state.assistantRunId = "";
+  state.assistantResults = [];
+  state.assistantSelected = 0;
+  $("assistant-result").hidden = true;
+  $("assistant-table-body").replaceChildren();
+  $("assistant-evidence").textContent = "";
+  assistantMessage("");
+}
+function assistantCell(text, className = "") {
+  const cell = document.createElement("td");
+  cell.className = className;
+  cell.textContent = text || "—";
+  return cell;
+}
+function renderAssistantResults(payload, comparison = false) {
+  const results = comparison ? (payload.results || []) : [payload.assistant];
+  state.assistantResults = results.filter(Boolean);
+  state.assistantSelected = 0;
+  state.assistantRunId = state.assistantResults[0]?.run_id || "";
+  const context = payload.evidence_context || state.assistantResults[0]?.evidence_context || {};
+  $("assistant-evidence").textContent = `Evidências: ${(context.evidence_refs || []).join(" · ")} · Imagem: ${(context.image_size || []).join(" × ")} px · Modo: ${context.visual_mode || "—"}`;
+  const body = $("assistant-table-body");
+  body.replaceChildren();
+  state.assistantResults.forEach((result, index) => {
+    const row = document.createElement("tr");
+    row.className = index === 0 ? "selected" : "";
+    row.addEventListener("click", () => {
+      state.assistantSelected = index;
+      state.assistantRunId = result.run_id || "";
+      body.querySelectorAll("tr").forEach((item, itemIndex) => item.classList.toggle("selected", itemIndex === index));
+    });
+    row.append(
+      assistantCell(result.model || result.provider),
+      assistantCell(result.visual_mode === "full" ? "Imagem completa" : "Recorte da cápsula"),
+      assistantCell(result.answer, "assistant-answer"),
+      assistantCell((result.limitations || []).join(" "), "assistant-limitations"),
+    );
+    body.append(row);
+  });
+  $("assistant-result").hidden = false;
+}
+async function runAssistant(kind) {
+  if (!state.currentId || !ensureReviewer()) return;
+  const compare = kind === "compare";
+  if (compare && !$("assistant-consent").checked) {
+    assistantMessage("Marque o consentimento para comparar com o GPT-6 Luna.", true);
+    return;
+  }
+  const button = compare ? $("assistant-compare") : $("assistant-local");
+  button.disabled = true;
+  assistantMessage(compare ? "Executando Qwen e GPT-6 Luna com os mesmos artefatos…" : "Executando o Qwen com os artefatos da inferência…");
+  try {
+    const result = await request(`/api/assistant/${compare ? "compare" : "analyze"}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image_id: state.currentId,
+        reviewer: reviewer(),
+        model: state.segmentationModel,
+        visual_mode: $("assistant-visual-mode").value,
+        question: $("assistant-question").value,
+        consent_external_processing: $("assistant-consent").checked,
+      }),
+    });
+    renderAssistantResults(compare ? result.comparison : result, compare);
+    assistantMessage(compare ? "Comparação concluída; selecione uma linha antes de usar a resposta." : "Análise concluída; revise antes de usar a resposta.");
+  } catch (error) {
+    assistantMessage(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
 }
 function showModelMetrics(item) {
   const metrics = item.metricas.medulla;
@@ -549,6 +629,7 @@ async function savePolygon() {
 async function selectItem(imageId) {
   try {
     state.currentId = imageId;
+    resetAssistantResult();
     state.segmentationModel = $("segmentation-model").value;
     const item = await request(`/api/item/${encodeURIComponent(imageId)}?${query({ reviewer: reviewer(), model: state.segmentationModel })}`);
     $("image-id").textContent = `ID: ${item.image_id}`;
@@ -592,6 +673,7 @@ async function saveReview(event) {
     image_id: state.currentId,
     reviewer: reviewer(),
     reviewer_type: reviewerType.value,
+    assistant_run_id: state.assistantRunId,
   };
   try {
     await request("/api/reviews", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -617,6 +699,15 @@ async function exportDatabase() {
 document.querySelectorAll("[data-field] button").forEach((button) => button.addEventListener("click", () => {
   chooseButton(button.closest("fieldset").dataset.field, button.dataset.value);
 }));
+$("assistant-local").addEventListener("click", () => runAssistant("local"));
+$("assistant-compare").addEventListener("click", () => runAssistant("compare"));
+$("assistant-use").addEventListener("click", () => {
+  const result = state.assistantResults[state.assistantSelected];
+  if (!result) return;
+  form.elements.observacao.value = result.answer;
+  state.assistantRunId = result.run_id || "";
+  assistantMessage("Resposta copiada para observações. Salve a revisão para registrar a aprovação humana.");
+});
 ["rim", "cortex", "medulla", "central_echo_complex", "anomalia"].forEach((name) => $(`toggle-${name}`).addEventListener("change", (event) => {
   $(`layer-${name}`).style.display = event.target.checked ? "block" : "none";
 }));

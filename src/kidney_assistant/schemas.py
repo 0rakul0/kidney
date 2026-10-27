@@ -57,3 +57,6 @@ class ChatResponse(StrictSchema):
     model: str
     image_sent: bool
     research_only: bool = True
+    evidence_refs: list[str] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+    regions: list[str] = Field(default_factory=list)

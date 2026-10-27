@@ -74,5 +74,12 @@ def ask_about_session(question: str, evidence: dict, image: bytes | None = None,
         input=[{'role': 'user', 'content': content}],
         max_output_tokens=900, store=False,
     )
-    return ChatResponse(answer=_text(response), model=MODEL,
-                        image_sent=image is not None, research_only=True).model_dump()
+    return ChatResponse(
+        answer=_text(response),
+        model=MODEL,
+        image_sent=image is not None,
+        research_only=True,
+        evidence_refs=list(evidence.get('evidence_refs', [])) if isinstance(evidence, dict) else [],
+        limitations=list(evidence.get('limitacoes', [])) if isinstance(evidence, dict) else [],
+        regions=list((evidence.get('legenda_mascaras') or {}).values()) if isinstance(evidence, dict) else [],
+    ).model_dump()

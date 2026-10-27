@@ -27,6 +27,7 @@ import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 from inference import InferenceService
+from assistant import AssistantAuthorizationError, AssistantService
 
 
 PROJECT_ROOT = Path(os.environ.get("CURATORIA_DATA_ROOT", Path(__file__).resolve().parents[1]))
@@ -398,6 +399,10 @@ class CurationStore:
                 connection.execute(
                     "ALTER TABLE reviews ADD COLUMN status_central_echo_complex TEXT NOT NULL DEFAULT 'pendente'"
                 )
+            if "assistant_run_id" not in columns:
+                connection.execute(
+                    "ALTER TABLE reviews ADD COLUMN assistant_run_id TEXT NOT NULL DEFAULT ''"
+                )
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS mask_edits (
@@ -479,6 +484,69 @@ class CurationStore:
                 )
                 """
             )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS assistant_runs (
+                    run_id TEXT PRIMARY KEY,
+                    image_id TEXT NOT NULL,
+                    reviewer TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    visual_mode TEXT NOT NULL,
+                    question TEXT NOT NULL,
+                    answer TEXT NOT NULL,
+                    evidence_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+
+    def save_assistant_run(self, result, reviewer, question):
+        created_at = datetime.now(timezone.utc).isoformat()
+        with self.connect() as connection:
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO assistant_runs (
+                    run_id, image_id, reviewer, provider, model, visual_mode,
+                    question, answer, evidence_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    result["run_id"],
+                    result["image_id"],
+                    reviewer,
+                    result.get("provider", ""),
+                    result.get("model", ""),
+                    result.get("visual_mode", ""),
+                    question,
+                    result.get("answer", ""),
+                    json.dumps(
+                        {
+                            "evidence_refs": result.get("evidence_refs", []),
+                            "evidence_context": result.get("evidence_context", {}),
+                            "limitations": result.get("limitations", []),
+                        },
+                        ensure_ascii=False,
+                    ),
+                    created_at,
+                ),
+            )
+
+    def assistant_runs(self, image_id="", reviewer="", limit=20):
+        where, params = [], []
+        if image_id:
+            where.append("image_id = ?")
+            params.append(image_id)
+        if reviewer:
+            where.append("reviewer = ?")
+            params.append(reviewer)
+        clause = f" WHERE {' AND '.join(where)}" if where else ""
+        params.append(min(max(int(limit), 1), 100))
+        with self.connect() as connection:
+            rows = connection.execute(
+                f"SELECT * FROM assistant_runs{clause} ORDER BY created_at DESC LIMIT ?", params
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def summary(self, reviewer=""):
         with self.connect() as connection:
@@ -746,7 +814,7 @@ class CurationStore:
         now = datetime.now(timezone.utc).isoformat()
         with self.connect() as connection:
             existing = connection.execute(
-                "SELECT created_at, fibrose, fonte_fibrose FROM reviews WHERE image_id = ? AND reviewer = ?",
+                "SELECT created_at, fibrose, fonte_fibrose, assistant_run_id FROM reviews WHERE image_id = ? AND reviewer = ?",
                 (image_id, reviewer),
             ).fetchone()
             created_at = existing["created_at"] if existing else now
@@ -755,8 +823,8 @@ class CurationStore:
                 INSERT OR REPLACE INTO reviews (
                     image_id, reviewer, reviewer_type, status_rim, status_cortex,
                     status_medulla, status_central_echo_complex, fibrose, fonte_fibrose, observacao,
-                    created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    created_at, updated_at, assistant_run_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     image_id,
@@ -771,6 +839,8 @@ class CurationStore:
                     str(payload.get("observacao", "")).strip(),
                     created_at,
                     now,
+                    str(payload.get("assistant_run_id", "")).strip()
+                    or (existing["assistant_run_id"] if existing else ""),
                 ),
             )
         self.sync_correction_approvals(image_id, reviewer, reviewer_type, values)
@@ -1287,6 +1357,7 @@ class CurationStore:
 class CurationHandler(BaseHTTPRequestHandler):
     store: CurationStore
     inference: InferenceService
+    assistant: AssistantService
 
     def log_message(self, format_string, *args):
         print(f"[web] {self.address_string()} - {format_string % args}")
@@ -1416,6 +1487,16 @@ class CurationHandler(BaseHTTPRequestHandler):
             if path == "/api/export.json":
                 self.send_json(self.store.export_rows())
                 return
+            if path == "/api/assistant/runs":
+                limit = min(max(int(query.get("limit", ["20"])[0]), 1), 100)
+                self.send_json({
+                    "runs": self.store.assistant_runs(
+                        image_id=query.get("image_id", [""])[0].strip(),
+                        reviewer=reviewer,
+                        limit=limit,
+                    )
+                })
+                return
             if path == "/api/export.csv":
                 rows = self.store.export_rows()
                 fields = [
@@ -1478,7 +1559,10 @@ class CurationHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
-        if parsed.path not in {"/api/reviews", "/api/corrections", "/api/database-export", "/api/inferences", "/api/brightness-rois"}:
+        if parsed.path not in {
+            "/api/reviews", "/api/corrections", "/api/database-export", "/api/inferences",
+            "/api/brightness-rois", "/api/assistant/analyze", "/api/assistant/compare",
+        }:
             self.send_json({"error": "Recurso nao encontrado."}, HTTPStatus.NOT_FOUND)
             return
         try:
@@ -1508,8 +1592,18 @@ class CurationHandler(BaseHTTPRequestHandler):
                 result = self.store.save_brightness_rois(payload)
                 self.send_json(result)
                 return
+            if parsed.path == "/api/assistant/analyze":
+                self.send_json({"saved": True, "assistant": self.assistant.analyze(payload)})
+                return
+            if parsed.path == "/api/assistant/compare":
+                self.send_json({"saved": True, "comparison": self.assistant.compare(payload)})
+                return
+        except AssistantAuthorizationError as error:
+            self.send_json({"error": str(error)}, HTTPStatus.FORBIDDEN)
         except (json.JSONDecodeError, ValueError) as error:
             self.send_json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+        except Exception:
+            self.send_json({"error": "Falha ao executar a operação solicitada."}, HTTPStatus.BAD_GATEWAY)
 
     def do_PUT(self):
         parsed = urlparse(self.path)
@@ -1560,6 +1654,7 @@ def main():
         args.database.parent / "inferencias",
         CurationStore.brightness_meter,
     )
+    CurationHandler.assistant = AssistantService(CurationHandler.store, CurationHandler.inference)
     server = ThreadingHTTPServer((args.host, args.port), CurationHandler)
     print(f"Curadoria Renal: http://{args.host}:{args.port}")
     print(f"Casos: {len(store.items)} | Banco: {args.database.resolve()}")

@@ -539,3 +539,29 @@ Qwen2.5-VL local
     ↓
 proposta de observação para revisão humana
 ```
+
+## Integração automática e comparação de modelos
+
+A Curadoria Web possui um painel **Assistente visual** no item selecionado e
+outro painel após a inferência de uma nova imagem. O navegador envia somente o
+`image_id`; `curadoria_web/assistant.py` recupera no servidor a imagem, as
+máscaras efetivas do revisor, o `capsule_bbox`, o medidor de brilho e as
+métricas de segmentação.
+
+O servidor cria uma única sobreposição visual com as classes oficiais — rim,
+córtex, medula e CEC — e usa essa mesma entrada nos provedores. O modo
+`capsule` recorta a sobreposição com margem de 12%; o modo `full` preserva a
+imagem completa para comparações anatômicas. A comparação é feita por
+`POST /api/assistant/compare`, exige revisor e consentimento explícito para a
+OpenAI, e retorna respostas estruturadas com modelo, contexto, evidências,
+limitações e `run_id`.
+
+As execuções são persistidas em `assistant_runs`. A resposta não é aprovada
+automaticamente: o especialista pode selecionar uma linha da tabela, copiá-la
+para o campo de observações e salvar a revisão. O identificador da execução é
+registrado com a observação aprovada.
+
+O upload da inferência é validado por `curadoria_web/image_validation.py`:
+PNG/JPEG/WebP, até 20 MB, dimensões máximas de 8192 pixels por eixo e até
+16 milhões de pixels descomprimidos. O endpoint rejeita contêineres inválidos
+antes de carregar os modelos.

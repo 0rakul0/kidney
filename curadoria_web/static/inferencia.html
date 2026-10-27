@@ -52,6 +52,25 @@
               <p id="inference-quality" class="brightness-quality"></p><small class="brightness-source">Calculado na imagem original, sem CLAHE.</small>
             </section>
             <p id="inference-warning" class="hint"></p>
+            <section class="assistant-panel inference-assistant" aria-labelledby="inference-assistant-title">
+              <div class="section-title"><h2 id="inference-assistant-title">Assistente da inferência</h2><span class="scope">usa o image_id gerado</span></div>
+              <label>Revisor
+                <input id="inference-reviewer" placeholder="Revisor 01" autocomplete="username">
+              </label>
+              <label>Contexto visual
+                <select id="inference-assistant-mode"><option value="capsule">Recorte da cápsula renal</option><option value="full">Imagem completa</option></select>
+              </label>
+              <label>Pergunta
+                <textarea id="inference-assistant-question" rows="3">Quais áreas ecogênicas merecem revisão?</textarea>
+              </label>
+              <label class="assistant-consent"><input id="inference-assistant-consent" type="checkbox"> Permito o envio desta imagem à OpenAI</label>
+              <div class="assistant-actions"><button id="inference-assistant-compare" type="button" disabled>Comparar Qwen × GPT-6 Luna</button></div>
+              <p id="inference-assistant-message" class="message" role="status"></p>
+              <div id="inference-assistant-result" class="assistant-result" hidden>
+                <div id="inference-assistant-evidence" class="assistant-evidence"></div>
+                <div class="assistant-table-wrap"><table class="assistant-table"><thead><tr><th>Modelo</th><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead><tbody id="inference-assistant-table-body"></tbody></table></div>
+              </div>
+            </section>
           </aside>
         </div>
       </section>

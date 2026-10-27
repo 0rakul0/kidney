@@ -11,6 +11,11 @@ import cv2
 import numpy as np
 from PIL import Image, ImageChops, ImageFilter
 
+try:
+    from image_validation import decode_image
+except ImportError:  # package import in tests and tooling
+    from curadoria_web.image_validation import decode_image
+
 
 LAYER_COLORS = {
     "rim": (243, 79, 86, 235),
@@ -99,13 +104,10 @@ class InferenceService:
             raw = base64.b64decode(encoded, validate=True)
         except ValueError as error:
             raise ValueError("O arquivo enviado não contém uma imagem válida.") from error
-        if len(raw) > 20 * 1024 * 1024:
-            raise ValueError("A imagem excede o limite de 20 MB.")
         try:
-            with Image.open(BytesIO(raw)) as source:
-                return source.convert("L")
-        except (OSError, ValueError) as error:
-            raise ValueError("Não foi possível abrir a imagem enviada.") from error
+            return decode_image(raw)
+        except ValueError as error:
+            raise ValueError(str(error)) from error
 
     def infer(self, data_url, filename="imagem"):
         image = self._decode_image(data_url)
@@ -160,6 +162,7 @@ class InferenceService:
             "width": image.width,
             "height": image.height,
             "device": models["device"],
+            "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
         }
         return {
             "image_id": image_id,

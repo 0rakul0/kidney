@@ -220,6 +220,37 @@
             <div><dt>Mascara CEC</dt><dd id="item-central">-</dd></div>
           </dl>
         </section>
+        <section class="assistant-panel" aria-labelledby="assistant-title">
+          <div class="section-title">
+            <h2 id="assistant-title">Assistente visual</h2>
+            <span id="assistant-status" class="scope">artefatos automáticos</span>
+          </div>
+          <label>Contexto visual
+            <select id="assistant-visual-mode">
+              <option value="capsule">Recorte da cápsula renal</option>
+              <option value="full">Imagem completa</option>
+            </select>
+          </label>
+          <label>Pergunta
+            <textarea id="assistant-question" rows="3" maxlength="2000">Quais áreas ecogênicas merecem revisão?</textarea>
+          </label>
+          <label class="assistant-consent"><input id="assistant-consent" type="checkbox"> Permito o envio desta imagem à OpenAI</label>
+          <div class="assistant-actions">
+            <button id="assistant-local" type="button">Analisar com Qwen local</button>
+            <button id="assistant-compare" type="button">Comparar Qwen × GPT-6 Luna</button>
+          </div>
+          <p id="assistant-message" class="message" role="status"></p>
+          <div id="assistant-result" class="assistant-result" hidden>
+            <div id="assistant-evidence" class="assistant-evidence"></div>
+            <div class="assistant-table-wrap">
+              <table class="assistant-table">
+                <thead><tr><th>Modelo</th><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead>
+                <tbody id="assistant-table-body"></tbody>
+              </table>
+            </div>
+            <button id="assistant-use" class="secondary-button" type="button">Usar resposta selecionada na observação</button>
+          </div>
+        </section>
         <h2>Revisao das anotacoes</h2>
         <form id="review-form">
           <fieldset class="binary" data-field="status_rim">
@@ -301,6 +332,6 @@
         </footer>
       </aside>
     </main>
-    <script src="/app.js?v=20260901_echogenicity_panel"></script>
+    <script src="/app.js?v=20261027_assistant_integration"></script>
   </body>
 </html>

@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 let selectedFile = null;
+let currentInferenceId = "";
 
 function message(text, error = false) {
   $("inference-message").textContent = text;
@@ -44,6 +45,7 @@ async function runInference() {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "Falha na inferência.");
     const result = payload.inference;
+    currentInferenceId = result.image_id;
     $("result-name").textContent = result.filename;
     $("result-dimensions").textContent = `${result.info.dimensao} · ${result.info.dispositivo}`;
     $("inference-image").src = `${result.image_url}?v=${Date.now()}`;
@@ -51,13 +53,54 @@ async function runInference() {
     renderMeter(result.medidor_brilho);
     $("inference-warning").textContent = result.aviso;
     $("inference-result").hidden = false;
+    $("inference-assistant-compare").disabled = false;
     message("Inferência concluída.");
   } catch (error) { message(error.message, true); }
   finally { $("run-inference").disabled = false; }
+}
+function assistantResultMessage(text, error = false) {
+  $("inference-assistant-message").textContent = text;
+  $("inference-assistant-message").classList.toggle("error", error);
+}
+async function compareInference() {
+  if (!currentInferenceId) return;
+  const reviewer = $("inference-reviewer").value.trim();
+  if (!reviewer) return assistantResultMessage("Informe o revisor.", true);
+  if (!$("inference-assistant-consent").checked) return assistantResultMessage("Marque o consentimento para usar a OpenAI.", true);
+  const button = $("inference-assistant-compare");
+  button.disabled = true;
+  assistantResultMessage("Executando os dois modelos com os artefatos recém-gerados…");
+  try {
+    const response = await fetch("/api/assistant/compare", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
+      image_id: currentInferenceId,
+      reviewer,
+      model: "unet",
+      visual_mode: $("inference-assistant-mode").value,
+      question: $("inference-assistant-question").value,
+      consent_external_processing: true,
+    })});
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Falha na comparação.");
+    const comparison = payload.comparison;
+    const context = comparison.evidence_context || {};
+    $("inference-assistant-evidence").textContent = `Evidências: ${(context.evidence_refs || []).join(" · ")} · Imagem: ${(context.image_size || []).join(" × ")} px`;
+    const body = $("inference-assistant-table-body"); body.replaceChildren();
+    (comparison.results || []).forEach((result) => {
+      const row = document.createElement("tr");
+      [result.model || result.provider, result.visual_mode === "full" ? "Imagem completa" : "Recorte da cápsula", result.answer, (result.limitations || []).join(" ")].forEach((value, index) => {
+        const cell = document.createElement("td"); cell.textContent = value || "—"; if (index === 2) cell.className = "assistant-answer"; row.append(cell);
+      });
+      body.append(row);
+    });
+    $("inference-assistant-result").hidden = false;
+    assistantResultMessage("Comparação concluída.");
+  } catch (error) { assistantResultMessage(error.message, true); }
+  finally { button.disabled = false; }
 }
 $("inference-file").addEventListener("change", (event) => chooseFile(event.target.files[0]));
 $("drop-zone").addEventListener("dragover", (event) => { event.preventDefault(); $("drop-zone").classList.add("dragging"); });
 $("drop-zone").addEventListener("dragleave", () => $("drop-zone").classList.remove("dragging"));
 $("drop-zone").addEventListener("drop", (event) => { event.preventDefault(); $("drop-zone").classList.remove("dragging"); chooseFile(event.dataTransfer.files[0]); });
 $("run-inference").addEventListener("click", runInference);
+$("inference-assistant-compare").addEventListener("click", compareInference);
 document.querySelectorAll("[data-layer]").forEach((toggle) => toggle.addEventListener("change", () => { $(`inference-${toggle.dataset.layer}`).style.display = toggle.checked ? "block" : "none"; }));

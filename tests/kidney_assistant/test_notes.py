@@ -14,3 +14,20 @@ def test_negation():
 def test_uncertainty():
     result=normalize_note('Parece ter piramides pouco visiveis.')
     assert result['findings'][0]['certainty']=='incerta'
+
+
+def test_laterality_is_local_to_each_finding():
+    result = normalize_note(
+        'Rim direito com ecogenicidade cortical aumentada. '
+        'Rim esquerdo sem ecogenicidade cortical aumentada.'
+    )
+    assert [finding['laterality'] for finding in result['findings']] == ['direita', 'esquerda']
+    assert result['findings'][1]['value'] == 'negado'
+
+
+def test_ecogenic_focus_is_uncertain_and_localized():
+    result = normalize_note('Achado possivel no rim esquerdo com foco hiperecogenico.')
+    finding = result['findings'][0]
+    assert finding['laterality'] == 'esquerda'
+    assert finding['certainty'] == 'incerta'
+    assert finding['attribute'] == 'foco_ecogenico_ou_artefato'
