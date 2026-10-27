@@ -26,6 +26,28 @@ const form = $("review-form");
 const reviewerInput = $("reviewer");
 const reviewerType = $("reviewer-type");
 
+function initAssistantFocus() {
+  const panel = document.querySelector(".assistant-panel");
+  const backdrop = document.querySelector(".assistant-focus-backdrop");
+  const openButton = document.querySelector(".assistant-focus-open");
+  const closeButton = document.querySelector(".assistant-focus-close");
+  if (!panel || !backdrop || !openButton || !closeButton) return;
+  const setFocus = (enabled) => {
+    panel.classList.toggle("assistant-focus-active", enabled);
+    backdrop.hidden = !enabled;
+    document.body.classList.toggle("assistant-focus-open", enabled);
+    panel.setAttribute("aria-modal", String(enabled));
+    (enabled ? closeButton : openButton).focus();
+  };
+  openButton.addEventListener("click", () => setFocus(true));
+  closeButton.addEventListener("click", () => setFocus(false));
+  backdrop.addEventListener("click", () => setFocus(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && panel.classList.contains("assistant-focus-active")) setFocus(false);
+  });
+}
+initAssistantFocus();
+
 function reviewer() { return reviewerInput.value.trim(); }
 function ensureReviewer() {
   if (reviewer()) return true;
@@ -194,6 +216,22 @@ function assistantCell(text, className = "") {
   cell.textContent = text || "—";
   return cell;
 }
+function renderAssistantMarkdown(text) {
+  const escaped = String(text || "—").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
+  return escaped.replace(/\*\*([\s\S]+?)\*\*/g, "<b>$1</b>");
+}
+function assistantRichCell(text, className = "") {
+  const cell = document.createElement("td");
+  cell.className = className;
+  cell.innerHTML = renderAssistantMarkdown(text);
+  return cell;
+}
 function renderAssistantResults(payload, comparison = false) {
   const results = comparison ? (payload.results || []) : [payload.assistant];
   state.assistantResults = results.filter(Boolean);
@@ -212,9 +250,8 @@ function renderAssistantResults(payload, comparison = false) {
       body.querySelectorAll("tr").forEach((item, itemIndex) => item.classList.toggle("selected", itemIndex === index));
     });
     row.append(
-      assistantCell(result.model || result.provider),
       assistantCell(result.visual_mode === "full" ? "Imagem completa" : "Recorte da cápsula"),
-      assistantCell(result.answer, "assistant-answer"),
+      assistantRichCell(result.answer, "assistant-answer"),
       assistantCell((result.limitations || []).join(" "), "assistant-limitations"),
     );
     body.append(row);

@@ -52,8 +52,8 @@
               <p id="inference-quality" class="brightness-quality"></p><small class="brightness-source">Calculado na imagem original, sem CLAHE.</small>
             </section>
             <p id="inference-warning" class="hint"></p>
-            <section class="assistant-panel inference-assistant" aria-labelledby="inference-assistant-title">
-              <div class="section-title"><h2 id="inference-assistant-title">Assistente da inferência</h2><span class="scope">usa o image_id gerado</span></div>
+            <section class="assistant-panel inference-assistant" role="dialog" aria-modal="false" aria-labelledby="inference-assistant-title">
+              <div class="section-title"><h2 id="inference-assistant-title">Assistente da inferência</h2><div class="assistant-heading-actions"><span class="scope">usa o image_id gerado</span><button class="assistant-focus-open" type="button" aria-haspopup="dialog">Expandir</button><button class="assistant-focus-close" type="button" aria-label="Fechar modo foco">Voltar</button></div></div>
               <label>Revisor
                 <input id="inference-reviewer" placeholder="Revisor 01" autocomplete="username">
               </label>
@@ -68,13 +68,28 @@
               <p id="inference-assistant-message" class="message" role="status"></p>
               <div id="inference-assistant-result" class="assistant-result" hidden>
                 <div id="inference-assistant-evidence" class="assistant-evidence"></div>
-                <div class="assistant-table-wrap"><table class="assistant-table"><thead><tr><th>Modelo</th><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead><tbody id="inference-assistant-table-body"></tbody></table></div>
+                <div class="assistant-table-wrap"><table class="assistant-table"><thead><tr><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead><tbody id="inference-assistant-table-body"></tbody></table></div>
               </div>
+            </section>
+            <section class="curadoria-tools" aria-labelledby="inference-tools-title">
+              <div class="section-title">
+                <h2 id="inference-tools-title">Ferramentas criadas</h2>
+                <span class="scope">Curadoria Web</span>
+              </div>
+              <ul class="tool-list">
+                <li><strong>Inferência em cascata</strong><span>Predição de rim, córtex, medula e CEC para uma nova imagem.</span></li>
+                <li><strong>Camadas anatômicas</strong><span>Visualização individual e conjunta das quatro máscaras produzidas.</span></li>
+                <li><strong>Ecogenicidade</strong><span>Métricas de brilho cortical, CEC, contraste e relação córtex/medula.</span></li>
+                <li><strong>Contexto visual</strong><span>Escolha entre recorte da cápsula renal e imagem completa.</span></li>
+                <li><strong>Assistente multimodal</strong><span>Qwen local e comparação opcional com GPT-6 Luna a partir do image_id.</span></li>
+                <li><strong>Rastreabilidade</strong><span>Resultados, máscaras e evidências ficam vinculados à inferência executada.</span></li>
+              </ul>
             </section>
           </aside>
         </div>
       </section>
     </main>
-    <script src="/inferencia.js?v=20260905"></script>
+    <div class="assistant-focus-backdrop" hidden></div>
+    <script src="/inferencia.js?v=20261027_focus"></script>
   </body>
 </html>

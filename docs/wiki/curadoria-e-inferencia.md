@@ -565,3 +565,43 @@ O upload da inferência é validado por `curadoria_web/image_validation.py`:
 PNG/JPEG/WebP, até 20 MB, dimensões máximas de 8192 pixels por eixo e até
 16 milhões de pixels descomprimidos. O endpoint rejeita contêineres inválidos
 antes de carregar os modelos.
+
+### Ferramentas disponíveis na interface
+
+Além do assistente, a Curadoria Web reúne fila de casos, filtros, progresso,
+camadas anatômicas, zoom, Super-res, CLAHE, edição manual de máscaras,
+comparação de ecogenicidade, inferência de novas imagens, auditoria e
+exportação dos registros. Na tela de inferência, essas ferramentas ficam
+organizadas junto do resultado para manter a sequência de uso: imagem,
+máscaras, métricas e apoio multimodal.
+
+Para leitura de respostas longas, o painel oferece o modo **Expandir**. Ele
+abre um modal de foco com o restante da interface visualmente oculto, amplia a
+tabela e permite retorno pelo botão **Voltar**, pelo fundo escurecido ou pela
+tecla `Esc`.
+
+![Assistente visual da Curadoria Web](assets/curadoria-web-assistente-visual.png)
+
+*Figura: painel do assistente visual integrado à Curadoria Web. A autorização
+para envio à OpenAI permanece explícita e separada da análise local.*
+
+### Teste real na RTX 3050
+
+O teste funcional realizado em 27/10/2026 utilizou a imagem
+`kidneyus_capsule_test__122_IM-0144-0001_anon.png` pela rota oficial de
+inferência. O resultado foi o `image_id` `infer_3323853db1d7`, com dimensão
+`1024 x 768`, dispositivo CUDA, quatro máscaras anatômicas e
+`capsule_bbox = (120, 159, 805, 742)`. O Qwen local respondeu com `HTTP 200`
+em aproximadamente 24 s; a comparação com o GPT-6 Luna respondeu com
+`HTTP 200` em aproximadamente 36 s, usando o mesmo conjunto de evidências.
+
+Esse registro confirma a integração técnica entre inferência, recuperação por
+`image_id`, máscaras, métricas, recorte da cápsula e os dois provedores. Ele
+não deve ser apresentado como acurácia clínica ou como prova de superioridade
+de um modelo, pois corresponde a um único caso piloto.
+
+Os resultados gerados pela inferência são persistidos em um diretório próprio
+com `original.png`, as quatro máscaras e `metadata.json`. Na inicialização, a
+Curadoria Web restaura esse índice; portanto, o vínculo por `image_id` não
+depende apenas da memória do processo e permanece disponível após reiniciar o
+servidor.

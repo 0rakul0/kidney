@@ -17,6 +17,10 @@ DEFAULT_MODEL = 'Qwen/Qwen2.5-VL-3B-Instruct-AWQ'
 MODEL = os.getenv('VLLM_MODEL', DEFAULT_MODEL)
 BASE_URL = os.getenv('VLLM_BASE_URL', 'http://127.0.0.1:8000/v1')
 TIMEOUT_SECONDS = float(os.getenv('VLLM_TIMEOUT_SECONDS', '120'))
+# Respostas do assistente visual são deliberadamente curtas e auditáveis. No
+# limite de 512 tokens, a RTX 3050 pode manter a requisição ocupada por muito
+# tempo quando o modelo não encerra a resposta logo após a conclusão.
+MAX_OUTPUT_TOKENS = max(64, min(int(os.getenv('VLLM_MAX_OUTPUT_TOKENS', '192')), 512))
 SYSTEM = ('Assistente de pesquisa em ultrassonografia renal. Nao diagnostique fibrose, '
           'nao infira grau clinico, medidas ou lateralidade nao informadas. '
           'Preserve negacoes, incertezas e a origem de cada achado. '
@@ -164,8 +168,9 @@ def ask_about_session(question: str, evidence: dict, image: bytes | None = None,
         model=MODEL,
         messages=[{'role': 'system', 'content': SYSTEM}, {'role': 'user', 'content': content}],
         # O servidor está fixado em --max-model-len 2048. As evidências da
-        # Curadoria ocupam parte do contexto; 512 deixa margem para a saída.
-        temperature=0, max_tokens=512,
+        # Curadoria ocupam parte do contexto; a saída curta evita que uma
+        # resposta visual fique presa por dezenas de segundos na RTX 3050.
+        temperature=0, max_tokens=MAX_OUTPUT_TOKENS,
     )
     answer = _message_text(response.choices[0].message)
     if not answer:

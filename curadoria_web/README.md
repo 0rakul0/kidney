@@ -107,6 +107,27 @@ Esta tabela documenta os arquivos **confirmados no repositorio**. Alguns sao mod
 | `src/segmentation/experiments/train_inner_deeplab.py` | Treina DeepLabV3 multiclasse na ROI renal. | Identificar cortex, medula e complexo ecogenico central. | Dataset intrarrenal e parametros; checkpoint padrao `models/intrarenal_deeplab_resnet50_multiclass_annotator1.pth`, metadados e resultados. |
 | `artigo/artigo_base/compilar_artigo.ps1` | Executa LaTeX, BibTeX e repeticoes do LaTeX; verifica citacoes e rotulos das figuras. | Gerar um artigo com bibliografia e referencias cruzadas resolvidas. | `main.tex`, `.bib`, figuras e distribuicao LaTeX; produz `main.pdf`. |
 
+### Ferramentas criadas na Curadoria Web
+
+A interface reúne as ferramentas do fluxo de revisão human-in-the-loop em duas telas:
+
+- fila de casos, filtros, progresso e identificação da imagem;
+- visualização e alternância das máscaras de rim, córtex, medula e CEC;
+- zoom, ajuste da visualização, Super-res e CLAHE;
+- correção manual das máscaras e registro das operações;
+- comparação de ecogenicidade por ROIs, com brilho cortical, CEC, contraste e relação córtex/medula;
+- inferência de uma nova imagem com vínculo por `image_id`;
+- assistente multimodal com Qwen local e comparação opcional com GPT-6 Luna;
+- histórico e exportação dos registros em JSON, CSV e banco local.
+
+O painel do assistente possui o botão **Expandir**. O modo foco oculta
+visualmente o restante da interface, amplia a área de leitura da resposta e
+permite fechar pelo botão **Voltar**, clicando no fundo escurecido ou usando
+`Esc`. O mesmo comportamento está disponível na tela de inferência.
+
+A captura da tela do assistente visual está preservada em
+[`docs/wiki/assets/curadoria-web-assistente-visual.png`](../docs/wiki/assets/curadoria-web-assistente-visual.png).
+
 ### Sequencia de utilizacao
 
 1. **Preparacao:** `build_dataset_geral.py` prepara o acervo e diferencia pseudomascaras de referencia manual.
@@ -124,6 +145,30 @@ Esta tabela documenta os arquivos **confirmados no repositorio**. Alguns sao mod
 .\.venv\Scripts\python.exe .\src\segmentation\experiments\train_inner_deeplab.py --help
 powershell -NoProfile -ExecutionPolicy Bypass -File .\artigo\artigo_base\compilar_artigo.ps1
 ```
+
+Para o assistente visual local, `VLLM_MAX_OUTPUT_TOKENS` controla o tamanho
+máximo da resposta. O padrão é `192`, adequado para a resposta concisa da
+Curadoria Web e para a RTX 3050 de 8 GB; o valor pode ser ajustado até `512`
+quando uma análise textual mais longa for necessária.
+
+### Teste funcional do assistente
+
+Em 27/10/2026, a imagem `kidneyus_capsule_test__122_IM-0144-0001_anon.png`
+foi processada pela rota oficial de inferência na RTX 3050 de 8 GB. O caso
+gerou o `image_id` `infer_3323853db1d7`, com imagem de `1024 x 768` px,
+dispositivo CUDA, máscaras de rim, córtex, medula e CEC, `capsule_bbox`
+`(120, 159, 805, 742)` e métricas de ecogenicidade.
+
+O teste do Qwen local retornou `HTTP 200` em aproximadamente 24 s. A
+comparação Qwen × GPT-6 Luna, usando o mesmo `image_id` e as mesmas
+evidências, retornou `HTTP 200` em aproximadamente 36 s. O resultado é um
+teste funcional de integração, não uma medida de acurácia clínica nem uma
+validação de superioridade entre modelos.
+
+Cada inferência também salva `metadata.json` junto de `original.png` e das
+quatro máscaras. Na inicialização, a Curadoria Web restaura esse índice para
+que o `image_id` continue disponível ao assistente depois de reiniciar o
+servidor.
 
 Antes de preparar dados ou treinar modelos, confira argumentos, manifestos, particoes e checkpoints. Nem todos os scripts utilizam o mesmo checkpoint como padrao.
 

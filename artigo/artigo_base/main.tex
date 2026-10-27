@@ -641,6 +641,73 @@ artefatos ecogênicos nem diagnóstico. A avaliação quantitativa requer uma
 amostra anotada por especialistas, com sensibilidade, especificidade, precisão,
 F1, concordância por região e taxa de afirmações não sustentadas.
 
+\subsubsection{Exemplo de uso assistencial na Curadoria Web}
+
+Como exemplo ilustrativo do uso assistencial, foi selecionada a imagem
+\texttt{dataset\_loader\_\_10\_IM-0415-0078\_anon}, pertencente ao conjunto com
+referência manual de rim, córtex, medula e CEC. A apresentação inicial do caso
+é feita pela imagem B-mode e pela sobreposição das regiões anatômicas, conforme
+a Figura~\ref{fig:assistente_exemplo_imagem}. Essa etapa delimita o objeto da
+revisão antes da formulação da pergunta ao assistente.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
+\caption{Exemplo de imagem renal apresentada para apoio assistencial, com a
+  sobreposição visual das máscaras de rim, córtex, medula e CEC. A imagem e as
+  máscaras foram recuperadas do manifesto de curadoria; a visualização não
+  constitui, isoladamente, uma conclusão diagnóstica.}
+\label{fig:assistente_exemplo_imagem}
+\end{figure}
+
+Após a apresentação do objeto, a pergunta foi normalizada para: ``comparando
+as máscaras do córtex com o CEC, há indícios de fibrose?''. O contexto visual
+selecionado foi o recorte da cápsula renal, acompanhado das máscaras, do
+medidor de brilho e das métricas disponíveis. A Figura~\ref{fig:assistente_exemplo_interface}
+mostra a interface assistencial no momento da consulta, incluindo a pergunta,
+o consentimento explícito para o provedor externo e os comandos de análise
+local ou comparação.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.58\linewidth]{figures/assistente_exemplo_interface.png}
+\caption{Interface do assistente visual durante o exemplo de uso assistencial.
+  A Curadoria Web apresenta o contexto visual, a pergunta, as opções de
+  execução e as evidências recuperadas da imagem selecionada.}
+\label{fig:assistente_exemplo_interface}
+\end{figure}
+
+A Tabela~\ref{tab:assistente_exemplo_uso} organiza o resultado em uma sequência
+assistencial, sem transformar a saída do modelo em diagnóstico. O modelo local
+Qwen2.5-VL-3B-Instruct-AWQ produziu uma resposta mais genérica e incluiu uma
+afirmação sobre fibrose que exige mediação. O GPT-6 Luna descreveu ecos
+brilhantes dispersos, relacionou os valores de córtex ($32{,}7$) e CEC
+($79{,}2$) à diferença de $46{,}5$ e ressaltou que esses dados não permitem
+afirmar nem excluir fibrose. Essa diferença é útil para a revisão humana, mas
+não representa acurácia comparativa, pois se trata de um único caso sem
+referência independente para o achado assistencial.
+
+\begin{table}[H]
+\centering
+\caption{Exemplo de uso assistencial do assistente multimodal.}
+\label{tab:assistente_exemplo_uso}
+\begin{tabular}{p{0.19\linewidth}p{0.49\linewidth}p{0.24\linewidth}}
+\toprule
+\textbf{Etapa} & \textbf{Resultado apresentado} & \textbf{Uso e limite} \\
+\midrule
+Entrada & Imagem B-mode, recorte da cápsula, máscaras anatômicas e métricas de ecogenicidade. & Define o objeto e as evidências da revisão. \\
+Resposta local & Saída genérica sobre a relação CEC--córtex, com afirmação não sustentada sobre fibrose. & Serve como proposta inicial; requer checagem especializada. \\
+Resposta externa & Ecos brilhantes dispersos, sem foco cortical delimitado; córtex $32{,}7$, CEC $79{,}2$ e diferença $46{,}5$. & Prioriza a revisão do contraste, sem caracterizar lesão. \\
+Desfecho assistencial & Encaminhar a imagem e as regiões indicadas para revisão humana. & Não confirma nem exclui fibrose e não substitui laudo. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Esse exemplo mostra a função assistencial pretendida: organizar evidências,
+indicar regiões que merecem atenção e explicitar limitações para apoiar o
+especialista. A decisão final permanece humana, e a saída conversacional não é
+incorporada automaticamente como anotação clínica.
+
 \subsection{Comparação descritiva com resultados publicados}
 
 Para situar o desempenho obtido, a Tabela~\ref{tab:comparacao_literatura} apresenta, lado a lado, os coeficientes Dice desta pesquisa e os relatados por Zuo et al.~\cite{Zuo2025RenalAttention} para a MAT-UNet. A escolha dessa referência decorre da utilização do \texttt{Open Kidney Ultrasound Data Set} e do interesse nas mesmas quatro estruturas anatômicas. Os números são reproduzidos nas escalas de Dice entre zero e um; a tabela é uma comparação \emph{descritiva entre publicações}, e não uma reavaliação dos modelos sobre as mesmas imagens.

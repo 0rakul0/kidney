@@ -2,6 +2,28 @@ const $ = (id) => document.getElementById(id);
 let selectedFile = null;
 let currentInferenceId = "";
 
+function initAssistantFocus() {
+  const panel = document.querySelector(".assistant-panel");
+  const backdrop = document.querySelector(".assistant-focus-backdrop");
+  const openButton = document.querySelector(".assistant-focus-open");
+  const closeButton = document.querySelector(".assistant-focus-close");
+  if (!panel || !backdrop || !openButton || !closeButton) return;
+  const setFocus = (enabled) => {
+    panel.classList.toggle("assistant-focus-active", enabled);
+    backdrop.hidden = !enabled;
+    document.body.classList.toggle("assistant-focus-open", enabled);
+    panel.setAttribute("aria-modal", String(enabled));
+    (enabled ? closeButton : openButton).focus();
+  };
+  openButton.addEventListener("click", () => setFocus(true));
+  closeButton.addEventListener("click", () => setFocus(false));
+  backdrop.addEventListener("click", () => setFocus(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && panel.classList.contains("assistant-focus-active")) setFocus(false);
+  });
+}
+initAssistantFocus();
+
 function message(text, error = false) {
   $("inference-message").textContent = text;
   $("inference-message").classList.toggle("error", error);
@@ -62,6 +84,16 @@ function assistantResultMessage(text, error = false) {
   $("inference-assistant-message").textContent = text;
   $("inference-assistant-message").classList.toggle("error", error);
 }
+function renderAssistantMarkdown(text) {
+  const escaped = String(text || "—").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
+  return escaped.replace(/\*\*([\s\S]+?)\*\*/g, "<b>$1</b>");
+}
 async function compareInference() {
   if (!currentInferenceId) return;
   const reviewer = $("inference-reviewer").value.trim();
@@ -87,8 +119,12 @@ async function compareInference() {
     const body = $("inference-assistant-table-body"); body.replaceChildren();
     (comparison.results || []).forEach((result) => {
       const row = document.createElement("tr");
-      [result.model || result.provider, result.visual_mode === "full" ? "Imagem completa" : "Recorte da cápsula", result.answer, (result.limitations || []).join(" ")].forEach((value, index) => {
-        const cell = document.createElement("td"); cell.textContent = value || "—"; if (index === 2) cell.className = "assistant-answer"; row.append(cell);
+      [result.visual_mode === "full" ? "Imagem completa" : "Recorte da cápsula", result.answer, (result.limitations || []).join(" ")].forEach((value, index) => {
+        const cell = document.createElement("td");
+        if (index === 1) cell.innerHTML = renderAssistantMarkdown(value);
+        else cell.textContent = value || "—";
+        if (index === 1) cell.className = "assistant-answer";
+        row.append(cell);
       });
       body.append(row);
     });

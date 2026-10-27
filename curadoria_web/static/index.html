@@ -220,10 +220,10 @@
             <div><dt>Mascara CEC</dt><dd id="item-central">-</dd></div>
           </dl>
         </section>
-        <section class="assistant-panel" aria-labelledby="assistant-title">
+        <section class="assistant-panel" role="dialog" aria-modal="false" aria-labelledby="assistant-title">
           <div class="section-title">
             <h2 id="assistant-title">Assistente visual</h2>
-            <span id="assistant-status" class="scope">artefatos automáticos</span>
+            <div class="assistant-heading-actions"><span id="assistant-status" class="scope">artefatos automáticos</span><button class="assistant-focus-open" type="button" aria-haspopup="dialog">Expandir</button><button class="assistant-focus-close" type="button" aria-label="Fechar modo foco">Voltar</button></div>
           </div>
           <label>Contexto visual
             <select id="assistant-visual-mode">
@@ -244,12 +244,28 @@
             <div id="assistant-evidence" class="assistant-evidence"></div>
             <div class="assistant-table-wrap">
               <table class="assistant-table">
-                <thead><tr><th>Modelo</th><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead>
+                <thead><tr><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead>
                 <tbody id="assistant-table-body"></tbody>
               </table>
             </div>
             <button id="assistant-use" class="secondary-button" type="button">Usar resposta selecionada na observação</button>
           </div>
+        </section>
+        <section class="curadoria-tools" aria-labelledby="curadoria-tools-title">
+          <div class="section-title">
+            <h2 id="curadoria-tools-title">Ferramentas criadas</h2>
+            <span class="scope">Curadoria Web</span>
+          </div>
+          <ul class="tool-list">
+            <li><strong>Fila de casos</strong><span>Navegação, filtros, progresso e identificação da imagem.</span></li>
+            <li><strong>Camadas anatômicas</strong><span>Sobreposição e alternância das máscaras de rim, córtex, medula e CEC.</span></li>
+            <li><strong>Inspeção visual</strong><span>Zoom, ajuste da visualização, Super-res e CLAHE para apoiar a revisão.</span></li>
+            <li><strong>Edição de máscaras</strong><span>Correções por polígono, desenho e registro das operações realizadas.</span></li>
+            <li><strong>Ecogenicidade</strong><span>ROIs comparativas, brilho cortical, CEC, contraste e relação córtex/medula.</span></li>
+            <li><strong>Inferência de nova imagem</strong><span>Cascata de rim, córtex, medula e CEC sem incorporar automaticamente o caso ao treino.</span></li>
+            <li><strong>Assistente multimodal</strong><span>Qwen local e comparação opcional com GPT-6 Luna usando os artefatos da inferência.</span></li>
+            <li><strong>Auditoria e exportação</strong><span>Histórico de revisões e exportação dos registros em JSON, CSV e banco local.</span></li>
+          </ul>
         </section>
         <h2>Revisao das anotacoes</h2>
         <form id="review-form">
@@ -332,6 +348,7 @@
         </footer>
       </aside>
     </main>
-    <script src="/app.js?v=20261027_assistant_integration"></script>
+    <div class="assistant-focus-backdrop" hidden></div>
+    <script src="/app.js?v=20261027_assistant_integration_focus"></script>
   </body>
 </html>

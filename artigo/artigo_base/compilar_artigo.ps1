@@ -59,7 +59,7 @@ try {
     }
     $auxContent = Get-Content -LiteralPath "main.aux" -Raw
     foreach ($rotulo in $figurasCuradoria) {
-        $registro = "\\newlabel{" + $rotulo + "}"
+        $registro = "\newlabel{" + $rotulo + "}"
         if (-not $auxContent.Contains($registro)) {
             throw "Referencia cruzada nao resolvida para $rotulo. A figura apareceria como ?? no PDF."
         }

@@ -233,6 +233,20 @@ textarea { resize: vertical; }
 .hint { padding: 10px; color: #356da8; background: #f1f7ff; border: 1px solid #cbe0fb; border-radius: 7px; font-size: 12px; line-height: 1.4; }
 .assistant-panel { margin: 18px 0; padding: 14px 0 0; border-top: 1px solid var(--line); }
 .assistant-panel label { margin-top: 10px; }
+.assistant-heading-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.assistant-focus-open, .assistant-focus-close { padding: 5px 8px; border: 1px solid #c8d9ee; border-radius: 6px; background: #f7fbff; color: var(--blue); cursor: pointer; font-size: 11px; }
+.assistant-focus-close { display: none; }
+.assistant-focus-backdrop { position: fixed; inset: 0; z-index: 90; background: rgba(15, 28, 48, .58); }
+body.assistant-focus-open { overflow: hidden; }
+.assistant-panel.assistant-focus-active { position: fixed; z-index: 100; inset: 4vh 4vw; width: auto; max-height: 92vh; margin: 0; padding: 22px 26px 26px; overflow: auto; border: 1px solid #b8cbe4; border-radius: 12px; background: var(--panel); box-shadow: 0 24px 70px rgba(10, 28, 55, .28); }
+.assistant-panel.assistant-focus-active .assistant-focus-open { display: none; }
+.assistant-panel.assistant-focus-active .assistant-focus-close { display: inline-block; }
+.assistant-panel.assistant-focus-active .assistant-table { min-width: 0; table-layout: fixed; }
+.assistant-panel.assistant-focus-active .assistant-table th, .assistant-panel.assistant-focus-active .assistant-table td { overflow-wrap: anywhere; }
+.assistant-panel.assistant-focus-active .assistant-answer, .assistant-panel.assistant-focus-active .assistant-limitations { min-width: 0; }
+.assistant-panel.assistant-focus-active .assistant-table th:nth-child(1) { width: 20%; }
+.assistant-panel.assistant-focus-active .assistant-table th:nth-child(2) { width: 55%; }
+.assistant-panel.assistant-focus-active .assistant-table th:nth-child(3) { width: 25%; }
 .assistant-consent { flex-direction: row; align-items: flex-start; gap: 7px; color: #53657e; font-size: 11px; line-height: 1.35; }
 .assistant-consent input { margin-top: 1px; }
 .assistant-actions { display: grid; gap: 7px; margin-top: 12px; }
@@ -242,14 +256,20 @@ textarea { resize: vertical; }
 .assistant-result { margin-top: 12px; }
 .assistant-evidence { padding: 8px; color: #53657e; background: #f4f7fb; border-radius: 6px; font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
 .assistant-table-wrap { max-width: 100%; overflow-x: auto; margin-top: 9px; }
-.assistant-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 11px; }
+.assistant-table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; font-size: 11px; }
 .assistant-table th, .assistant-table td { padding: 7px; border: 1px solid var(--line); vertical-align: top; text-align: left; }
 .assistant-table th { color: var(--muted); background: #f7f9fc; font-size: 10px; }
 .assistant-table tbody tr { cursor: pointer; }
 .assistant-table tbody tr.selected { background: #eef7ff; outline: 2px solid #76a9e8; outline-offset: -2px; }
-.assistant-answer { min-width: 230px; white-space: pre-wrap; line-height: 1.4; }
-.assistant-limitations { min-width: 170px; color: #53657e; line-height: 1.35; }
+.assistant-answer { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; }
+.assistant-limitations { min-width: 0; overflow-wrap: anywhere; color: #53657e; line-height: 1.35; }
 .assistant-result .secondary-button { width: 100%; margin-top: 9px; }
+.curadoria-tools { margin: 18px 0; padding: 14px 0 0; border-top: 1px solid var(--line); }
+.curadoria-tools .section-title { margin-bottom: 10px; }
+.tool-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.tool-list li { display: grid; gap: 2px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcff; }
+.tool-list strong { color: var(--blue); font-size: 12px; }
+.tool-list span { color: var(--muted); font-size: 11px; line-height: 1.35; }
 .primary { margin-top: 4px; height: 56px; color: white; font-size: 16px; font-weight: 600; border: 0; background: var(--blue); border-radius: 8px; cursor: pointer; }
 .message { min-height: 18px; color: var(--green); } .message.error { color: var(--red); }
 .changes-panel { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }

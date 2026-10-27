@@ -218,6 +218,12 @@ class AssistantService:
             "Diferencie observação direta, métrica computacional e hipótese. "
             "Procure áreas ecogênicas dentro da cápsula quando o modo for recorte, "
             "mas não trate o CEC fisiológico como lesão sem evidência independente. "
+            "Não liste rim, córtex, medula ou CEC apenas porque a máscara existe: "
+            "aponte uma região somente quando houver evidência visual ou métrica "
+            "que justifique a revisão. Se não houver foco localizado, declare que "
+            "não é possível localizar um foco ecogênico com segurança. "
+            "Não conclua presença ou ausência de edema, inflamação ou infiltração, "
+            "pois essas condições não são avaliadas por este protocolo. "
             "Não invente medidas, lateralidade, inflamação, edema, gravidade ou diagnóstico. "
             "Responda em português brasileiro, de forma concisa e auditável."
         )

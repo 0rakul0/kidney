@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import uuid
 from io import BytesIO
 from pathlib import Path
@@ -34,6 +35,53 @@ class InferenceService:
         self.brightness_meter = brightness_meter
         self.results = {}
         self._models = None
+        self._restore_results()
+
+    def _restore_results(self):
+        """Rebuild the inference index after a server restart."""
+        if not self.output_dir.exists():
+            return
+        for metadata_path in self.output_dir.glob("infer_*/metadata.json"):
+            try:
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                image_id = str(metadata["image_id"])
+                result_dir = metadata_path.parent
+                image_path = result_dir / "original.png"
+                mask_paths = {
+                    name: result_dir / "masks" / f"{name}.png"
+                    for name in ("rim", "cortex", "medulla", "central_echo_complex")
+                }
+                if not image_path.exists() or not all(path.exists() for path in mask_paths.values()):
+                    continue
+                self.results[image_id] = {
+                    "image_path": image_path,
+                    "mask_paths": mask_paths,
+                    "filename": str(metadata.get("filename", image_id)),
+                    "meter": metadata.get("meter", {}),
+                    "width": int(metadata["width"]),
+                    "height": int(metadata["height"]),
+                    "device": str(metadata.get("device", "unknown")),
+                    "capsule_bbox": metadata.get("capsule_bbox"),
+                }
+            except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+                continue
+
+    @staticmethod
+    def _write_metadata(result_dir: Path, result: dict):
+        metadata_path = result_dir / "metadata.json"
+        temporary_path = result_dir / "metadata.json.tmp"
+        payload = {
+            "schema_version": 1,
+            "image_id": result["image_id"],
+            "filename": result["filename"],
+            "meter": result["meter"],
+            "width": result["width"],
+            "height": result["height"],
+            "device": result["device"],
+            "capsule_bbox": result["capsule_bbox"],
+        }
+        temporary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        temporary_path.replace(metadata_path)
 
     def _load_models(self):
         if self._models is not None:
@@ -154,7 +202,8 @@ class InferenceService:
             Image.fromarray((labels == class_id).astype(np.uint8) * 255).save(path)
             mask_paths[name] = path
         meter = self.brightness_meter(image_path, mask_paths)
-        self.results[image_id] = {
+        persisted_result = {
+            "image_id": image_id,
             "image_path": image_path,
             "mask_paths": mask_paths,
             "filename": Path(filename or "imagem").name,
@@ -164,6 +213,8 @@ class InferenceService:
             "device": models["device"],
             "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
         }
+        self.results[image_id] = persisted_result
+        self._write_metadata(result_dir, persisted_result)
         return {
             "image_id": image_id,
             "filename": Path(filename or "imagem").name,
