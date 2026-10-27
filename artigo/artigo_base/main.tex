@@ -526,6 +526,43 @@ DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
 \end{tabular}
 \end{table}
 
+\subsection{Estudo piloto do assistente multimodal}
+
+Para verificar a integração entre a Curadoria Web, as máscaras anatômicas e os
+modelos multimodais, foi executado um estudo piloto com a imagem
+\texttt{kidneyus\_capsule\_test\_\_122\_IM-0144-0001\_anon.png}. A inferência
+da cascata foi executada na RTX 3050 de 8~GB, com dispositivo CUDA, imagem de
+$1024\times768$ pixels e máscaras de rim, córtex, medula e CEC. O mesmo
+conjunto de evidências e a mesma sobreposição visual foram enviados ao
+Qwen2.5-VL-3B-Instruct-AWQ local e ao GPT-6 Luna. O recorte da cápsula foi
+delimitado por $\texttt{capsule\_bbox}=(120,159,805,742)$.
+
+\begin{table}[htb]
+\centering
+\caption{Comparação qualitativa do estudo piloto multimodal ($N=1$).}
+\label{tab:assistente_piloto}
+\begin{tabular}{p{0.28\linewidth}p{0.28\linewidth}p{0.28\linewidth}}
+\toprule
+\textbf{Critério} & \textbf{Qwen local} & \textbf{GPT-6 Luna} \\
+\midrule
+Evidências recebidas & Imagem, quatro máscaras e métricas & Mesma entrada \\
+Região prioritária & Não delimitada claramente & Região central/CEC, faixa média \\
+Separação CEC--foco & Parcial e genérica & Explicitamente cautelosa \\
+Uso da ecogenicidade & Parcial; saída limitada pelo contexto & CEC 130,4; córtex 71,6; diferença 58,7 \\
+Resultado qualitativo & Menor especificidade & Maior especificidade e rastreabilidade \\
+Acurácia estatística & Não calculável & Não calculável \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O resultado não deve ser interpretado como acurácia clínica, pois o piloto
+possui apenas um caso e não dispõe de uma referência humana independente para
+presença, localização e natureza de um foco ecogênico. Ele demonstra a
+viabilidade operacional da integração e sugere maior especificidade da saída
+do GPT-6 Luna neste caso. A avaliação quantitativa da interpretação requer uma
+amostra anotada por especialistas, com sensibilidade, especificidade,
+precisão, F1, concordância por região e taxa de afirmações não sustentadas.
+
 \subsection{Comparação descritiva com resultados publicados}
 
 Para situar o desempenho obtido, a Tabela~\ref{tab:comparacao_literatura} apresenta, lado a lado, os coeficientes Dice desta pesquisa e os relatados por Zuo et al.~\cite{Zuo2025RenalAttention} para a MAT-UNet. A escolha dessa referência decorre da utilização do \texttt{Open Kidney Ultrasound Data Set} e do interesse nas mesmas quatro estruturas anatômicas. Os números são reproduzidos nas escalas de Dice entre zero e um; a tabela é uma comparação \emph{descritiva entre publicações}, e não uma reavaliação dos modelos sobre as mesmas imagens.

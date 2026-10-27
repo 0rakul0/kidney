@@ -89,6 +89,29 @@ Depois da cápsula, a tarefa passa a ser multiclasse:
 
 A U-Net foi mantida como melhor modelo agregado, apesar de a DeepLab apresentar pequena vantagem no CEC.
 
+## Estudo piloto do assistente multimodal
+
+O teste integrado foi realizado com a imagem
+`kidneyus_capsule_test__122_IM-0144-0001_anon.png`, as máscaras de rim,
+córtex, medula e CEC, e as métricas de ecogenicidade produzidas pela
+Curadoria Web. A inferência foi executada na RTX 3050 de 8 GB com
+`dispositivo=cuda`. A imagem tinha `1024 x 768` pixels e o recorte da cápsula
+usou `capsule_bbox=(120,159,805,742)`.
+
+| Critério | Qwen2.5-VL local | GPT-6 Luna |
+|---|---|---|
+| Evidências recebidas | Imagem com sobreposição das quatro máscaras e métricas | Mesma imagem e mesmas métricas |
+| Região prioritária | Não delimitada com clareza | Região central/CEC, especialmente faixa média |
+| Separação CEC versus foco | Genérica | Explicitamente cautelosa |
+| Uso da ecogenicidade | Parcial | CEC 130,4; córtex 71,6; diferença 58,7 |
+| Avaliação estatística | Não calculável, N=1 | Não calculável, N=1 |
+
+Este é um resultado piloto qualitativo, não uma estimativa de acurácia. Para
+calcular desempenho da interpretação, cada caso deverá receber referência de
+especialistas para presença de foco, região anatômica e sustentação da
+afirmação. Só então devem ser calculadas sensibilidade, especificidade,
+precisão, F1, kappa e taxa de afirmações não sustentadas.
+
 ## Experimento de expansão de Medulla
 
 O projeto testou pseudo-labeling de medula com consenso entre modelos.

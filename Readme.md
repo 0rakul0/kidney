@@ -278,6 +278,35 @@ Embora a diferenca media seja pequena, a U-Net foi mantida como modelo
 intrarrenal da cascata por apresentar o melhor resultado agregado e maior Dice
 em duas das tres estruturas.
 
+### Estudo piloto do assistente multimodal
+
+Foi executado um teste integrado com a imagem
+`kidneyus_capsule_test__122_IM-0144-0001_anon.png`, suas quatro máscaras
+anatômicas e o medidor de brilho. A inferência real foi executada na RTX 3050
+de 8 GB (`cuda`), com imagem de `1024 x 768` pixels e recorte da cápsula
+delimitado por `(120, 159, 805, 742)`. Qwen local e GPT-6 Luna receberam a
+mesma sobreposição visual e as mesmas evidências computacionais.
+
+| Critério | Qwen2.5-VL local | GPT-6 Luna |
+| --- | --- | --- |
+| Imagem e máscaras recebidas | Sim | Sim |
+| Regiões anatômicas reconhecidas | Rim, córtex, medula e CEC | Rim, córtex, medula e CEC |
+| Localização de região prioritária | Não delimitou uma área específica | Região central/CEC; faixa média priorizada |
+| Diferenciação entre CEC e foco discreto | Parcial e genérica | Explicitamente diferenciada |
+| Uso das métricas de brilho | Parcial; resposta truncada pelo limite de contexto | CEC `130,4`, córtex `71,6`, diferença `58,7` |
+| Resultado qualitativo | Menor especificidade | Maior especificidade e rastreabilidade |
+| Acurácia estatística | Não calculável (`N=1`) | Não calculável (`N=1`) |
+
+**Tabela 4.** Estudo piloto da integração multimodal. Esta tabela não
+representa acurácia clínica: não há, neste caso isolado, uma referência humana
+rotulada para presença, localização e natureza de um foco ecogênico.
+
+O resultado sustenta apenas uma conclusão operacional: neste caso, o GPT-6
+Luna produziu uma resposta mais específica para orientar a revisão humana. A
+acurácia da interpretação deverá ser estimada em uma amostra anotada por
+especialistas, com sensibilidade, especificidade, precisão, F1 e concordância
+por região anatômica.
+
 ![Exemplo intrarrenal](https://raw.githubusercontent.com/0rakul0/kidney/main/artigo/SBBD_2026___Jefferson/figures/intrarenal_multiclass_example.png)
 
 **Figura 3.** Exemplo da etapa intrarrenal: imagem original, anotacao manual e
