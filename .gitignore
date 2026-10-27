@@ -76,3 +76,4 @@ Thumbs.db
 /tmp
 *.gz
 /dataset_aumentado/curadoria/outputs/curadoria_visual_completa/curadoria_visual_para_revisao.xlsx
+/dataset_aumentado

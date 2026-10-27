@@ -19,8 +19,11 @@ Ela não substitui os parâmetros específicos de cada experimento, mas indica:
 kidney/
 ├── src/
 │   └── segmentation/
+│   └── kidney_assistant/
 ├── engenharia_dataset/
 ├── curadoria_web/
+├── run/
+│   └── start_vllm_wsl.sh
 ├── models/
 ├── results/
 ├── docs/
@@ -38,6 +41,9 @@ A Curadoria Web possui dependências próprias em:
 ```text
 curadoria_web/requirements.txt
 ```
+
+O assistente de pesquisa reutiliza esse ambiente. Seus testes ficam em
+`tests/kidney_assistant/` e são executados com `pytest -q tests/kidney_assistant`.
 
 Os checkpoints usados em inferência devem estar disponíveis em:
 
@@ -265,8 +271,10 @@ Antes de considerar um resultado reproduzível, registrar:
 | Tipo | Caminho |
 |---|---|
 | Código de segmentação | `src/segmentation/` |
+| Assistente de pesquisa | `src/kidney_assistant/` |
 | Engenharia de dados | `engenharia_dataset/` |
 | Interface | `curadoria_web/` |
+| Launcher vLLM | `run/start_vllm_wsl.sh` |
 | Modelos | `models/` |
 | Resultados | `results/` |
 | Documentação | `docs/` |

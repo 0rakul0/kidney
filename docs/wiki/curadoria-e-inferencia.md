@@ -469,3 +469,73 @@ A interface foi desenhada para separar explicitamente:
 - interpretação clínica.
 
 Essa separação é parte da metodologia do projeto, não apenas da interface.
+
+---
+
+# Assistente visual local e recorte da cápsula
+
+O assistente local em `src/kidney_assistant/` usa o Qwen2.5-VL servido pelo
+Docker para revisar evidências de ultrassonografia. Para evitar que a imagem
+inteira reduza a cápsula a poucos pixels, a inferência de uma nova imagem
+devolve também:
+
+```json
+"capsule_bbox": {"x1": 120, "y1": 80, "x2": 860, "y2": 650}
+```
+
+As coordenadas são pixels absolutos da imagem original. O cliente do assistente
+deve incluir esse objeto no `evidence_json` enviado a
+`/api/chat/local-image`. O adaptador então:
+
+1. valida e limita o bounding box à dimensão da imagem;
+2. adiciona margem de 12% por padrão;
+3. recorta a imagem original, sem aplicar CLAHE;
+4. envia somente esse recorte ao Qwen;
+5. registra no contexto que a imagem enviada é um recorte da cápsula.
+
+Exemplo de evidência:
+
+```json
+{
+  "capsule_bbox": {"x1": 120, "y1": 80, "x2": 860, "y2": 650},
+  "capsule_padding_ratio": 0.12,
+  "medidor_brilho": {
+    "origem": "imagem_original_sem_CLAHE"
+  }
+}
+```
+
+Se `capsule_bbox` estiver ausente ou inválido, o assistente usa a imagem
+inteira como fallback e não tenta adivinhar a localização anatômica. O recorte
+é por bounding box com margem; ele ainda não é uma máscara pixel a pixel. Para
+revisões científicas, a máscara deve ser preferencialmente revisada por um
+especialista antes de ser usada como evidência.
+
+## Limites visuais do Docker
+
+O container vLLM mantém `--max-model-len 2048` e limita a imagem a
+`--mm-processor-kwargs '{"max_pixels":262144}'`. Esse limite corresponde a
+cerca de 334 tokens visuais na grade do Qwen, não a uma dimensão fixa de
+`512 x 512`. O redimensionamento preserva a proporção da imagem e é feito pelo
+processador multimodal do vLLM.
+
+O recorte aumenta a resolução efetiva da cápsula dentro desse orçamento. Ele
+não transforma o Qwen em um detector diagnóstico: artefatos ecogênicos devem
+ser comparados com as máscaras de rim, córtex, medula e CEC, com as métricas de
+ecogenicidade e com a revisão humana.
+
+## Fluxo completo
+
+```text
+imagem original
+    ↓
+InferenceService
+    ↓
+segmentação da cápsula + capsule_bbox
+    ↓
+recorte com margem
+    ↓
+Qwen2.5-VL local
+    ↓
+proposta de observação para revisão humana
+```

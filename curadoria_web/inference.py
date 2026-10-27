@@ -167,6 +167,7 @@ class InferenceService:
             "image_url": f"/api/inferences/{image_id}/image",
             "layers": {name: f"/api/inferences/{image_id}/{name}" for name in mask_paths},
             "medidor_brilho": meter,
+            "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
             "info": {"dimensao": f"{image.width} x {image.height}", "dispositivo": models["device"]},
             "aviso": "Máscaras preditas para revisão; esta tela não produz diagnóstico clínico.",
         }

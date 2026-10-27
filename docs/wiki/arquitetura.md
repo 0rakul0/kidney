@@ -163,6 +163,8 @@ Esse eixo deve ser entendido como complementar à segmentação, não como subst
 | Engenharia de dataset | `engenharia_dataset/` |
 | Interface de curadoria | `curadoria_web/` |
 | Inferência local | `curadoria_web/inference.py` |
+| Assistente clínico de pesquisa | `src/kidney_assistant/` |
+| Launcher vLLM | `run/start_vllm_wsl.sh` |
 | Modelos | `models/` |
 | Resultados | `results/` |
 | Artigo | `artigo/SBBD_2026___Jefferson/` |
