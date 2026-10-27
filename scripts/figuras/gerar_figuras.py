@@ -73,6 +73,10 @@ def main():
     common(a)
     for name in ("rim", "cortex", "medulla", "cec"):
         a.add_argument("--" + name, required=True)
+    a = sub.add_parser("multiclasse_detalhada", help="Imagem, cada mascara individual e sobreposicao.")
+    common(a)
+    for name in ("rim", "cortex", "medulla", "cec"):
+        a.add_argument("--" + name, required=True)
     a = sub.add_parser("rois", help="ROIs e razao de intensidade cortex/CEC.")
     common(a)
     a.add_argument("--cortex", required=True)
@@ -107,6 +111,30 @@ def main():
         print(f"Figura salva: {args.output}")
         return
     image = read_gray(args.image)
+    if args.mode == "multiclasse_detalhada":
+        masks = {name: mask(getattr(args, name), image.shape)
+                 for name in ("rim", "cortex", "medulla", "cec")}
+        panels = [
+            ("Original", image, "gray"),
+            ("Mascara do rim", overlay(image, {"rim": masks["rim"]}), None),
+            ("Mascara do cortex", overlay(image, {"cortex": masks["cortex"]}), None),
+            ("Mascara da medula", overlay(image, {"medulla": masks["medulla"]}), None),
+            ("Mascara do CEC", overlay(image, {"cec": masks["cec"]}), None),
+            ("Sobreposicao conjunta", overlay(image, masks), None),
+        ]
+        fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+        for ax, (title, array, cmap) in zip(axes.flat, panels):
+            ax.imshow(array, cmap=cmap, vmin=0 if cmap == "gray" else None,
+                      vmax=255 if cmap == "gray" else None)
+            ax.set_title(title, fontsize=11)
+            ax.axis("off")
+        fig.tight_layout()
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output, dpi=args.dpi, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Figura salva: {output}")
+        return
     if args.mode == "revisao":
         predicted = mask(args.automatic, image.shape)
         reviewed = mask(args.reviewed, image.shape)

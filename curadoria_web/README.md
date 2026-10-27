@@ -129,12 +129,13 @@ Antes de preparar dados ou treinar modelos, confira argumentos, manifestos, part
 
 ### Geracao das quatro figuras cientificas
 
-O arquivo **`scripts/figuras/gerar_figuras.py`** implementa quatro subcomandos para produzir PNGs de alta resolucao (300 DPI por padrao) a partir de **imagens e mascaras ja existentes**. Este utilitario nao executa inferencia, nao carrega checkpoints e nao altera os dados originais. Para produzir mascaras novas, use antes a inferencia disponibilizada pela Curadoria Web.
+O arquivo **`scripts/figuras/gerar_figuras.py`** implementa cinco subcomandos para produzir PNGs de alta resolucao (300 DPI por padrao) a partir de **imagens e mascaras ja existentes**. Este utilitario nao executa inferencia, nao carrega checkpoints e nao altera os dados originais. Para produzir mascaras novas, use antes a inferencia disponibilizada pela Curadoria Web.
 
 | Modo | Objetivo | Entradas obrigatorias |
 | --- | --- | --- |
 | `revisao` | Mostrar original, mascara automatica, revisada e pixels adicionados/removidos. | `--image`, `--automatic`, `--reviewed`, `--output`. Use **somente revisoes realmente registradas** no sistema. |
 | `multiclasse` | Mostrar original, composicao de rim/cortex/medula/CEC e sobreposicao. | `--image`, `--rim`, `--cortex`, `--medulla`, `--cec`, `--output`. |
+| `multiclasse_detalhada` | Mostrar original, cada mascara individual sobre a imagem e sobreposicao conjunta. | `--image`, `--rim`, `--cortex`, `--medulla`, `--cec`, `--output`. |
 | `rois` | Mostrar as regioes selecionadas de cortex e CEC e calcular medias e a razao cortex/CEC. | `--image`, `--cortex`, `--cec`, `--output`. Os argumentos representam as **ROIs escolhidas**, nao necessariamente a mascara completa de cada classe. |
 | `casos` | Apresentar dois exemplos lado a lado, cada um com imagem, referencia manual e predicao. | `--good-image`, `--good-reference`, `--good-prediction`, `--hard-image`, `--hard-reference`, `--hard-prediction`, `--output`. |
 
@@ -146,6 +147,8 @@ Exemplos de uso (substitua os caminhos entre aspas pelos arquivos reais de um me
 .\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py revisao --image "imagem.png" --automatic "mascara_automatica.png" --reviewed "mascara_revisada.png" --output "artigo/artigo_base/figures/curadoria_antes_depois_revisao.png"
 
 .\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py multiclasse --image "imagem.png" --rim "rim.png" --cortex "cortex.png" --medulla "medulla.png" --cec "cec.png" --output "artigo/artigo_base/figures/segmentacao_anatomica_multiclasse.png"
+
+.\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py multiclasse_detalhada --image "imagem.png" --rim "rim.png" --cortex "cortex.png" --medulla "medulla.png" --cec "cec.png" --output "artigo/artigo_base/figures/segmentacao_anatomica_multiclasse_detalhada.png"
 
 .\.venv\Scripts\python.exe .\scripts\figuras\gerar_figuras.py rois --image "imagem.png" --cortex "roi_cortex.png" --cec "roi_cec.png" --output "artigo/artigo_base/figures/rois_ecogenicidade_exemplo.png"
 

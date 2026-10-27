@@ -585,6 +585,17 @@ conjunto de evidências e a mesma sobreposição visual foram enviados ao
 Qwen2.5-VL-3B-Instruct-AWQ local e ao GPT-6 Luna. O recorte da cápsula foi
 delimitado por $\texttt{capsule\_bbox}=(120,159,805,742)$.
 
+A Figura~\ref{fig:assistente_piloto_mascaras} documenta visualmente o conjunto de evidências utilizado no piloto: a imagem B-mode original, cada máscara anatômica individual e a sobreposição conjunta das regiões segmentadas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/assistente_piloto_mascaras_detalhadas.png}
+\caption{Evidências visuais do estudo piloto multimodal: imagem B-mode original, máscaras individuais de rim, córtex, medula e CEC e sobreposição conjunta. As máscaras individuais são apresentadas sobre a imagem para facilitar a localização de cada estrutura; as cores representam rim em vermelho, córtex em ciano, medula em amarelo e CEC em laranja. As máscaras foram geradas automaticamente pela cascata da Curadoria Web, com U-Net da cápsula (\texttt{models/kidneyus\_capsule\_unet.pth}) e U-Net multiclasse intrarrenal (\texttt{models/intrarenal\_unet\_multiclass\_annotator1.pth}). Fonte: elaboração própria a partir da inferência registrada em \texttt{inferencias/infer\_0141d6c60b3a}.}
+\label{fig:assistente_piloto_mascaras}
+\end{figure}
+
+A composição mostra que as quatro máscaras estão no mesmo espaço da imagem original e correspondem às evidências disponibilizadas ao assistente. A máscara externa do rim foi produzida pela U-Net de cápsula; córtex, medula e CEC foram produzidos pela U-Net multiclasse intrarrenal. Portanto, as quatro camadas são predições automáticas do pipeline, e não anotações humanas independentes ou máscaras corrigidas pela Curadoria Web. A visualização facilita a inspeção da localização anatômica, mas não constitui anotação clínica independente nem confirma, por si só, a presença de artefatos ecogênicos.
+
 A Tabela~\ref{tab:assistente_piloto} resume a comparação descritiva. Como o estudo possui um único caso e não utiliza um gabarito independente para os achados multimodais, os critérios de resposta devem ser lidos como observações qualitativas dos pesquisadores, e não como métricas de desempenho.
 
 \begin{table}[htb]
