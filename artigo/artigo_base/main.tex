@@ -399,7 +399,7 @@ A deduplicação por hash identifica conteúdos idênticos; o agrupamento por ex
 
 Os segmentadores são treinados com imagens normalizadas e redimensionadas; na configuração deduplicada de referência da U-Net, a entrada possui 256 por 256 pixels, CLAHE é aplicado ao ramo de segmentação e o aumento de dados é restrito ao treinamento. O treinamento registrado utiliza AdamW, taxa inicial de aprendizado de $10^{-4}$ e perda combinada de entropia cruzada binária e Dice. A seleção do checkpoint e do limiar de decisão ocorre com base na validação; para a U-Net de cápsula consolidada, o limiar documentado é $0{,}35$. A inferência de pseudomáscaras externas utiliza também a imagem espelhada horizontalmente, agregando as previsões antes da binarização.
 
-U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 são comparados no mesmo teste deduplicado. A qualidade de sobreposição é reportada por Dice e IoU~\cite{Taha2015Metrics}; precisão e \textit{recall} identificam tendências de supersegmentação ou omissão, enquanto quadros por segundo (FPS) informam o custo de inferência nas condições do benchmark. A arquitetura selecionada para a cascata é a U-Net, por seu desempenho de segmentação observado nesse protocolo, e não por superioridade universal sobre as demais.
+U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 são comparados no mesmo teste deduplicado. A qualidade de sobreposição é reportada por Dice e IoU~\cite{Taha2015Metrics}; precisão e \textit{recall} identificam tendências de supersegmentação ou omissão, enquanto quadros por segundo (FPS) informam o custo de inferência nas condições do benchmark. A U-Net foi a referência inicial da cascata; após o experimento de destilação, a aplicação passou a utilizar a U-Net estudante destilada como modelo operacional único.
 
 \subsection{Fonte externa, pseudomáscaras e consenso}
 
@@ -418,6 +418,17 @@ A mesma imagem é processada por uma DeepLabV3 independente. A concordância esp
  \label{eq:consensus}
 \end{equation}
 calculada para máscaras não vazias com denominador válido. O indicador foi calibrado por validação cruzada \textit{out-of-fold} em cinco folds agrupados por exame, para que cada amostra manual fosse avaliada por modelos que não a haviam utilizado naquele fold. Limiares operacionais de $0{,}89$ e $0{,}94$, derivados da distribuição de calibração documentada, organizam a fila de revisão; eles não certificam a qualidade anatômica. O manifesto preserva fonte, modelo, checkpoint, estado e indicadores associados a cada predição.
+
+Como caminho para transformar o consenso em um único modelo operacional, foi
+implementado também um protocolo de destilação de conhecimento. Nesse protocolo,
+a U-Net e a DeepLabV3 atuam como professores e produzem probabilidades para as
+mesmas imagens; a média dessas probabilidades é usada como alvo suave, em
+conjunto com a máscara manual, para treinar uma terceira U-Net estudante. A
+perda combina supervisão manual e destilação com temperatura $T=2$. O protocolo
+preserva o teste manual independente e permite restringir o treino a casos com
+concordância mínima entre professores. Essa etapa não é um GAN: trata-se de
+transferência de conhecimento entre segmentadores, com o objetivo de obter um
+modelo único mais leve para a inferência.
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
@@ -469,7 +480,7 @@ A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração
 
 A tela mostra a seleção da classe e da operação, mas não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída. A persistência e o histórico são propriedades verificáveis na implementação.
 
-O módulo de inferência recebe uma nova imagem, executa a U-Net da cápsula, recorta a ROI renal, aplica a U-Net intrarrenal e reconstrói máscaras no espaço da imagem. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
+O módulo de inferência recebe uma nova imagem, executa a U-Net estudante destilada da cápsula, recorta a ROI renal, aplica a U-Net intrarrenal e reconstrói máscaras no espaço da imagem. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
@@ -508,6 +519,12 @@ No exemplo, o CEC é selecionado como região A e o córtex como região B; por 
 
 A Tabela~\ref{tab:capsule} apresenta os resultados da segmentação da cápsula no teste manual deduplicado, comum às quatro arquiteturas comparadas.
 
+As taxas de FPS dessa tabela pertencem ao benchmark original, que inclui
+carregamento dos lotes, transferência para a GPU, pós-processamento e cálculo
+das métricas. Para separar o custo da rede desses componentes, a subseção
+posterior apresenta um benchmark controlado de \textit{forward} com protocolo
+comum à estudante e ao SegFormer.
+
 \begin{table}[htb]
 \centering
 \caption{Segmentação da cápsula em 70 imagens de teste manual deduplicado do \texttt{kidneyUS}.}
@@ -526,7 +543,7 @@ UNet++ & 0,9099 & 0,8419 & 0,8910 & 0,9419 & 16,57 \\
 
 A U-Net obteve o maior Dice ($0{,}9290$), IoU ($0{,}8722$), precisão ($0{,}9236$) e \textit{recall} ($0{,}9440$) entre as configurações comparadas. O SegFormer-B0 alcançou a maior taxa de inferência ($31{,}34$ FPS), em contraste com $18{,}11$ FPS da U-Net. O ganho de sobreposição da U-Net em relação ao SegFormer foi de $0{,}0067$ em Dice nesse teste; sem intervalo de confiança por exame ou comparação pareada de diferenças, não se deve converter essa distância numérica em alegação de superioridade estatística.
 
-A escolha da U-Net para localizar a ROI renal baseou-se no desempenho observado e no papel crítico da máscara externa. Essa escolha não implica que o modelo apresente a mesma qualidade em imagens externas. A diversidade de qualidade visual exige análise de erros e validação específica para novas fontes.
+A escolha inicial da U-Net para localizar a ROI renal baseou-se no desempenho observado e no papel crítico da máscara externa. Após a destilação, a aplicação utiliza a U-Net estudante descrita na subseção seguinte; essa mudança não implica que o modelo apresente a mesma qualidade em imagens externas. A diversidade de qualidade visual exige análise de erros e validação específica para novas fontes.
 
 A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que as condições de aquisição favorecem a delimitação; a imagem não substitui a avaliação agregada da Tabela~\ref{tab:capsule}.
 
@@ -573,6 +590,96 @@ DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
 \end{table}
 
 A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). Em ambas, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
+
+Como experimento piloto do caminho de destilação, foi treinada uma U-Net
+estudante com 32 canais de base, usando 328 imagens manuais para treino, 70
+para validação e 70 para teste independente. A estudante combinou a perda
+supervisionada da máscara manual com a perda de destilação das probabilidades
+médias da U-Net e da DeepLabV3, com temperatura $T=2$ e peso de destilação
+$0{,}5$. A seleção do checkpoint ocorreu na validação; o teste foi consultado
+somente ao final.
+
+\begin{table}[htb]
+\centering
+\caption{Piloto da destilação de conhecimento no teste manual independente.}
+\label{tab:destilacao_capsula}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Modelo} & \textbf{Dice} & \textbf{IoU} \\
+\midrule
+U-Net professora & 0,9302 & 0,8738 \\
+DeepLabV3 professora & 0,9182 & 0,8587 \\
+U-Net estudante destilada & 0,8847 & 0,7932 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O resultado confirma a execução do protocolo, mas não demonstra superioridade
+da estudante: nesta primeira configuração, seu desempenho ficou abaixo dos dois
+professores. Ainda assim, o checkpoint destilado foi adotado como modelo
+operacional da aplicação por concentrar o conhecimento dos professores em uma
+única rede e reduzir o custo de memória em relação a mantê-los simultaneamente
+na inferência. Essa é uma decisão de implantação, não uma alegação de
+superioridade estatística; a qualidade da estudante deve continuar sendo
+monitorada e comparada com os professores em avaliações futuras.
+
+\subsection{Modelo operacional destilado: arquitetura, pesos e custo de inferência}
+
+A estudante é uma U-Net convolucional binária com três canais de entrada e um
+canal de saída. Sua arquitetura utiliza quatro blocos de codificação com 32,
+64, 128 e 256 canais, um \textit{bottleneck} com 512 canais e quatro blocos de
+decodificação com convoluções transpostas e conexões de salto. Cada bloco
+\texttt{DoubleConv} contém duas convoluções $3\times3$, normalização em lote e
+ReLU; a saída é produzida por uma convolução $1\times1$. Em comparação, a U-Net
+professora utiliza a mesma topologia com 64 canais de base, enquanto a
+DeepLabV3 professora utiliza backbone ResNet-50 e ASPP com convoluções
+atrous. Assim, a destilação não combina as arquiteturas em uma rede híbrida:
+transfere para a U-Net menor as probabilidades médias produzidas pelos dois
+professores.
+
+O treinamento foi realizado com imagens de $256\times256$ pixels, lote 16,
+AdamW, taxa de aprendizagem $10^{-4}$, decaimento $10^{-5}$, aumento de dados e
+CLAHE no treino. A função objetivo combinou BCE+Dice supervisionada pela
+máscara manual, com peso 1,0, e a perda de destilação, com peso 0,5 e
+temperatura $T=2$. Foram executadas 12 épocas, com seleção pela validação e
+semente 42; o treinamento levou 175,1~s na RTX 3050 de 8~GB. O limiar salvo
+para a aplicação é 0,45. A estudante possui 7.765.985 parâmetros e seu
+checkpoint ocupa 29,69~MiB; os checkpoints da U-Net e da DeepLabV3 professoras
+ocupam, respectivamente, 118,51~MiB e 160,56~MiB.
+
+A Tabela~\ref{tab:tempo_destilado} compara o custo de uma passagem direta
+pela rede. O protocolo utilizou a mesma RTX 3050, imagens de $256\times256$,
+lote 8, 73 imagens do conjunto de teste, sincronização CUDA e medição somente
+do \textit{forward}, sem incluir carregamento do modelo, leitura do disco ou
+cálculo das métricas. O SegFormer-B0 foi mantido como referência porque havia
+apresentado a maior velocidade entre os comparadores.
+
+\begin{table}[htb]
+\centering
+\scriptsize
+\caption{Custo controlado de inferência na RTX 3050; uma única passagem direta, sem pré-processamento e sem métricas.}
+\label{tab:tempo_destilado}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Modelo} & \textbf{Parâmetros} & \textbf{Pesos (MiB)} & \textbf{ms/imagem} & \textbf{FPS} \\
+\midrule
+U-Net professora & 31.043.521 & 118,51 & 18,19 & 54,97 \\
+DeepLabV3 professora & 41.998.934 & 160,56 & 15,23 & 65,65 \\
+U-Net estudante & 7.765.985 & 29,69 & 6,51 & 153,51 \\
+SegFormer-B0 & 3.714.401 & 14,25 & 2,74 & 365,61 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O resultado mostra que a estudante reduz substancialmente o custo em relação
+aos professores: seu tempo por imagem é aproximadamente 64\% menor que o da
+U-Net professora e 57\% menor que o da DeepLabV3. O SegFormer-B0 continua sendo
+o mais rápido no protocolo controlado, com 2,74~ms por imagem; portanto, a
+adoção da estudante não é justificada por velocidade máxima, mas pelo
+compromisso entre uma única arquitetura convolucional, menor custo que os
+professores e a transferência do consenso usado no treinamento. O modelo
+escolhido permanece dependente de revisão humana e não produz diagnóstico
+clínico.
 
 \subsection{Estudo piloto do comportamento do assistente multimodal}
 

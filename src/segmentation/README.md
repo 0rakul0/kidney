@@ -139,3 +139,47 @@ Resultado externo:
 
 O consenso e um indicador para priorizar revisao, nao uma validacao automatica.
 
+## Destilacao de conhecimento para a U-Net operacional
+
+O caminho experimental para transformar o consenso em um modelo único está
+implementado em `experiments/train_distilled_unet.py`. A U-Net e a DeepLabV3
+atuam como professores; suas probabilidades são combinadas pela média
+aritmética e usadas, junto às máscaras manuais, para treinar uma terceira U-Net
+estudante. A temperatura e os pesos das perdas são registrados no metadado do
+checkpoint. O parâmetro `--consensus-only` permite restringir o treinamento às
+imagens cujo Dice entre professores seja pelo menos o valor de
+`--min-teacher-agreement`.
+
+O comando reproduzível é:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_distilled_unet.py `
+  --epochs 12 `
+  --early-stopping 4 `
+  --batch-size 16 `
+  --base-channels 32 `
+  --experiment-name capsule_distilled_unet_v1
+```
+
+O script gera um cache dos professores em
+`results/segmentation_experiments/capsule_distilled_unet/teacher_cache/`, salva
+o checkpoint estudante em `models/kidneyus_capsule_distilled_unet.pth` e grava
+histórico e resumo JSON. O conjunto deduplicado mantém 328 imagens para
+treino, 70 para validação e 70 para teste; o teste manual só é consultado após
+a seleção do checkpoint.
+
+Na primeira execução registrada, a estudante de 32 canais obteve Dice de
+`0,8847` e IoU de `0,7932` no teste independente, enquanto os professores
+obtiveram Dice de `0,9302` (U-Net) e `0,9182` (DeepLabV3). A estudante foi
+adotada como modelo operacional único da Curadoria Web para concentrar o
+conhecimento dos professores e reduzir o custo de memória da cascata. Essa
+adoção é uma decisão de implantação e não uma alegação de superioridade: os
+professores continuam sendo referências de controle e a qualidade deve ser
+monitorada em avaliações posteriores.
+
+No benchmark controlado da RTX 3050, com lote 8, entrada 256x256 e medição
+somente do `forward`, a estudante alcançou 153,51 FPS (6,51 ms por imagem),
+enquanto o SegFormer-B0 alcançou 365,61 FPS (2,74 ms por imagem). O SegFormer
+continua sendo o mais rápido, mas a estudante é mais leve que os dois
+professores e mantém a arquitetura convolucional escolhida para a aplicação.
+

@@ -41,6 +41,12 @@ Essa função requer o ambiente local do projeto com PyTorch e os checkpoints em
 `models/`; a imagem Docker de curadoria, destinada apenas à revisão de
 máscaras pré-computadas, não inclui os pesos de inferência.
 
+Por padrão, a inferência usa `models/kidneyus_capsule_distilled_unet.pth`, a
+U-Net estudante escolhida como modelo operacional da aplicação. Para testar
+outro checkpoint, defina `CURATORIA_CAPSULE_CHECKPOINT` antes de iniciar o
+servidor. A U-Net e a DeepLabV3 originais permanecem disponíveis como modelos
+professores e referências experimentais.
+
 ### Controle de qualidade assistido por IA
 
 Cada nova inferência também registra uma avaliação operacional da segmentação.
@@ -146,7 +152,7 @@ Esta tabela documenta os arquivos **confirmados no repositorio**. Alguns sao mod
 | Arquivo | O que faz | Objetivo | Entradas e saidas |
 | --- | --- | --- | --- |
 | `curadoria_web/app.py` | Servidor HTTP da curadoria: apresenta casos, imagens, mascaras, ferramentas de revisao e endpoints para exportacao. | Organizar revisao humana auditavel. | Le o manifesto visual e imagens; grava revisoes em `dataset_aumentado/curadoria/respostas/curadoria.sqlite3` e correcoes separadas. |
-| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/kidneyus_capsule_unet.pth` e `models/intrarenal_unet_multiclass_annotator1.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
+| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/kidneyus_capsule_distilled_unet.pth` e `models/intrarenal_unet_multiclass_annotator1.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
 | `curadoria_web/static/app.js` | Logica do navegador: navegacao, zoom, camadas, desenho de correcoes e envio de revisoes ao servidor. | Oferecer ferramentas interativas para inspeção e curadoria. | Endpoints da aplicacao; altera o estado exibido e envia dados ao servidor. |
 | `curadoria_web/static/inferencia.html` | Pagina de upload e visualizacao da inferencia. | Permitir testar uma imagem sem incorpora-la automaticamente ao treino. | Usa a API de `app.py` e apresenta camadas e resultados no navegador. |
 | `src/segmentation/build_dataset_geral.py` | Organiza fontes de imagens e produz pseudomascaras candidatas com checkpoint configuravel; registra manifesto. | Preparar dados com proveniencia para revisao e possivel expansao supervisionada. | Imagens e modelo; padrao do checkpoint: `models/kidneyus_capsule_dedup_unet.pth`; produz `manifest.csv` no diretorio de saida definido. |

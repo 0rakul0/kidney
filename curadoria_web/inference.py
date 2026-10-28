@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import re
 import uuid
 from datetime import datetime, timezone
@@ -79,6 +80,7 @@ class InferenceService:
                     "width": int(metadata["width"]),
                     "height": int(metadata["height"]),
                     "device": str(metadata.get("device", "unknown")),
+                    "capsule_checkpoint": str(metadata.get("capsule_checkpoint", "")),
                     "capsule_bbox": metadata.get("capsule_bbox"),
                     "quality": metadata.get("quality", {}),
                     "region_review": metadata.get("region_review", []),
@@ -100,6 +102,7 @@ class InferenceService:
             "width": result["width"],
             "height": result["height"],
             "device": result["device"],
+            "capsule_checkpoint": result.get("capsule_checkpoint", ""),
             "capsule_bbox": result["capsule_bbox"],
             "quality": result.get("quality", {}),
             "region_review": result.get("region_review", []),
@@ -128,7 +131,14 @@ class InferenceService:
             ) from error
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        kidney_checkpoint = self.project_root / "models" / "kidneyus_capsule_unet.pth"
+        configured_checkpoint = os.environ.get("CURATORIA_CAPSULE_CHECKPOINT", "").strip()
+        kidney_checkpoint = (
+            Path(configured_checkpoint)
+            if configured_checkpoint
+            else self.project_root / "models" / "kidneyus_capsule_distilled_unet.pth"
+        )
+        if not kidney_checkpoint.is_absolute():
+            kidney_checkpoint = self.project_root / kidney_checkpoint
         inner_checkpoint = self.project_root / "models" / "intrarenal_unet_multiclass_annotator1.pth"
         if not kidney_checkpoint.exists() or not inner_checkpoint.exists():
             raise RuntimeError("Os pesos de cápsula ou de segmentação intrarrenal não foram encontrados.")
@@ -516,6 +526,7 @@ class InferenceService:
             "width": image.width,
             "height": image.height,
             "device": models["device"],
+            "capsule_checkpoint": str(kidney_checkpoint),
             "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
             "quality": quality,
             "region_review": region_review,
@@ -535,7 +546,11 @@ class InferenceService:
             "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
             "qualidade": quality,
             "priorizacao_regioes": region_review,
-            "info": {"dimensao": f"{image.width} x {image.height}", "dispositivo": models["device"]},
+            "info": {
+                "dimensao": f"{image.width} x {image.height}",
+                "dispositivo": models["device"],
+                "checkpoint_capsula": str(kidney_checkpoint),
+            },
             "aviso": "Máscaras preditas para revisão; esta tela não produz diagnóstico clínico.",
         }
 
