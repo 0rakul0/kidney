@@ -84,6 +84,7 @@ async function runInference() {
     $("inference-warning").textContent = result.aviso;
     $("inference-result").hidden = false;
     $("inference-assistant-local").disabled = false;
+    $("inference-assistant-cloud").disabled = false;
     $("inference-assistant-compare").disabled = false;
     resetMaskCommand();
     message("Inferência concluída.");
@@ -274,6 +275,32 @@ async function analyzeInferenceLocal() {
   } catch (error) { assistantResultMessage(error.message, true); }
   finally { button.disabled = false; }
 }
+async function analyzeInferenceCloud() {
+  if (!currentInferenceId) return;
+  const reviewer = $("inference-reviewer").value.trim();
+  if (!reviewer) return assistantResultMessage("Informe o revisor.", true);
+  if (!$('inference-assistant-consent').checked) return assistantResultMessage("Marque o consentimento para usar a OpenAI.", true);
+  const button = $("inference-assistant-cloud");
+  button.disabled = true;
+  assistantResultMessage("Enviando a imagem e as evidências autorizadas ao GPT-6 Luna…");
+  try {
+    const response = await fetch("/api/assistant/analyze", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
+      image_id: currentInferenceId,
+      reviewer,
+      model: "unet",
+      visual_mode: $("inference-assistant-mode").value,
+      question: $("inference-assistant-question").value,
+      provider: "cloud",
+      consent_external_processing: true,
+    })});
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Falha na análise com a OpenAI.");
+    const result = payload.assistant;
+    renderInferenceAssistantResults([result], result.evidence_context || {});
+    assistantResultMessage("Análise com GPT-6 Luna concluída; revise a resposta.");
+  } catch (error) { assistantResultMessage(error.message, true); }
+  finally { button.disabled = false; }
+}
 async function compareInference() {
   if (!currentInferenceId) return;
   const reviewer = $("inference-reviewer").value.trim();
@@ -305,6 +332,7 @@ $("drop-zone").addEventListener("dragleave", () => $("drop-zone").classList.remo
 $("drop-zone").addEventListener("drop", (event) => { event.preventDefault(); $("drop-zone").classList.remove("dragging"); chooseFile(event.dataTransfer.files[0]); });
 $("run-inference").addEventListener("click", runInference);
 $("inference-assistant-local").addEventListener("click", analyzeInferenceLocal);
+$("inference-assistant-cloud").addEventListener("click", analyzeInferenceCloud);
 $("inference-assistant-compare").addEventListener("click", compareInference);
 $("inference-mask-propose").addEventListener("click", requestMaskProposal);
 $("inference-mask-apply").addEventListener("click", applyMaskProposal);

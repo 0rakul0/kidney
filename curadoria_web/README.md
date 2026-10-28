@@ -164,12 +164,16 @@ A interface reúne as ferramentas do fluxo de revisão human-in-the-loop em duas
 - correção manual das máscaras e registro das operações;
 - comparação de ecogenicidade por ROIs, com brilho cortical, CEC, contraste e relação córtex/medula;
 - inferência de uma nova imagem com vínculo por `image_id`;
-- assistente multimodal com Qwen local e comparação opcional com GPT-6 Luna;
+- assistente multimodal com Qwen local, análise individual com GPT-6 Luna e
+  comparação opcional entre os dois;
 - comandos naturais para propor refinamento, preenchimento, remoção de ruído ou
   suavização de uma máscara, sempre com confirmação explícita do revisor;
 - histórico e exportação dos registros em JSON, CSV e banco local.
 
-O painel do assistente possui o botão **Expandir**. O modo foco oculta
+O painel do assistente possui os caminhos **Analisar com Qwen local**,
+**Analisar com GPT-6 Luna** e **Comparar Qwen × GPT-6 Luna**. A análise com a
+OpenAI só é liberada quando o revisor marca o consentimento explícito para o
+processamento externo. O botão **Expandir** oculta
 visualmente o restante da interface, amplia a área de leitura da resposta e
 permite fechar pelo botão **Voltar**, clicando no fundo escurecido ou usando
 `Esc`. O mesmo comportamento está disponível na tela de inferência.

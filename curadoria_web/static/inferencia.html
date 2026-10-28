@@ -73,7 +73,7 @@
                 <textarea id="inference-assistant-question" rows="3">Quais áreas ecogênicas merecem revisão?</textarea>
               </label>
               <label class="assistant-consent"><input id="inference-assistant-consent" type="checkbox"> Permito o envio desta imagem à OpenAI</label>
-              <div class="assistant-actions"><button id="inference-assistant-local" type="button" disabled>Analisar com Qwen local</button><button id="inference-assistant-compare" type="button" disabled>Comparar Qwen × GPT-6 Luna</button></div>
+              <div class="assistant-actions"><button id="inference-assistant-local" type="button" disabled>Analisar com Qwen local</button><button id="inference-assistant-cloud" type="button" disabled>Analisar com GPT-6 Luna</button><button id="inference-assistant-compare" type="button" disabled>Comparar Qwen × GPT-6 Luna</button></div>
               <p id="inference-assistant-message" class="message" role="status"></p>
               <div id="inference-assistant-result" class="assistant-result" hidden>
                 <div id="inference-assistant-evidence" class="assistant-evidence"></div>
@@ -109,6 +109,6 @@
       </section>
     </main>
     <div class="assistant-focus-backdrop" hidden></div>
-    <script src="/inferencia.js?v=20261028_mask_commands"></script>
+    <script src="/inferencia.js?v=20261028_mask_commands_openai"></script>
   </body>
 </html>

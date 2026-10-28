@@ -252,6 +252,7 @@ body.assistant-focus-open { overflow: hidden; }
 .assistant-actions { display: grid; gap: 7px; margin-top: 12px; }
 .assistant-actions button, .assistant-result .secondary-button { min-height: 36px; padding: 7px 9px; border: 1px solid #c8d9ee; border-radius: 6px; background: #f7fbff; color: #315a8c; cursor: pointer; font-size: 12px; }
 .assistant-actions button:first-child { border-color: #9ccbc8; background: #f0fcfc; color: #087a79; }
+#inference-assistant-cloud, #assistant-cloud { border-color: #d9b8e8; background: #fbf5ff; color: #7044a2; }
 .assistant-actions button:disabled { opacity: .55; cursor: wait; }
 .assistant-result { margin-top: 12px; }
 .assistant-evidence { padding: 8px; color: #53657e; background: #f4f7fb; border-radius: 6px; font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }

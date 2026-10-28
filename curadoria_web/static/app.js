@@ -282,13 +282,14 @@ function renderAssistantResults(payload, comparison = false) {
 async function runAssistant(kind) {
   if (!state.currentId || !ensureReviewer()) return;
   const compare = kind === "compare";
-  if (compare && !$("assistant-consent").checked) {
-    assistantMessage("Marque o consentimento para comparar com o GPT-6 Luna.", true);
+  const cloud = kind === "cloud";
+  if ((compare || cloud) && !$("assistant-consent").checked) {
+    assistantMessage("Marque o consentimento para usar o GPT-6 Luna.", true);
     return;
   }
-  const button = compare ? $("assistant-compare") : $("assistant-local");
+  const button = compare ? $("assistant-compare") : cloud ? $("assistant-cloud") : $("assistant-local");
   button.disabled = true;
-  assistantMessage(compare ? "Executando Qwen e GPT-6 Luna com os mesmos artefatos…" : "Executando o Qwen com os artefatos da inferência…");
+  assistantMessage(compare ? "Executando Qwen e GPT-6 Luna com os mesmos artefatos…" : cloud ? "Enviando a imagem e as evidências autorizadas ao GPT-6 Luna…" : "Executando o Qwen com os artefatos da inferência…");
   try {
     const result = await request(`/api/assistant/${compare ? "compare" : "analyze"}`, {
       method: "POST",
@@ -299,11 +300,12 @@ async function runAssistant(kind) {
         model: state.segmentationModel,
         visual_mode: $("assistant-visual-mode").value,
         question: $("assistant-question").value,
+        provider: cloud ? "cloud" : "local",
         consent_external_processing: $("assistant-consent").checked,
       }),
     });
     renderAssistantResults(compare ? result.comparison : result, compare);
-    assistantMessage(compare ? "Comparação concluída; selecione uma linha antes de usar a resposta." : "Análise concluída; revise antes de usar a resposta.");
+    assistantMessage(compare ? "Comparação concluída; selecione uma linha antes de usar a resposta." : cloud ? "Análise com GPT-6 Luna concluída; revise antes de usar a resposta." : "Análise local concluída; revise antes de usar a resposta.");
   } catch (error) {
     assistantMessage(error.message, true);
   } finally {
@@ -758,6 +760,7 @@ document.querySelectorAll("[data-field] button").forEach((button) => button.addE
   chooseButton(button.closest("fieldset").dataset.field, button.dataset.value);
 }));
 $("assistant-local").addEventListener("click", () => runAssistant("local"));
+$("assistant-cloud").addEventListener("click", () => runAssistant("cloud"));
 $("assistant-compare").addEventListener("click", () => runAssistant("compare"));
 $("assistant-use").addEventListener("click", () => {
   const result = state.assistantResults[state.assistantSelected];

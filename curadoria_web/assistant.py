@@ -343,7 +343,7 @@ class AssistantService:
             raise AssistantAuthorizationError("Consentimento explícito é obrigatório para processamento externo.")
         raw, mime, evidence, context = self.build_request(image_id, reviewer, model, mode)
         mask_command = self.parse_mask_command(question)
-        if mask_command:
+        if mask_command and provider == "local":
             if mask_command.get("status") == "estrutura_nao_identificada":
                 command_answer = (
                     "Identifiquei um pedido de melhoria de máscara, mas a estrutura não foi determinada. "
