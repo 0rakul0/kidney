@@ -47,7 +47,7 @@ DEFAULT_DATASET = (
 DEFAULT_OUTPUT = PROJECT_ROOT / "results" / "segmentation_experiments" / "capsule_distilled_unet_segformer"
 DEFAULT_CACHE = DEFAULT_OUTPUT / "teacher_cache"
 DEFAULT_UNET_TEACHER = PROJECT_ROOT / "models" / "kidneyus_capsule_dedup_unet.pth"
-DEFAULT_DEEPLAB_TEACHER = PROJECT_ROOT / "models" / "kidneyus_capsule_dedup_segformer.pth"
+DEFAULT_SEGFORMER_TEACHER = PROJECT_ROOT / "models" / "kidneyus_capsule_dedup_segformer.pth"
 DEFAULT_STUDENT = PROJECT_ROOT / "models" / "kidneyus_capsule_distilled_unet_segformer.pth"
 
 
@@ -330,7 +330,7 @@ def parse_args():
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--cache-root", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--teacher-unet", type=Path, default=DEFAULT_UNET_TEACHER)
-    parser.add_argument("--teacher-segformer", type=Path, default=DEFAULT_DEEPLAB_TEACHER)
+    parser.add_argument("--teacher-segformer", type=Path, default=DEFAULT_SEGFORMER_TEACHER)
     parser.add_argument("--student-checkpoint", type=Path, default=DEFAULT_STUDENT)
     parser.add_argument("--experiment-name", default="capsule_distilled_unet_segformer_v1")
     parser.add_argument("--img-size", type=int, default=256)
