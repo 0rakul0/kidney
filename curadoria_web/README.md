@@ -9,13 +9,13 @@ produzida automaticamente, ela informa o checkpoint utilizado e as metricas
 documentadas do modelo (`Dice`, `IoU` e `F1`), deixando claro que esses valores
 medem desempenho em teste e nao aprovam automaticamente o caso visualizado.
 
-O caminho atual usa uma etapa intrarrenal multiclasse com DeepLabV3 dentro da
-ROI renal. O checkpoint
-`intrarenal_deeplab_resnet50_multiclass_annotator1.pth` segmenta `Cortex`,
-`Medulla` e `Central Echo Complex` em uma unica inferencia. No teste separado
-por paciente, obteve `Dice=0.682169` para `Cortex`, `0.715567` para `Medulla`
-e `0.849745` para `Central Echo Complex`; portanto, suas mascaras aparecem
-apenas como propostas para revisao.
+O caminho atual usa uma etapa intrarrenal multiclasse com a U-Net estudante
+destilada dentro da ROI renal. O checkpoint
+`intrarenal_student_unet_deeplab.pth` aprende com as máscaras manuais e com a
+média das probabilidades dos professores U-Net e DeepLabV3. No teste separado
+por paciente, obteve Dice médio foreground `0.750075`, com `Dice=0.695894`
+para `Cortex`, `0.707624` para `Medulla` e `0.846706` para `Central Echo
+Complex`; portanto, suas máscaras aparecem apenas como propostas para revisão.
 
 ## Executar
 
@@ -41,11 +41,13 @@ Essa função requer o ambiente local do projeto com PyTorch e os checkpoints em
 `models/`; a imagem Docker de curadoria, destinada apenas à revisão de
 máscaras pré-computadas, não inclui os pesos de inferência.
 
-Por padrão, a inferência usa `models/kidneyus_capsule_distilled_unet.pth`, a
-U-Net estudante escolhida como modelo operacional da aplicação. Para testar
+Por padrão, a inferência usa `models/kidneyus_capsule_student_unet_deeplab.pth`,
+a U-Net estudante destilada de U-Net + DeepLabV3 escolhida como modelo
+operacional da aplicação. Para testar
 outro checkpoint, defina `CURATORIA_CAPSULE_CHECKPOINT` antes de iniciar o
-servidor. A U-Net e a DeepLabV3 originais permanecem disponíveis como modelos
-professores e referências experimentais.
+servidor. A etapa intrarrenal pode ser substituída com
+`CURATORIA_INTRARENAL_CHECKPOINT`. As U-Net e DeepLabV3 originais permanecem
+disponíveis como modelos professores e referências experimentais.
 
 ### Controle de qualidade assistido por IA
 
@@ -152,12 +154,13 @@ Esta tabela documenta os arquivos **confirmados no repositorio**. Alguns sao mod
 | Arquivo | O que faz | Objetivo | Entradas e saidas |
 | --- | --- | --- | --- |
 | `curadoria_web/app.py` | Servidor HTTP da curadoria: apresenta casos, imagens, mascaras, ferramentas de revisao e endpoints para exportacao. | Organizar revisao humana auditavel. | Le o manifesto visual e imagens; grava revisoes em `dataset_aumentado/curadoria/respostas/curadoria.sqlite3` e correcoes separadas. |
-| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/kidneyus_capsule_distilled_unet.pth` e `models/intrarenal_unet_multiclass_annotator1.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
+| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/kidneyus_capsule_student_unet_deeplab.pth` e `models/intrarenal_student_unet_deeplab.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
 | `curadoria_web/static/app.js` | Logica do navegador: navegacao, zoom, camadas, desenho de correcoes e envio de revisoes ao servidor. | Oferecer ferramentas interativas para inspeção e curadoria. | Endpoints da aplicacao; altera o estado exibido e envia dados ao servidor. |
 | `curadoria_web/static/inferencia.html` | Pagina de upload e visualizacao da inferencia. | Permitir testar uma imagem sem incorpora-la automaticamente ao treino. | Usa a API de `app.py` e apresenta camadas e resultados no navegador. |
-| `src/segmentation/build_dataset_geral.py` | Organiza fontes de imagens e produz pseudomascaras candidatas com checkpoint configuravel; registra manifesto. | Preparar dados com proveniencia para revisao e possivel expansao supervisionada. | Imagens e modelo; padrao do checkpoint: `models/kidneyus_capsule_dedup_unet.pth`; produz `manifest.csv` no diretorio de saida definido. |
+| `src/segmentation/build_dataset_geral.py` | Organiza fontes de imagens e produz pseudomascaras candidatas com checkpoint configuravel; registra manifesto. | Preparar dados com proveniencia para revisao e possivel expansao supervisionada. | Imagens e modelo; padrao do checkpoint: `models/kidneyus_capsule_student_unet_deeplab.pth`; produz `manifest.csv` no diretorio de saida definido. |
 | `src/segmentation/experiments/train_unet.py` | Treina U-Net usando a infraestrutura compartilhada de treinamento. | Aprender segmentacao renal e avaliar o modelo. | Conjuntos particionados e argumentos de treino; gera checkpoint e metricas conforme configuracao. |
 | `src/segmentation/experiments/train_inner_deeplab.py` | Treina DeepLabV3 multiclasse na ROI renal. | Identificar cortex, medula e complexo ecogenico central. | Dataset intrarrenal e parametros; checkpoint padrao `models/intrarenal_deeplab_resnet50_multiclass_annotator1.pth`, metadados e resultados. |
+| `src/segmentation/experiments/train_distilled_inner_unet.py` | Treina a U-Net estudante multiclasse com máscaras manuais e a média das probabilidades da U-Net e da DeepLabV3 intrarrenais. | Concentrar o comportamento dos professores em um único modelo para a inferência da aplicação. | Dataset intrarrenal, dois checkpoints professores e cache de probabilidades; produz `models/intrarenal_student_unet_deeplab.pth` e métricas do teste independente. |
 | `artigo/artigo_base/compilar_artigo.ps1` | Executa LaTeX, BibTeX e repeticoes do LaTeX; verifica citacoes e rotulos das figuras. | Gerar um artigo com bibliografia e referencias cruzadas resolvidas. | `main.tex`, `.bib`, figuras e distribuicao LaTeX; produz `main.pdf`. |
 
 ### Ferramentas criadas na Curadoria Web

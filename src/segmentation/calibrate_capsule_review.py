@@ -29,7 +29,7 @@ DEFAULT_DATASET = (
     / "supervisionado"
     / "capsule_annotator_1_deduplicated"
 )
-DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "kidneyus_capsule_dedup_unet.pth"
+DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "kidneyus_capsule_student_unet_deeplab.pth"
 DEFAULT_OUTPUT = (
     PROJECT_ROOT
     / "results"

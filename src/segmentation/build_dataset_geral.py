@@ -29,7 +29,7 @@ KIDNEYUS_CAPSULE_ROOT = (
     / "capsule_annotator_1_deduplicated"
 )
 DEFAULT_OUTPUT_ROOT = DATASET_AUMENTADO_ROOT / "dataset_geral_v2"
-DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "kidneyus_capsule_dedup_unet.pth"
+DEFAULT_CHECKPOINT = PROJECT_ROOT / "models" / "kidneyus_capsule_student_unet_deeplab.pth"
 DEFAULT_REVIEW_CALIBRATION = (
     PROJECT_ROOT
     / "results"

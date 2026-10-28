@@ -1,0 +1,79 @@
+{
+  "architecture": "Distilled U-Net",
+  "task": "intrarenal_multiclass_roi",
+  "classes": {
+    "0": "background",
+    "1": "cortex",
+    "2": "medulla",
+    "3": "central_echo_complex"
+  },
+  "input_channels": [
+    "grayscale_roi",
+    "masked_kidney_roi",
+    "kidney_mask"
+  ],
+  "checkpoint": "D:\\kidney\\models\\intrarenal_student_unet_deeplab.pth",
+  "device": "cuda",
+  "teachers": {
+    "unet": "D:\\kidney\\models\\intrarenal_unet_multiclass_annotator1.pth",
+    "deeplab": "D:\\kidney\\models\\intrarenal_deeplab_resnet50_multiclass_annotator1.pth"
+  },
+  "fusion": "arithmetic_mean_of_teacher_probabilities",
+  "method": "knowledge_distillation",
+  "best_epoch": 24,
+  "best_val": {
+    "background_dice": 0.94893,
+    "background_iou": 0.902823,
+    "cortex_dice": 0.706224,
+    "cortex_iou": 0.545863,
+    "medulla_dice": 0.759486,
+    "medulla_iou": 0.612235,
+    "central_echo_complex_dice": 0.855425,
+    "central_echo_complex_iou": 0.747373,
+    "mean_foreground_dice": 0.773712,
+    "mean_foreground_iou": 0.635157,
+    "score": 0.704434
+  },
+  "test_loss": 1.486026,
+  "test": {
+    "background_dice": 0.943035,
+    "background_iou": 0.892211,
+    "cortex_dice": 0.695894,
+    "cortex_iou": 0.533618,
+    "medulla_dice": 0.707624,
+    "medulla_iou": 0.547537,
+    "central_echo_complex_dice": 0.846706,
+    "central_echo_complex_iou": 0.734163,
+    "mean_foreground_dice": 0.750075,
+    "mean_foreground_iou": 0.605106,
+    "score": 0.67759
+  },
+  "elapsed_seconds": 332.41,
+  "model_kwargs": {
+    "in_channels": 3,
+    "out_channels": 4,
+    "base_channels": 32
+  },
+  "config": {
+    "dataset_root": "D:\\kidney\\dataset_aumentado\\dataset_intrarrenal\\supervisionado\\regions_multiclass_annotator_1",
+    "student_checkpoint": "D:\\kidney\\models\\intrarenal_student_unet_deeplab.pth",
+    "teacher_unet": "D:\\kidney\\models\\intrarenal_unet_multiclass_annotator1.pth",
+    "teacher_deeplab": "D:\\kidney\\models\\intrarenal_deeplab_resnet50_multiclass_annotator1.pth",
+    "experiment_name": "intrarenal_student_unet_deeplab",
+    "img_size": 256,
+    "epochs": 50,
+    "batch_size": 8,
+    "teacher_batch_size": 1,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05,
+    "early_stopping": 10,
+    "num_workers": 0,
+    "seed": 42,
+    "clahe": true,
+    "augment": true,
+    "base_channels": 32,
+    "temperature": 2.0,
+    "supervised_weight": 1.0,
+    "distillation_weight": 0.5
+  }
+}

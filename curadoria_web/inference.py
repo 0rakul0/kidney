@@ -81,6 +81,7 @@ class InferenceService:
                     "height": int(metadata["height"]),
                     "device": str(metadata.get("device", "unknown")),
                     "capsule_checkpoint": str(metadata.get("capsule_checkpoint", "")),
+                    "intrarenal_checkpoint": str(metadata.get("intrarenal_checkpoint", "")),
                     "capsule_bbox": metadata.get("capsule_bbox"),
                     "quality": metadata.get("quality", {}),
                     "region_review": metadata.get("region_review", []),
@@ -103,6 +104,7 @@ class InferenceService:
             "height": result["height"],
             "device": result["device"],
             "capsule_checkpoint": result.get("capsule_checkpoint", ""),
+            "intrarenal_checkpoint": result.get("intrarenal_checkpoint", ""),
             "capsule_bbox": result["capsule_bbox"],
             "quality": result.get("quality", {}),
             "region_review": result.get("region_review", []),
@@ -135,11 +137,18 @@ class InferenceService:
         kidney_checkpoint = (
             Path(configured_checkpoint)
             if configured_checkpoint
-            else self.project_root / "models" / "kidneyus_capsule_distilled_unet.pth"
+            else self.project_root / "models" / "kidneyus_capsule_student_unet_deeplab.pth"
         )
         if not kidney_checkpoint.is_absolute():
             kidney_checkpoint = self.project_root / kidney_checkpoint
-        inner_checkpoint = self.project_root / "models" / "intrarenal_unet_multiclass_annotator1.pth"
+        configured_inner_checkpoint = os.environ.get("CURATORIA_INTRARENAL_CHECKPOINT", "").strip()
+        inner_checkpoint = (
+            Path(configured_inner_checkpoint)
+            if configured_inner_checkpoint
+            else self.project_root / "models" / "intrarenal_student_unet_deeplab.pth"
+        )
+        if not inner_checkpoint.is_absolute():
+            inner_checkpoint = self.project_root / inner_checkpoint
         if not kidney_checkpoint.exists() or not inner_checkpoint.exists():
             raise RuntimeError("Os pesos de cápsula ou de segmentação intrarrenal não foram encontrados.")
         kidney = load_model_bundle("unet", device=device, checkpoint_path=kidney_checkpoint)
@@ -157,6 +166,7 @@ class InferenceService:
             "device": device,
             "kidney": kidney,
             "inner": inner.eval(),
+            "inner_checkpoint": inner_checkpoint,
             "inner_size": inner_size,
             "keep_largest_component": keep_largest_component,
             "predict_probability": predict_probability,
@@ -526,7 +536,8 @@ class InferenceService:
             "width": image.width,
             "height": image.height,
             "device": models["device"],
-            "capsule_checkpoint": str(kidney_checkpoint),
+            "capsule_checkpoint": str(models["kidney"]["checkpoint_path"]),
+            "intrarenal_checkpoint": str(models["inner_checkpoint"]),
             "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
             "quality": quality,
             "region_review": region_review,
@@ -549,7 +560,8 @@ class InferenceService:
             "info": {
                 "dimensao": f"{image.width} x {image.height}",
                 "dispositivo": models["device"],
-                "checkpoint_capsula": str(kidney_checkpoint),
+                "checkpoint_capsula": str(models["kidney"]["checkpoint_path"]),
+                "checkpoint_intrarrenal": str(models["inner_checkpoint"]),
             },
             "aviso": "Máscaras preditas para revisão; esta tela não produz diagnóstico clínico.",
         }

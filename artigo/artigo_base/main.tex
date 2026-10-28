@@ -43,11 +43,11 @@ Felipe da R. Henriques\inst{1}}
 \maketitle
 
 \begin{abstract}
-Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, U-Net produced 3,534 candidates; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
+Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the winning distilled student produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
 \end{abstract}
 
 \begin{resumo}
-A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a U-Net produziu 3.534 candidatas; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
+A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada vencedora produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
 \end{resumo}
 
 \section{Introdução}
@@ -127,7 +127,7 @@ A Figura~\ref{fig:arquitetura_unet} apresenta esquematicamente os principais com
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.94\linewidth]{figures/arquitetura_unet.png}
+\includegraphics[width=0.90\linewidth]{figures/arquitetura_unet.png}
 \caption{Representação esquemática da arquitetura U-Net utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Ronneberger2015}.}
 \label{fig:arquitetura_unet}
 \end{figure}
@@ -148,7 +148,7 @@ A Figura~\ref{fig:arquitetura_unetplusplus} apresenta esquematicamente os princi
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.94\linewidth]{figures/arquitetura_unetplusplus.png}
+\includegraphics[width=0.90\linewidth]{figures/arquitetura_unetplusplus.png}
 \caption{Representação esquemática da arquitetura U-Net++ utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Zhou2018UNetPP}.}
 \label{fig:arquitetura_unetplusplus}
 \end{figure}
@@ -173,7 +173,7 @@ A Figura~\ref{fig:arquitetura_deeplabv3} apresenta a arquitetura DeepLabV3 empre
 
 \begin{figure}[htbp]
 \centering
-\resizebox{0.94\linewidth}{!}{%
+\resizebox{0.90\linewidth}{!}{%
 \begin{tikzpicture}[
 >=Latex,
 every node/.style={font=\scriptsize,align=center},
@@ -222,7 +222,7 @@ A Figura~\ref{fig:arquitetura_segformer_b0} apresenta esquematicamente os princi
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.94\linewidth]{figures/arquitetura_segformer_b0.png}
+\includegraphics[width=0.90\linewidth]{figures/arquitetura_segformer_b0.png}
 \caption{Representação esquemática da arquitetura SegFormer-B0 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Xie2021SegFormer}.}
 \label{fig:arquitetura_segformer_b0}
 \end{figure}
@@ -362,7 +362,7 @@ A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas et
 
 \begin{figure}[htbp]
 \centering
-\resizebox{0.96\linewidth}{!}{%
+\resizebox{0.92\linewidth}{!}{%
 \begin{tikzpicture}[
  >=Latex,
  every node/.style={font=\footnotesize,align=center},
@@ -428,9 +428,9 @@ A deduplicação por hash identifica conteúdos idênticos; o agrupamento por ex
 
 \subsection{Pré-processamento e benchmark da cápsula}
 
-Os segmentadores são treinados com imagens normalizadas e redimensionadas; na configuração deduplicada de referência da U-Net, a entrada possui 256 por 256 pixels, CLAHE é aplicado ao ramo de segmentação e o aumento de dados é restrito ao treinamento. O treinamento registrado utiliza AdamW, taxa inicial de aprendizado de $10^{-4}$ e perda combinada de entropia cruzada binária e Dice. A seleção do checkpoint e do limiar de decisão ocorre com base na validação; para a U-Net de cápsula consolidada, o limiar documentado é $0{,}35$. A inferência de pseudomáscaras externas utiliza também a imagem espelhada horizontalmente, agregando as previsões antes da binarização.
+Os segmentadores são treinados com imagens normalizadas e redimensionadas; na configuração deduplicada de referência da U-Net, a entrada possui 256 por 256 pixels, CLAHE é aplicado ao ramo de segmentação e o aumento de dados é restrito ao treinamento. O treinamento registrado utiliza AdamW, taxa inicial de aprendizado de $10^{-4}$ e perda combinada de entropia cruzada binária e Dice. A seleção do checkpoint e do limiar de decisão ocorre com base na validação; para a U-Net de cápsula consolidada de referência, o limiar documentado é $0{,}35$, enquanto a estudante destilada operacional utiliza $0{,}60$. A inferência de pseudomáscaras externas utiliza também a imagem espelhada horizontalmente, agregando as previsões antes da binarização.
 
-U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 são comparados no mesmo teste deduplicado. A qualidade de sobreposição é reportada por Dice e IoU~\cite{Taha2015Metrics}; precisão e \textit{recall} identificam tendências de supersegmentação ou omissão, enquanto quadros por segundo (FPS) informam o custo de inferência nas condições do benchmark. A U-Net foi a referência inicial da cascata; após o experimento de destilação, a aplicação passou a utilizar a U-Net estudante destilada como modelo operacional único.
+U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 são comparados no mesmo teste deduplicado. A qualidade de sobreposição é reportada por Dice e IoU~\cite{Taha2015Metrics}; precisão e \textit{recall} identificam tendências de supersegmentação ou omissão, enquanto quadros por segundo (FPS) informam o custo de inferência nas condições do benchmark. A U-Net foi a referência inicial da cascata; após o experimento de destilação, a aplicação passou a utilizar a U-Net estudante vencedora da combinação U-Net + DeepLabV3 como modelo operacional único para inferência e geração de pseudomáscaras.
 
 \subsection{Fonte externa, pseudomáscaras e consenso}
 
@@ -472,11 +472,20 @@ com $T=2$, $\lambda_{sup}=1$ e $\lambda_{KD}=0{,}5$. No controle sem professores
 
 Os experimentos utilizam os mesmos conjuntos manuais deduplicados de 328 imagens para treino, 70 para validação e 70 para teste. O limiar e o checkpoint da estudante devem ser escolhidos na validação e mantidos fixos durante a avaliação independente. Para comparações entre configurações, registram-se Dice, IoU, parâmetros, tamanho dos pesos e tempo de inferência em um protocolo comum. Precisão, \textit{recall}, análise por exame e intervalos de confiança constituem extensões importantes da avaliação. O filtro opcional de concordância mínima entre professores é tratado como uma ablação separada, pois altera a composição do conjunto de treinamento.
 
-O piloto U-Net--DeepLabV3 já foi executado e é reportado na Seção de Resultados. As combinações com SegFormer-B0 e o controle sem destilação encontram-se implementados como experimentos reproduzíveis, mas seus resultados quantitativos ainda não foram obtidos neste documento. A escolha operacional de uma estudante é uma decisão de implantação que deverá ser reavaliada à luz da qualidade anatômica e não apenas da velocidade.
+O piloto U-Net--DeepLabV3 e as demais combinações de professores já foram executados e são reportados na Seção de Resultados. A escolha operacional de uma estudante é uma decisão de implantação que deverá ser reavaliada à luz da qualidade anatômica e não apenas da velocidade.
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
 A análise interna prediz quatro classes: fundo, córtex, medula e CEC. A U-Net multiclasse e a DeepLabV3 multiclasse recebem, no fluxo consolidado, três canais correspondentes à ROI em tons de cinza, à ROI com o exterior do rim mascarado e à máscara de cápsula. O treinamento da U-Net documentado utiliza imagens de 256 por 256 pixels, AdamW, taxa inicial de $10^{-4}$ e perda de entropia cruzada multiclasse combinada com Dice. A avaliação reporta Dice e IoU por estrutura, além das médias sobre as classes de primeiro plano.
+
+Para a implantação, foi treinada uma segunda estudante destilada, agora
+multiclasse e específica da etapa intrarrenal, com 235 imagens para treino, 50
+para validação e 50 para teste independente. Ela utiliza 32 canais de base e
+combina a supervisão manual com a média das probabilidades produzidas pela
+U-Net e pela DeepLabV3 intrarrenais, com temperatura $T=2$ e peso de
+destilação $0{,}5$. Os professores são necessários apenas para formar os alvos
+suaves durante o treinamento; na inferência da cascata, somente a estudante é
+carregada.
 
 Duas séries independentes de anotações do \texttt{kidneyUS} permitem calcular concordância interobservador por estrutura. Esse resultado serve para contextualizar ambiguidades da referência, sem estabelecer que a rede superou um humano: as comparações humano--humano e modelo--anotador possuem pares e desenhos distintos.
 
@@ -497,7 +506,7 @@ A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente. 
 A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de curadoria, a identificação do revisor e os controles disponíveis na interface.
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_visao_geral.png}
+\includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_visao_geral.png}
 \caption{Visão geral da interface de Curadoria Web: fila de imagens à esquerda, visualizador de ultrassonografia renal ao centro e, à direita, metadados dos modelos e controles de revisão das anotações. O painel de progresso e filtros está recolhido. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
 \label{fig:curadoria_visao_geral}
 \end{figure}
@@ -507,7 +516,7 @@ A visão geral reúne a fila de casos, o visualizador e os controles de revisão
 A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do mesmo caso, destinada ao exame da imagem renal sem distrações dos painéis laterais.
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
+\includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
 \caption{Visualização ampliada de uma ultrassonografia renal na Curadoria Web: área de inspeção do exame, ferramentas de navegação e controles das camadas anatômicas. As sobreposições das máscaras estão desativadas nesta captura. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
 \label{fig:curadoria_revisao_caso}
 \end{figure}
@@ -517,14 +526,14 @@ Na captura ampliada, as máscaras estão desativadas; na aplicação, elas podem
 A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração de uma edição manual com a ferramenta de pincel.
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
+\includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
 \caption{Tela de correção manual de máscaras na Curadoria Web: ferramenta pincel selecionada para substituir a máscara da classe córtex. A imagem documenta a configuração da edição, não uma correção concluída. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
 \label{fig:curadoria_correcao_mascara}
 \end{figure}
 
 A tela mostra a seleção da classe e da operação, mas não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída. A persistência e o histórico são propriedades verificáveis na implementação.
 
-O módulo de inferência recebe uma nova imagem, executa a U-Net estudante destilada da cápsula, recorta a ROI renal, aplica a U-Net intrarrenal e reconstrói máscaras no espaço da imagem. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
+O módulo de inferência recebe uma nova imagem, executa a U-Net estudante vencedora da cápsula (\texttt{kidneyus\_capsule\_student\_unet\_deeplab.pth}), recorta a ROI renal, aplica a U-Net estudante intrarrenal destilada (\texttt{intrarenal\_student\_unet\_deeplab.pth}) e reconstrói máscaras no espaço da imagem. O mesmo checkpoint de cápsula é utilizado pelo construtor de pseudomáscaras do MONAI. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
@@ -550,7 +559,7 @@ A mediana dos $R_i$ é a medida exploratória principal e o IQR descreve sua dis
 A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativo de duas ROIs circulares posicionadas manualmente sobre as máscaras anatômicas.
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
+\includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
 \caption{Comparador de ecogenicidade da Curadoria Web: seleção manual de ROIs sobre máscaras anatômicas e cálculo da razão de brilho CEC (A)/córtex (B) para o par selecionado, usando a imagem original sem CLAHE. Essa razão local não corresponde ao indicador global córtex/CEC nem constitui diagnóstico. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
 \label{fig:curadoria_rois_ecogenicidade}
 \end{figure}
@@ -593,7 +602,7 @@ A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que a
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=\linewidth]{figures/quality_good_comparison.png}
+\includegraphics[width=0.92\linewidth]{figures/quality_good_comparison.png}
 \caption{Exemplo qualitativo de segmentação em imagem com condições favoráveis de delimitação renal. A inspeção visual complementa, mas não substitui, as métricas agregadas.}
 \label{fig:qualidade_favoravel}
 \end{figure}
@@ -602,13 +611,35 @@ Na imagem apresentada, o contorno previsto acompanha visualmente a região renal
 
 \subsection{Consenso \textit{out-of-fold} e imagens externas}
 
-Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. Nas 4.479 imagens externas do MONAI, a U-Net produziu 3.534 pseudomáscaras candidatas; as outras 945 não receberam predição não vazia desse modelo no recorte analisado. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam cobertura e não acurácia anatômica.
+Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. Para avaliar a implantação da estudante, a Tabela~\ref{tab:pseudomascaras_monai} compara a cobertura operacional no mesmo lote de 4.479 imagens externas do MONAI. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
+
+\begin{table}[htb]
+\centering
+\caption{Cobertura operacional de pseudomáscaras no lote externo do MONAI.}
+\label{tab:pseudomascaras_monai}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Situação} & \textbf{Pseudomáscaras MONAI não vazias} & \textbf{Imagens sem máscara} \\
+\midrule
+Antes & 3.534 de 4.479 & 945 \\
+Modelo destilado & 3.707 de 4.479 & 772 \\
+Diferença & \textbf{+173 imagens} & \textbf{-173 imagens} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O modelo destilado aumentou a cobertura de propostas não vazias de 78,9\% para
+82,8\%, correspondendo a 173 imagens adicionais processadas com uma máscara
+candidata. Esse resultado demonstra o funcionamento operacional da estudante
+no fluxo de geração de pseudomáscaras e sua integração ao pipeline. Entretanto,
+não demonstra, isoladamente, melhora da qualidade anatômica: essa questão exige
+comparação com referências manuais, análise por imagem e revisão especializada.
 
 A Figura~\ref{fig:divergencia} ilustra um caso em que a discordância entre modelos justifica a inspeção humana.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.95\linewidth]{figures/unet_deeplab_divergence.png}
+\includegraphics[width=0.90\linewidth]{figures/unet_deeplab_divergence.png}
 \caption{Exemplo de divergência entre predições de U-Net e DeepLabV3. Discordância orienta inspeção humana, mas concordância também não certifica o contorno renal.}
 \label{fig:divergencia}
 \end{figure}
@@ -629,13 +660,14 @@ A Tabela~\ref{tab:intrarenal} apresenta o desempenho dos modelos no teste manual
 \midrule
 U-Net & \textbf{0,7075} & \textbf{0,7237} & 0,8469 & \textbf{0,7594} & \textbf{0,6163} \\
 DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
+U-Net estudante destilada & 0,6959 & 0,7076 & 0,8467 & 0,7501 & 0,6051 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). Em ambas, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
+A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). A estudante destilada alcançou Dice médio $0{,}7501$ e IoU médio $0{,}6051$, com desempenho próximo aos professores neste teste. Em todos os modelos, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
 
-Como experimento piloto do caminho de destilação, foi treinada uma U-Net
+Como experimento piloto inicial do caminho de destilação, foi treinada uma U-Net
 estudante com 32 canais de base, usando 328 imagens manuais para treino, 70
 para validação e 70 para teste independente. A estudante combinou a perda
 supervisionada da máscara manual com a perda de destilação das probabilidades
@@ -645,7 +677,7 @@ somente ao final.
 
 \begin{table}[htb]
 \centering
-\caption{Piloto da destilação de conhecimento no teste manual independente.}
+\caption{Piloto inicial da destilação de conhecimento no teste manual independente; a seleção operacional posterior é apresentada na matriz de combinações de professores.}
 \label{tab:destilacao_capsula}
 \begin{tabular}{lcc}
 \toprule
@@ -686,8 +718,8 @@ AdamW, taxa de aprendizagem $10^{-4}$, decaimento $10^{-5}$, aumento de dados e
 CLAHE no treino. A função objetivo combinou BCE+Dice supervisionada pela
 máscara manual, com peso 1,0, e a perda de destilação, com peso 0,5 e
 temperatura $T=2$. Foram executadas 12 épocas, com seleção pela validação e
-semente 42; o treinamento levou 175,1~s na RTX 3050 de 8~GB. O limiar salvo
-para a aplicação é 0,45. A estudante possui 7.765.985 parâmetros e seu
+semente 42; o treinamento levou 168,2~s na RTX 3050 de 8~GB. O limiar salvo
+para a aplicação é 0,60. A estudante possui 7.765.985 parâmetros e seu
 checkpoint ocupa 29,69~MiB; os checkpoints da U-Net e da DeepLabV3 professoras
 ocupam, respectivamente, 118,51~MiB e 160,56~MiB.
 
@@ -725,6 +757,41 @@ professores e a transferência do consenso usado no treinamento. O modelo
 escolhido permanece dependente de revisão humana e não produz diagnóstico
 clínico.
 
+As cinco configurações da matriz produzem a mesma arquitetura de estudante,
+com 32 canais de base; portanto, o número de professores utilizados durante o
+treino não aumenta o custo de inferência da aplicação. A diferença entre elas
+está no alvo suave usado durante a destilação. A Tabela~\ref{tab:matriz_destilacao}
+apresenta a comparação realizada com o mesmo particionamento manual. Os
+\textit{checkpoints} foram selecionados pela validação; o conjunto de teste
+independente é apresentado para comparação final e não foi usado para ajustar
+hiperparâmetros.
+
+\begin{table}[htb]
+\centering
+\scriptsize
+\caption{Comparação das combinações de professores na destilação da U-Net estudante.}
+\label{tab:matriz_destilacao}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Professores} & \textbf{Dice val.} & \textbf{IoU val.} & \textbf{Dice teste} & \textbf{IoU teste} \\
+\midrule
+Nenhum (baseline) & 0,9108 & 0,8363 & 0,8978 & 0,8145 \\
+U-Net + DeepLabV3 & 0,9093 & 0,8337 & \textbf{0,9078} & \textbf{0,8312} \\
+U-Net + SegFormer-B0 & 0,9027 & 0,8226 & 0,8965 & 0,8125 \\
+DeepLabV3 + SegFormer-B0 & \textbf{0,9109} & \textbf{0,8363} & 0,8847 & 0,7933 \\
+U-Net + DeepLabV3 + SegFormer-B0 & 0,9101 & 0,8351 & 0,9078 & 0,8311 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+No conjunto de teste, a combinação U-Net--DeepLabV3 apresentou o maior Dice e
+IoU entre as estudantes, com desempenho praticamente empatado com o trio de
+professores. Essa diferença deve ser interpretada como resultado deste estudo
+piloto, sem alegação de superioridade estatística. O SegFormer-B0 continua
+sendo o modelo mais rápido, com 2,74~ms por imagem; entre as estudantes, o
+tempo permanece aproximadamente igual porque todas executam a mesma U-Net e os
+professores não são carregados durante a inferência.
+
 \subsection{Estudo piloto do comportamento do assistente multimodal}
 
 Para avaliar o comportamento do assistente como apoio à interpretação da imagem,
@@ -747,7 +814,7 @@ A Figura~\ref{fig:assistente_piloto_mascaras} documenta visualmente o conjunto d
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{figures/assistente_piloto_mascaras_detalhadas.png}
+\includegraphics[width=0.92\linewidth]{figures/assistente_piloto_mascaras_detalhadas.png}
 \caption{Evidências visuais do estudo piloto multimodal: imagem B-mode original, máscaras individuais de rim, córtex, medula e CEC e sobreposição conjunta. As máscaras individuais são apresentadas sobre a imagem para facilitar a localização de cada estrutura; as cores representam rim em vermelho, córtex em ciano, medula em amarelo e CEC em laranja. As máscaras foram geradas automaticamente pela cascata da Curadoria Web, com U-Net da cápsula (\texttt{models/kidneyus\_capsule\_unet.pth}) e U-Net multiclasse intrarrenal (\texttt{models/intrarenal\_unet\_multiclass\_annotator1.pth}). Fonte: elaboração própria a partir da inferência registrada em \texttt{inferencias/infer\_0141d6c60b3a}.}
 \label{fig:assistente_piloto_mascaras}
 \end{figure}
@@ -803,7 +870,7 @@ revisão antes da formulação da pergunta ao assistente.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
+\includegraphics[width=0.88\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
 \caption{Exemplo de imagem renal apresentada para apoio assistencial, com a
   sobreposição visual das máscaras de rim, córtex, medula e CEC. A imagem e as
   máscaras foram recuperadas do manifesto de curadoria; a visualização não
@@ -821,7 +888,7 @@ local ou comparação.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.58\linewidth]{figures/assistente_exemplo_interface.png}
+\includegraphics[width=0.54\linewidth]{figures/assistente_exemplo_interface.png}
 \caption{Interface do assistente visual durante o exemplo de uso assistencial.
   A Curadoria Web apresenta o contexto visual, a pergunta, as opções de
   execução e as evidências recuperadas da imagem selecionada.}
@@ -973,7 +1040,7 @@ O próximo eixo será verificar como as diferenças de segmentação se propagam
 
 \section{Conclusão}
 
-Este trabalho apresentou a organização de um pipeline rastreável para análise quantitativa de ultrassonografia renal, articulando segmentação da cápsula, consenso entre modelos, curadoria humana, segmentação intrarrenal e mensuração exploratória de ecogenicidade. O teste manual deduplicado documentou Dice de $0{,}9290$ para a cápsula com U-Net; a mesma arquitetura obteve Dice médio $0{,}7594$ na segmentação multiclasse de córtex, medula e CEC em outro conjunto de teste. A geração de 3.534 pseudomáscaras externas demonstrou cobertura operacional, não acurácia clínica.
+Este trabalho apresentou a organização de um pipeline rastreável para análise quantitativa de ultrassonografia renal, articulando segmentação da cápsula, consenso entre modelos, curadoria humana, segmentação intrarrenal e mensuração exploratória de ecogenicidade. O teste manual deduplicado documentou Dice de $0{,}9290$ para a cápsula com U-Net; a mesma arquitetura obteve Dice médio $0{,}7594$ na segmentação multiclasse de córtex, medula e CEC em outro conjunto de teste. A estudante destilada aumentou de 3.534 para 3.707 o número de pseudomáscaras externas não vazias no lote MONAI, demonstrando funcionamento operacional, mas não acurácia clínica.
 
 A expansão preliminar de treino de medula não melhorou o Dice do teste manual, evidenciando a necessidade de avaliar qualidade de anotação e efeito da curadoria antes de interpretar quantidade de dados como benefício. A contribuição atual está na estrutura metodológica que preserva proveniência e separa predição automática, revisão humana e medida quantitativa. O protocolo córtex--CEC constitui uma etapa promissora para estudos de estabilidade de imagem, ainda sem validação clínica. A continuidade da pesquisa deverá testar o efeito da revisão humana e a repetibilidade das medidas, mantendo a interpretação de fibrose e de doença renal crônica fora do escopo dos resultados atualmente demonstrados.
 

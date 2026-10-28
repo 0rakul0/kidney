@@ -113,6 +113,10 @@ Hao, P., Zhang, J., Zhang, S., Wu, F., and Tian, S. (2026).
   ultrasound reports with large language models.
 \newblock {\em Scientific Reports}, 16(1).
 
+\bibitem[Hinton et~al. 2015]{Hinton2015Distillation}
+Hinton, G., Vinyals, O., and Dean, J. (2015).
+\newblock Distilling the knowledge in a neural network.
+
 \bibitem[Huang et~al. 2025]{Huang2025SemiPLC}
 Huang, S., Wang, S., Qiao, S., Liu, Y., and Liu, T. (2025).
 \newblock Semi-plc: A framework for semi-supervised medical images segmentation
@@ -174,6 +178,20 @@ Moghazi, S., Jones, E., Schroepple, J., et~al. (2005).
 \newblock \url{https://docs.ohif.org/}.
 \newblock Documentacao tecnica consultada em outubro de 2026.
 
+\bibitem[Qi et~al. 2024]{Qi2024GKD}
+Qi, X., Wu, Z., Zou, W., Ren, M., Gao, Y., Sun, M., Zhang, S., Shan, C., and
+  Sun, Z. (2024).
+\newblock Exploring generalizable distillation for efficient medical image
+  segmentation.
+\newblock {\em IEEE Journal of Biomedical and Health Informatics},
+  28(7):4170--4183.
+
+\bibitem[Qin et~al. 2021]{Qin2021MedicalKD}
+Qin, D., Bu, J.-J., Liu, Z., Shen, X., Zhou, S., Gu, J.-J., Wang, Z.-H., Wu,
+  L., and Dai, H.-F. (2021).
+\newblock Efficient medical image segmentation based on knowledge distillation.
+\newblock {\em IEEE Transactions on Medical Imaging}, 40(12):3820--3831.
+
 \bibitem[Qin et~al. 2024]{Qin2024Fibrosis}
 Qin, X., Liu, X., Xia, L., Luo, Q., and Zhang, C. (2024).
 \newblock Multimodal ultrasound deep learning to detect fibrosis in early
@@ -196,6 +214,12 @@ Ronneberger, O., Fischer, P., and Brox, T. (2015).
 Sellergren, A., Kazemzadeh, S., Mahvar, F., et~al. (2026).
 \newblock An open vision-language model for diverse medical applications.
 \newblock {\em Nature Medicine}, 32(10):3695--3704.
+
+\bibitem[Shu et~al. 2021]{Shu2021ChannelKD}
+Shu, C., Liu, Y., Gao, J., Yan, Z., and Shen, C. (2021).
+\newblock Channel-wise knowledge distillation for dense prediction.
+\newblock In {\em Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 5311--5320.
 
 \bibitem[Singla et~al. 2023]{Singla2023KidneyUS}
 Singla, R., Ringstrom, C., Hu, G., Lessoway, V., Reid, J., Nguan, C., and
@@ -250,6 +274,12 @@ Zhang, Y., Hou, Y., Qiu, T., Zhuang, Y., Chen, K., Ling, W., Luo, Y., and Lin,
 \newblock Deep learning in renal ultrasound: applications, challenges, and
   future outlook.
 \newblock {\em Frontiers in Oncology}, 15:1730628.
+
+\bibitem[Zhao et~al. 2023]{Zhao2023MSKD}
+Zhao, L., Qian, X., Guo, Y., Song, J., Hou, J., and Gong, J. (2023).
+\newblock {MSKD}: Structured knowledge distillation for efficient medical image
+  segmentation.
+\newblock {\em Computers in Biology and Medicine}, 164:107284.
 
 \bibitem[Zhao et~al. 2025]{Zhao2025Echogenicity}
 Zhao, L., Shang, J., Shi, Y., Yan, Y., Li, P., Niu, W., Zhang, G., Ding, Z.,

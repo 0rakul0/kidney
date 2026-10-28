@@ -47,10 +47,15 @@ Comando principal:
 Por padrao, o script usa:
 
 - modelo: `unet`;
-- checkpoint: `models/kidneyus_capsule_dedup_unet.pth`;
+- checkpoint: `models/kidneyus_capsule_student_unet_deeplab.pth`;
 - CLAHE, como no treinamento;
-- limiar de segmentacao `0.35`, selecionado na validacao;
+- limiar de segmentacao `0.60`, selecionado na validacao do modelo vencedor;
 - media das predicoes original e espelhada horizontalmente.
+
+Em 28/10/2026, o comando foi executado sobre o conjunto MONAI disponível no
+projeto. O resultado registrado em `dataset_aumentado/dataset_geral_v2/summary.json`
+contém 4.479 imagens MONAI, das quais 3.707 receberam pseudomáscaras não vazias
+com esse checkpoint; todas permanecem marcadas para revisão humana.
 
 A base supervisionada canonica para segmentacao externa do rim agora e criada
 com `engenharia_dataset/create_capsule_splits.py`, usando a classe `Capsule` do
@@ -176,6 +181,37 @@ conhecimento dos professores e reduzir o custo de memória da cascata. Essa
 adoção é uma decisão de implantação e não uma alegação de superioridade: os
 professores continuam sendo referências de controle e a qualidade deve ser
 monitorada em avaliações posteriores.
+
+O checkpoint vencedor da matriz operacional é
+`models/kidneyus_capsule_student_unet_deeplab.pth`, treinado com U-Net e
+DeepLabV3 como professores. Ele é o padrão usado pela Curadoria Web e pelo
+`build_dataset_geral.py` para gerar pseudomáscaras das imagens do MONAI.
+
+### Estudante intrarrenal destilada
+
+A etapa interna também possui uma estudante destilada em
+`experiments/train_distilled_inner_unet.py`. Ela recebe três canais (imagem em
+tons de cinza, ROI renal mascarada e máscara do rim), produz quatro classes
+(fundo, córtex, medula e CEC) e aprende com as máscaras manuais e com a média
+das probabilidades dos professores intrarrenais U-Net e DeepLabV3.
+
+Comando usado na RTX 3050:
+
+```powershell
+.\.venv\Scripts\python.exe src\segmentation\experiments\train_distilled_inner_unet.py `
+  --epochs 50 `
+  --batch-size 8 `
+  --teacher-batch-size 1 `
+  --early-stopping 10
+```
+
+O checkpoint operacional é
+`models/intrarenal_student_unet_deeplab.pth`. No teste independente de 50
+imagens, a estudante obteve Dice médio foreground `0,750075` e IoU médio
+foreground `0,605106`. Por estrutura, os Dice foram `0,695894` para córtex,
+`0,707624` para medula e `0,846706` para CEC. As métricas são de segmentação
+anatômica no conjunto manual; as máscaras produzidas em novas imagens pela
+Curadoria Web continuam sendo propostas para revisão humana.
 
 No benchmark controlado da RTX 3050, com lote 8, entrada 256x256 e medição
 somente do `forward`, a estudante alcançou 153,51 FPS (6,51 ms por imagem),
