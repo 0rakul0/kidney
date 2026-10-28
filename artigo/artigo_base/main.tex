@@ -247,6 +247,37 @@ U-Net e U-Net++ recuperam informação espacial por caminhos expansivos e concat
 
 A descrição acima refere-se aos scripts de comparação binária da cápsula. Os modelos posteriormente empregados para segmentação intrarrenal e na Curadoria Web constituem experimentos próprios; suas configurações e rótulos devem ser descritos na metodologia correspondente, evitando transferir automaticamente para eles as características ou os resultados dos checkpoints do benchmark.
 
+\subsection{Destilação de conhecimento na segmentação semântica}
+
+A destilação de conhecimento (\textit{knowledge distillation}, KD) é um procedimento de treinamento no qual uma rede estudante aprende com a supervisão de um ou mais modelos professores. Em vez de utilizar apenas rótulos discretos, a estudante recebe também distribuições de probabilidade produzidas pelos professores, denominadas \textit{soft targets}. Essa estratégia foi sistematizada por Hinton, Vinyals e Dean~\cite{Hinton2015Distillation} como alternativa para transferir o comportamento de modelos ou conjuntos de modelos a uma rede mais compacta.
+
+Na segmentação binária, a saída de cada professor é um mapa espacial de probabilidades de primeiro plano, e não uma única classe atribuída à imagem. Desse modo, valores intermediários próximos às fronteiras podem carregar informação adicional à máscara binarizada. A destilação aplicada a predições densas exige preservar essa correspondência espacial; trabalhos como o de Shu et al.~\cite{Shu2021ChannelKD} também exploram a organização das ativações para orientar a transferência.
+
+Quando há $K$ professores, uma forma simples de agregação é a média das probabilidades por pixel:
+\begin{equation}
+ p_T(i)=\frac{1}{K}\sum_{k=1}^{K}p_k(i),
+ \label{eq:kd_teacher_mean}
+\end{equation}
+em que $p_k(i)$ é a probabilidade prevista pelo professor $k$ no pixel $i$. Essa média é um alvo de treinamento, não um certificado de correção anatômica. A concordância dos professores pode ser alta mesmo quando todos erram.
+
+Para a estudante binária, a função objetivo pode combinar a perda supervisionada pela máscara manual com uma perda de destilação:
+\begin{equation}
+ \mathcal{L}_{total}=\lambda_{sup}\mathcal{L}_{sup}
+ +\lambda_{KD}\mathcal{L}_{KD},
+ \label{eq:kd_total}
+\end{equation}
+em que $\lambda_{sup}$ e $\lambda_{KD}$ controlam a contribuição de cada termo. A temperatura $T$ suaviza a distribuição usada na transferência de conhecimento~\cite{Hinton2015Distillation}. O emprego de professores adicionais não garante aumento de Dice: desempenho, memória, parâmetros e latência precisam ser medidos separadamente. Nesse sentido, KD difere da pseudorrotulação, que produz máscaras candidatas para imagens sem anotação, e do consenso, utilizado neste projeto para triagem de previsões divergentes.
+
+\subsection{Trabalhos relacionados à destilação em imagens médicas}
+
+Qin et al.~\cite{Qin2021MedicalKD} investigaram a transferência de informações semânticas regionais para segmentadores médicos compactos, com avaliação em tomografias dos conjuntos LiTS17 e KiTS19. Embora o KiTS19 inclua estruturas renais, sua modalidade e seu alvo anatômico diferem da delimitação da cápsula em ultrassonografia; portanto, os resultados numéricos não são diretamente transferíveis para este estudo.
+
+Zhao et al.~\cite{Zhao2023MSKD} propuseram destilação estruturada combinando filtragem de características e relações entre regiões para preservar informação anatômica durante o treinamento de redes menores. Shu et al.~\cite{Shu2021ChannelKD} estudaram a transferência de distribuições por canal em tarefas de predição densa. Essas contribuições mostram que destilar saídas não é a única estratégia possível: características internas e relações espaciais também podem ser usadas em trabalhos futuros.
+
+Qi et al.~\cite{Qi2024GKD} estudaram destilação generalizável para segmentação médica entre domínios. A questão é pertinente à presente pesquisa, pois diferenças entre equipamentos, exames e fontes de ultrassonografia podem afetar professores e estudantes. Entretanto, a literatura citada não constitui validação externa do modelo aqui desenvolvido.
+
+O diferencial investigado neste trabalho está na passagem de um consenso já utilizado para priorizar revisão humana para um protocolo de destilação entre professores heterogêneos (U-Net, DeepLabV3 e SegFormer-B0), com avaliação de uma U-Net estudante compacta e integração à cascata de segmentação renal. A proposta não reivindica uma técnica inédita de KD; avalia sua utilidade e seus limites em um fluxo rastreável de curadoria e análise intrarrenal.
+
 \subsection{Representação das máscaras e avaliação técnica}
 
 Em segmentação semântica, cada posição $(x,y)$ de uma imagem $I$ recebe um rótulo anatômico. Na tarefa binária, a máscara de referência $M(x,y)\in\{0,1\}$ distingue rim e fundo; uma rede produz valores contínuos, convertidos em probabilidades e posteriormente em máscaras mediante uma regra de decisão. No problema intrarrenal multiclasse, a predição distingue estruturas como córtex, medula e complexo ecogênico central (CEC). Essa separação implica duas fontes de erro: a delimitação externa incorreta pode deslocar o recorte de interesse e, mesmo dentro de um recorte correto, pode haver confusão entre estruturas de aparência semelhante.
@@ -419,16 +450,29 @@ A mesma imagem é processada por uma DeepLabV3 independente. A concordância esp
 \end{equation}
 calculada para máscaras não vazias com denominador válido. O indicador foi calibrado por validação cruzada \textit{out-of-fold} em cinco folds agrupados por exame, para que cada amostra manual fosse avaliada por modelos que não a haviam utilizado naquele fold. Limiares operacionais de $0{,}89$ e $0{,}94$, derivados da distribuição de calibração documentada, organizam a fila de revisão; eles não certificam a qualidade anatômica. O manifesto preserva fonte, modelo, checkpoint, estado e indicadores associados a cada predição.
 
-Como caminho para transformar o consenso em um único modelo operacional, foi
-implementado também um protocolo de destilação de conhecimento. Nesse protocolo,
-a U-Net e a DeepLabV3 atuam como professores e produzem probabilidades para as
-mesmas imagens; a média dessas probabilidades é usada como alvo suave, em
-conjunto com a máscara manual, para treinar uma terceira U-Net estudante. A
-perda combina supervisão manual e destilação com temperatura $T=2$. O protocolo
-preserva o teste manual independente e permite restringir o treino a casos com
-concordância mínima entre professores. Essa etapa não é um GAN: trata-se de
-transferência de conhecimento entre segmentadores, com o objetivo de obter um
-modelo único mais leve para a inferência.
+\subsection{Destilação multi-professor e comparação controlada}
+
+O consenso U-Net--DeepLabV3 foi introduzido inicialmente como medida de concordância para organizar a revisão de pseudomáscaras. Entretanto, manter duas redes ativas para cada inferência aumenta o consumo operacional. A destilação foi incorporada como uma estratégia adicional: o consenso permanece como mecanismo de auditoria e triagem, enquanto uma U-Net estudante pode concentrar, em seus parâmetros, parte do comportamento dos professores.
+
+A implementação considera as combinações de professores U-Net--DeepLabV3, U-Net--SegFormer-B0, DeepLabV3--SegFormer-B0 e U-Net--DeepLabV3--SegFormer-B0. Também foi preparado um controle com a mesma U-Net estudante treinada apenas pelas máscaras manuais, sem termo de destilação. Para cada combinação, as probabilidades são produzidas por professores congelados e agregadas conforme a Equação~\ref{eq:kd_teacher_mean}. As previsões são armazenadas em cache e cada professor é carregado individualmente, evitando mantê-los simultaneamente na GPU durante a preparação dos alvos.
+
+A estudante possui três canais de entrada, uma saída binária e 32 canais de base. A perda supervisionada é a soma de entropia cruzada binária e perda Dice:
+\begin{equation}
+ \mathcal{L}_{sup}=\mathcal{L}_{BCE}+\mathcal{L}_{Dice}.
+ \label{eq:kd_supervised}
+\end{equation}
+Para probabilidade média $p_T$ dos professores, limitada numericamente ao intervalo $[10^{-4},1-10^{-4}]$, e logits $z_S$ da estudante, o termo de destilação implementado é
+\begin{equation}
+ \mathcal{L}_{KD}=T^2\,\operatorname{BCEWithLogits}
+ \left(\frac{z_S}{T},
+ \sigma\!\left[\frac{\operatorname{logit}(p_T)}{T}\right]\right),
+ \label{eq:kd_binary}
+\end{equation}
+com $T=2$, $\lambda_{sup}=1$ e $\lambda_{KD}=0{,}5$. No controle sem professores, o termo $\mathcal{L}_{KD}$ é removido. A configuração piloto emprega imagens de $256\times256$ pixels, CLAHE, aumento de dados apenas no treinamento, AdamW, taxa inicial de $10^{-4}$, lote 16, semente 42, até 12 épocas e parada antecipada com paciência de quatro épocas.
+
+Os experimentos utilizam os mesmos conjuntos manuais deduplicados de 328 imagens para treino, 70 para validação e 70 para teste. O limiar e o checkpoint da estudante devem ser escolhidos na validação e mantidos fixos durante a avaliação independente. Para comparações entre configurações, registram-se Dice, IoU, parâmetros, tamanho dos pesos e tempo de inferência em um protocolo comum. Precisão, \textit{recall}, análise por exame e intervalos de confiança constituem extensões importantes da avaliação. O filtro opcional de concordância mínima entre professores é tratado como uma ablação separada, pois altera a composição do conjunto de treinamento.
+
+O piloto U-Net--DeepLabV3 já foi executado e é reportado na Seção de Resultados. As combinações com SegFormer-B0 e o controle sem destilação encontram-se implementados como experimentos reproduzíveis, mas seus resultados quantitativos ainda não foram obtidos neste documento. A escolha operacional de uma estudante é uma decisão de implantação que deverá ser reavaliada à luz da qualidade anatômica e não apenas da velocidade.
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
@@ -904,6 +948,8 @@ O experimento de estabilidade oferece evidência inicial de viabilidade do encad
 A pseudo-expansão é um resultado negativo informativo. O aumento de 236 para 578 imagens não elevou o Dice no teste manual da medula, embora a validação tenha melhorado. Existem interpretações plausíveis --- seleção de casos redundantes, erros residuais dos pseudorrótulos, mudança de distribuição ou variância de treinamento ---, mas os dados aqui apresentados não permitem determinar qual mecanismo predominou. A literatura sobre aprendizado com rótulos imperfeitos e correção de pseudorrótulos sustenta a relevância desse problema~\cite{Tajbakhsh2020Imperfect,Su2024ReliablePseudo,Huang2025SemiPLC}. O próximo experimento deve separar explicitamente o efeito do volume de treinamento do efeito da qualidade de anotação.
 
 Nesse contexto, o consenso U-Net--DeepLabV3 tem função operacional bem definida: apoiar a triagem. A correlação documentada entre acordo dos modelos e qualidade frente à referência é promissora para ordenar o trabalho de revisão, mas não prova que candidatos de consenso alto sejam anatomicamente corretos. Um estudo \textit{human-in-the-loop} deve medir, por estratos de consenso, taxas de aceitação, correção e rejeição, concordância de revisores, tempo despendido e ganho no desempenho final. Somente essa comparação permitirá estimar o benefício científico e operacional da curadoria implementada.
+
+O piloto de destilação U-Net--DeepLabV3 indicou viabilidade operacional, mas não ganho de acurácia: o Dice da estudante foi inferior ao dos professores, apesar da redução no número de parâmetros e no tempo de passagem direta. Assim, não se pode atribuir vantagem científica à destilação sem compará-la a uma U-Net compacta treinada sem professores. As combinações com SegFormer-B0 e o trio de professores permitirão verificar se a diversidade arquitetural favorece a transferência de probabilidades, mantendo constantes as demais escolhas experimentais. Mesmo um eventual aumento de Dice no teste interno não substituirá validação em imagens externas e revisão anatômica especializada~\cite{Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}.
 
 A análise de ecogenicidade representa a motivação aplicada da segmentação. O uso da imagem original, em lugar de valores após CLAHE, evita introduzir na medida quantitativa o realce produzido especificamente para melhorar a entrada da rede. O pareamento córtex--CEC e a exclusão de bordas tornam explícitas as escolhas de amostragem e podem reduzir certas fontes de heterogeneidade. Entretanto, tais decisões também introduzem hiperparâmetros --- raio, posição, número de pares, erosão e aproximação de profundidade --- cuja sensibilidade ainda não foi medida. A literatura sobre ecogenicidade relativa fornece motivação, não validação direta desse protocolo particular~\cite{Manley2001,Beutler2024SRI,Zhao2025Echogenicity}.
 
