@@ -232,6 +232,25 @@ function assistantRichCell(text, className = "") {
   cell.innerHTML = renderAssistantMarkdown(text);
   return cell;
 }
+function renderStructuredAssistant(target, result) {
+  const structured = result?.structured;
+  if (!target || !structured) {
+    if (target) target.hidden = true;
+    return;
+  }
+  const regions = (structured.regioes_mencionadas || []).join(", ") || "nenhuma identificada automaticamente";
+  const priorities = (structured.regioes_priorizadas || [])
+    .filter((region) => region.prioridade === "alta")
+    .map((region) => region.regiao)
+    .join(", ") || "nenhuma prioridade alta";
+  target.textContent = [
+    `Status: ${structured.status || "revisão humana obrigatória"}`,
+    `Regiões mencionadas na resposta: ${regions}`,
+    `Regiões com prioridade alta na segmentação: ${priorities}`,
+    `Evidências utilizadas: ${(structured.evidencias_utilizadas || []).join(" · ") || "não informado"}`,
+  ].join("\n");
+  target.hidden = false;
+}
 function renderAssistantResults(payload, comparison = false) {
   const results = comparison ? (payload.results || []) : [payload.assistant];
   state.assistantResults = results.filter(Boolean);
@@ -248,6 +267,7 @@ function renderAssistantResults(payload, comparison = false) {
       state.assistantSelected = index;
       state.assistantRunId = result.run_id || "";
       body.querySelectorAll("tr").forEach((item, itemIndex) => item.classList.toggle("selected", itemIndex === index));
+      renderStructuredAssistant($("assistant-structured"), result);
     });
     row.append(
       assistantCell(result.visual_mode === "full" ? "Imagem completa" : "Recorte da cápsula"),
@@ -256,6 +276,7 @@ function renderAssistantResults(payload, comparison = false) {
     );
     body.append(row);
   });
+  renderStructuredAssistant($("assistant-structured"), state.assistantResults[0]);
   $("assistant-result").hidden = false;
 }
 async function runAssistant(kind) {

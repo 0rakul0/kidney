@@ -71,6 +71,9 @@ Thumbs.db
 /artigo/artigo_base/main.synctex.gz
 *.mjs
 *.yml
+!/.github/
+!/.github/workflows/
+!/.github/workflows/*.yml
 /archive_local
 /.playwright-cli
 /tmp

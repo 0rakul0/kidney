@@ -41,6 +41,53 @@ Essa função requer o ambiente local do projeto com PyTorch e os checkpoints em
 `models/`; a imagem Docker de curadoria, destinada apenas à revisão de
 máscaras pré-computadas, não inclui os pesos de inferência.
 
+### Controle de qualidade assistido por IA
+
+Cada nova inferência também registra uma avaliação operacional da segmentação.
+O serviço calcula a confiança média dos pixels atribuídos ao rim, córtex,
+medula e CEC, a incerteza complementar, a área relativa de cada região e uma
+prioridade de revisão (`baixa`, `média` ou `alta`). Esses valores descrevem o
+comportamento do modelo e não são probabilidades de doença nem métricas
+diagnósticas calibradas.
+
+O resultado persistido inclui `quality`, `region_review` e `uncertainty.png`.
+Na interface, a camada **Incerteza** pode ser ativada sobre a imagem e o painel
+**Controle de qualidade da IA** apresenta os alertas e as regiões que merecem
+inspeção. Uma prioridade alta não confirma uma lesão; indica apenas baixa
+confiança, pequena área ou ausência de uma região prevista.
+
+Quando o assistente multimodal é executado, o `image_id` recupera esses dados
+junto com a imagem, as máscaras e as métricas. A resposta passa a incluir uma
+síntese estruturada com observação, evidências utilizadas, regiões mencionadas,
+prioridades e limitações. O fluxo continua exigindo revisão humana e não
+incorpora automaticamente a inferência à base de treinamento.
+
+### Comandos naturais para melhoria de máscaras
+
+Na tela **Assistente da inferência**, o revisor pode escrever comandos como
+`pode melhorar a máscara do córtex?`, `remova o ruído da máscara do CEC` ou
+`preencha pequenos vazios da medula`. O assistente identifica a estrutura e a
+operação, mas não afirma que a máscara foi alterada: ele cria uma proposta
+determinística baseada na máscara atual.
+
+O fluxo é deliberadamente em duas etapas:
+
+1. o comando é interpretado e a interface exibe a estrutura e a operação;
+2. **Gerar proposta de máscara** cria uma nova imagem em `proposals/`, mantendo
+   a máscara original intacta;
+3. o revisor inspeciona a sobreposição de diferenças: verde representa pixels
+   adicionados e vermelho representa pixels removidos, com a quantidade e o
+   tamanho do kernel informados na tela;
+4. somente após clicar em **Aplicar proposta à sessão** a camada ativa passa a
+   usar a cópia em `approved_masks/`, com revisor e horário registrados no
+   manifesto da proposta.
+
+As operações disponíveis são `refinar_mascara`, `preencher_vazios`,
+`remover_ruido` e `suavizar_bordas`. O mecanismo não diagnostica doença, não
+substitui a revisão visual e não altera automaticamente o conjunto de treino.
+As rotas utilizam o `image_id` do resultado da inferência, impedindo que o
+navegador escolha uma imagem ou máscara de outro caso.
+
 ## Dados gerados
 
 As respostas sao persistidas em:
@@ -118,6 +165,8 @@ A interface reúne as ferramentas do fluxo de revisão human-in-the-loop em duas
 - comparação de ecogenicidade por ROIs, com brilho cortical, CEC, contraste e relação córtex/medula;
 - inferência de uma nova imagem com vínculo por `image_id`;
 - assistente multimodal com Qwen local e comparação opcional com GPT-6 Luna;
+- comandos naturais para propor refinamento, preenchimento, remoção de ruído ou
+  suavização de uma máscara, sempre com confirmação explícita do revisor;
 - histórico e exportação dos registros em JSON, CSV e banco local.
 
 O painel do assistente possui o botão **Expandir**. O modo foco oculta

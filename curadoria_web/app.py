@@ -1414,10 +1414,14 @@ class CurationHandler(BaseHTTPRequestHandler):
                 return
             if path.startswith("/api/inferences/"):
                 parts = path.split("/")
-                if len(parts) != 5:
+                if len(parts) == 6 and parts[4] == "proposals":
+                    image_id, proposal_id = unquote(parts[3]), unquote(parts[5])
+                    media = self.inference.proposal_media(image_id, proposal_id)
+                elif len(parts) == 5:
+                    image_id, kind = unquote(parts[3]), parts[4]
+                    media = self.inference.media(image_id, kind)
+                else:
                     raise ValueError("Caminho de inferência inválido.")
-                image_id, kind = unquote(parts[3]), parts[4]
-                media = self.inference.media(image_id, kind)
                 if media is None:
                     self.send_json({"error": "Resultado de inferência não encontrado."}, HTTPStatus.NOT_FOUND)
                     return
@@ -1559,15 +1563,38 @@ class CurationHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        is_mask_proposal = parsed.path.startswith("/api/inferences/") and "/mask-proposals" in parsed.path
         if parsed.path not in {
             "/api/reviews", "/api/corrections", "/api/database-export", "/api/inferences",
             "/api/brightness-rois", "/api/assistant/analyze", "/api/assistant/compare",
-        }:
+        } and not is_mask_proposal:
             self.send_json({"error": "Recurso nao encontrado."}, HTTPStatus.NOT_FOUND)
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length) or b"{}")
+            if is_mask_proposal:
+                parts = parsed.path.split("/")
+                if len(parts) == 5 and parts[4] == "mask-proposals":
+                    image_id = unquote(parts[3])
+                    proposal = self.inference.propose_mask(
+                        image_id,
+                        str(payload.get("layer", "")).strip(),
+                        str(payload.get("operation", "")).strip(),
+                        str(payload.get("reviewer", "")).strip(),
+                    )
+                    self.send_json({"saved": True, "proposal": proposal})
+                    return
+                if len(parts) == 7 and parts[4] == "mask-proposals" and parts[6] == "apply":
+                    image_id, proposal_id = unquote(parts[3]), unquote(parts[5])
+                    proposal = self.inference.apply_mask_proposal(
+                        image_id,
+                        proposal_id,
+                        str(payload.get("reviewer", "")).strip(),
+                    )
+                    self.send_json({"saved": True, "proposal": proposal})
+                    return
+                raise ValueError("Caminho de proposta de máscara inválido.")
             if parsed.path == "/api/database-export":
                 reviewer = str(payload.get("reviewer", "")).strip()
                 result = self.store.export_to_database(reviewer)

@@ -12,12 +12,20 @@ DATA_ENGINEERING_DIR = PROJECT_ROOT / "engenharia_dataset"
 FEATURES_PATH = os.path.join("results", "renal_feature_analysis", "renal_features.csv")
 LABELS_PATH = os.path.join("results", "renal_feature_analysis", "renal_labels.csv")
 REFERENCE_DIR = "dataset_aumentado/fontes/reference_masks"
+PIPELINE_SCRIPTS = {
+    "init-labels": DATA_ENGINEERING_DIR / "prepare_renal_labels_template.py",
+    "extract": DATA_ENGINEERING_DIR / "extract_renal_features.py",
+    # The classifier is intentionally kept at the repository root.
+    "train": PROJECT_ROOT / "train_renal_classifier.py",
+}
 
 
-def run_python(script_name):
-    script_path = DATA_ENGINEERING_DIR / script_name
+def run_python(script_path):
+    script_path = Path(script_path)
+    if not script_path.exists():
+        raise FileNotFoundError(f"Script nao encontrado: {script_path}")
     command = [sys.executable, str(script_path)]
-    result = subprocess.run(command, check=False)
+    result = subprocess.run(command, check=False, cwd=PROJECT_ROOT)
     return result.returncode
 
 
@@ -106,13 +114,13 @@ def main():
         return
 
     if args.command == "init-labels":
-        sys.exit(run_python("prepare_renal_labels_template.py"))
+        sys.exit(run_python(PIPELINE_SCRIPTS[args.command]))
 
     if args.command == "extract":
-        sys.exit(run_python("extract_renal_features.py"))
+        sys.exit(run_python(PIPELINE_SCRIPTS[args.command]))
 
     if args.command == "train":
-        sys.exit(run_python("train_renal_classifier.py"))
+        sys.exit(run_python(PIPELINE_SCRIPTS[args.command]))
 
 
 if __name__ == "__main__":

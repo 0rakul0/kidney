@@ -44,6 +44,7 @@ A wiki foi organizada para responder perguntas diferentes sobre o projeto.
 | [Scripts de segmentação](scripts-segmentacao.md) | Como funcionam treino, consenso, inferência, avaliação e pós-processamento? |
 | [Curadoria e inferência](curadoria-e-inferencia.md) | Como a aplicação salva revisões, corrige máscaras, calcula ecogenicidade e roda nova imagem? |
 | [Assistente local](../kidney-assistant.md) | Como o Qwen2.5-VL recebe o recorte da cápsula e as evidências da sessão? |
+| [Reprodutibilidade e governança](../reproducibilidade-e-governanca.md) | Como validar Git LFS, CI, textos acadêmicos e o SQLite versionado? |
 | [Scripts auxiliares](scripts-auxiliares.md) | Como funcionam features, classificação, figuras e benchmarks externos? |
 | [Documentação técnica](documentacao-tecnica.md) | Inventário dos documentos históricos e relatórios em `docs/` |
 
@@ -123,7 +124,8 @@ Confiança, morfologia e consenso são usados para priorização. A entrada em u
 | `results/` | Resultados experimentais e auditorias |
 | `docs/` | Documentação técnica e decisões metodológicas |
 | `docs/wiki/` | Visão consolidada e navegável do projeto |
-| `artigo/SBBD_2026___Jefferson/` | Versão ativa do artigo |
+| `artigo/artigo_base/` | Documento canônico da extensão atual |
+| `artigo/SBBD_2026___Jefferson/` | Versão histórica do artigo SBBD |
 | `config/` | Fontes externas e configurações |
 | `run_pipeline.py` | Runner simplificado do eixo de atributos/classificação |
 

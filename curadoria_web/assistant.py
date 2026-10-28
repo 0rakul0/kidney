@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import re
 import sys
+import unicodedata
 import uuid
 from io import BytesIO
 from pathlib import Path
@@ -42,10 +44,69 @@ class AssistantService:
         "medulla": (255, 219, 59),
         "central_echo_complex": (255, 145, 0),
     }
+    REGION_TERMS = (
+        ("cortex", ("córtex", "cortex")),
+        ("medulla", ("medula",)),
+        ("central_echo_complex", ("cec", "complexo ecogênico central")),
+        ("rim", ("rim", "renal")),
+    )
 
     def __init__(self, store, inference):
         self.store = store
         self.inference = inference
+
+    @staticmethod
+    def parse_mask_command(question):
+        """Translate a natural-language mask request into a review proposal.
+
+        The command only describes a candidate operation. It never edits a
+        mask by itself; the interface must generate and explicitly approve the
+        proposal first.
+        """
+        original = str(question or "").strip()
+        normalized = unicodedata.normalize("NFKD", original.casefold()).encode("ascii", "ignore").decode("ascii")
+        if not any(term in normalized for term in ("melhor", "corrig", "refin", "ajust", "limp", "preench", "remov")):
+            return None
+        layer_terms = (
+            ("central_echo_complex", ("cec", "complexo ecogenico central", "complexo ecogenico")),
+            ("cortex", ("cortex",)),
+            ("medulla", ("medula",)),
+            ("rim", ("rim", "renal", "capsula")),
+        )
+        layer = next((name for name, terms in layer_terms if any(term in normalized for term in terms)), None)
+        if layer is None:
+            return {
+                "intent": "refinar_mascara",
+                "layer": None,
+                "operation": None,
+                "status": "estrutura_nao_identificada",
+                "requires_confirmation": True,
+                "instruction": "Informe a estrutura: rim, córtex, medula ou CEC.",
+            }
+        if "preench" in normalized or "burac" in normalized:
+            operation = "preencher_vazios"
+        elif "ruido" in normalized or "fragment" in normalized or "remov" in normalized:
+            operation = "remover_ruido"
+        elif "suav" in normalized:
+            operation = "suavizar_bordas"
+        else:
+            operation = "refinar_mascara"
+        labels = {"rim": "rim", "cortex": "córtex", "medulla": "medula", "central_echo_complex": "CEC"}
+        descriptions = {
+            "refinar_mascara": "suavizar pequenas irregularidades e preservar a região dominante",
+            "preencher_vazios": "preencher pequenos vazios internos da máscara",
+            "remover_ruido": "remover componentes pequenos e ruído isolado",
+            "suavizar_bordas": "suavizar a borda sem substituir a máscara original",
+        }
+        return {
+            "intent": "refinar_mascara",
+            "layer": layer,
+            "rotulo": labels[layer],
+            "operation": operation,
+            "status": "proposta_disponivel",
+            "requires_confirmation": True,
+            "instruction": f"Preparar uma proposta para {descriptions[operation]} na máscara de {labels[layer]}.",
+        }
 
     @staticmethod
     def _mask_info(path: Path | None, image_size: tuple[int, int]):
@@ -128,6 +189,8 @@ class AssistantService:
                 "bbox": bbox,
                 "meter": result.get("meter", {}),
                 "metrics": {},
+                "quality": result.get("quality", {}),
+                "region_review": result.get("region_review", []),
                 "origin": "inferencia_web",
                 "filename": result.get("filename", image_id),
                 "device": result.get("device", "unknown"),
@@ -149,6 +212,8 @@ class AssistantService:
             "bbox": self._bbox(mask_paths.get("rim")),
             "meter": item.get("medidor_brilho", {}),
             "metrics": item.get("metricas", {}),
+            "quality": item.get("qualidade_inferencia", {}),
+            "region_review": item.get("priorizacao_regioes", []),
             "origin": item.get("origem_visual", "curadoria"),
             "filename": image_id,
             "device": "curadoria",
@@ -181,6 +246,8 @@ class AssistantService:
             "medidor_brilho": artifacts["meter"],
             "metricas_segmentacao": artifacts["metrics"],
             "segmentacao": {"capsule_bbox": bbox, "dispositivo": artifacts["device"]},
+            "qualidade_inferencia": artifacts.get("quality", {}),
+            "priorizacao_regioes": artifacts.get("region_review", []),
             "sobreposicao_mascaras_enviada": True,
             "limitacoes": [
                 "Máscaras e métricas são evidências de pesquisa e precisam de revisão humana.",
@@ -207,6 +274,10 @@ class AssistantService:
                 "metricas_segmentacao",
             ],
         }
+        if artifacts.get("quality"):
+            context["qualidade_inferencia"] = artifacts["quality"]
+        if artifacts.get("region_review"):
+            context["priorizacao_regioes"] = artifacts["region_review"]
         evidence["evidence_refs"] = context["evidence_refs"]
         return raw, mime, evidence, context
 
@@ -225,8 +296,38 @@ class AssistantService:
             "Não conclua presença ou ausência de edema, inflamação ou infiltração, "
             "pois essas condições não são avaliadas por este protocolo. "
             "Não invente medidas, lateralidade, inflamação, edema, gravidade ou diagnóstico. "
+            "Use a priorização automática apenas como indicação operacional de revisão. "
+            "Se a pergunta solicitar melhorar, corrigir ou refinar uma máscara, não diga que a máscara foi editada: descreva apenas uma proposta que depende de confirmação do revisor. "
+            "Quando organizar a resposta, separe observação, evidência, região mencionada e limitação. "
             "Responda em português brasileiro, de forma concisa e auditável."
         )
+
+    @classmethod
+    def _regions_mentioned(cls, answer):
+        text = str(answer or "").casefold()
+        mentioned = []
+        for name, terms in cls.REGION_TERMS:
+            if any(re.search(rf"(?<!\w){re.escape(term)}(?!\w)", text) for term in terms):
+                mentioned.append(name)
+        return mentioned
+
+    @classmethod
+    def _structured_response(cls, answer, evidence, context):
+        return {
+            "observacao": answer,
+            "evidencias_utilizadas": context.get("evidence_refs", []),
+            "regioes_mencionadas": cls._regions_mentioned(answer),
+            "regioes_priorizadas": [
+                {
+                    "regiao": region.get("regiao"),
+                    "prioridade": region.get("prioridade"),
+                    "motivos": region.get("motivos", []),
+                }
+                for region in context.get("priorizacao_regioes", [])
+            ],
+            "limitacoes": evidence.get("limitacoes", []),
+            "status": "revisao_humana_obrigatoria",
+        }
 
     def analyze(self, payload):
         image_id = str(payload.get("image_id", "")).strip()
@@ -241,7 +342,22 @@ class AssistantService:
         if provider == "cloud" and not consent:
             raise AssistantAuthorizationError("Consentimento explícito é obrigatório para processamento externo.")
         raw, mime, evidence, context = self.build_request(image_id, reviewer, model, mode)
-        if provider == "local":
+        mask_command = self.parse_mask_command(question)
+        if mask_command:
+            if mask_command.get("status") == "estrutura_nao_identificada":
+                command_answer = (
+                    "Identifiquei um pedido de melhoria de máscara, mas a estrutura não foi determinada. "
+                    "Informe se deseja revisar rim, córtex, medula ou CEC. Nenhuma máscara foi alterada."
+                )
+            else:
+                command_answer = (
+                    f"Identifiquei um pedido para {mask_command['rotulo']}. "
+                    f"A operação sugerida é {mask_command['operation']}. "
+                    "Gere a proposta, revise a sobreposição e confirme sua aplicação. "
+                    "Nenhuma máscara foi alterada automaticamente."
+                )
+            response = {"answer": command_answer, "model": "mask-command-router", "usage": {}}
+        elif provider == "local":
             from src.kidney_assistant import local_vllm
             response = local_vllm.ask_about_session(self._prompt(question), evidence, raw, mime)
         else:
@@ -263,7 +379,9 @@ class AssistantService:
             "evidence_refs": context["evidence_refs"],
             "evidence_context": context,
             "limitations": evidence["limitacoes"],
+            "mask_command": mask_command,
         }
+        result["structured"] = self._structured_response(result.get("answer", ""), evidence, context)
         self.store.save_assistant_run(result, reviewer, question)
         return result
 

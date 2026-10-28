@@ -279,7 +279,9 @@ Antes de considerar um resultado reproduzível, registrar:
 | Resultados | `results/` |
 | Documentação | `docs/` |
 | Wiki | `docs/wiki/` |
-| Artigo ativo | `artigo/SBBD_2026___Jefferson/` |
+| Documento canônico da extensão | `artigo/artigo_base/` |
+| Versão histórica SBBD | `artigo/SBBD_2026___Jefferson/` |
+| Auditorias de reprodutibilidade | `scripts/check_lfs_assets.py`, `scripts/audit_curadoria_sqlite.py` |
 
 ## Regra de versionamento
 

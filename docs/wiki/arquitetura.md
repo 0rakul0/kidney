@@ -167,7 +167,8 @@ Esse eixo deve ser entendido como complementar à segmentação, não como subst
 | Launcher vLLM | `run/start_vllm_wsl.sh` |
 | Modelos | `models/` |
 | Resultados | `results/` |
-| Artigo | `artigo/SBBD_2026___Jefferson/` |
+| Artigo canônico da extensão | `artigo/artigo_base/` |
+| Versão histórica SBBD | `artigo/SBBD_2026___Jefferson/` |
 
 ## Princípio de desenho
 

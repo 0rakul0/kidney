@@ -39,8 +39,10 @@
               <img id="inference-cortex" class="overlay" alt="">
               <img id="inference-medulla" class="overlay" alt="">
               <img id="inference-central_echo_complex" class="overlay" alt="">
+              <img id="inference-uncertainty" class="overlay uncertainty-layer" alt="">
+              <img id="inference-proposal" class="overlay proposal-layer" alt="Proposta de máscara">
             </div>
-            <fieldset class="inference-layers"><legend>Camadas</legend><label class="red"><input data-layer="rim" type="checkbox" checked> Rim</label><label class="cyan"><input data-layer="cortex" type="checkbox" checked> Córtex</label><label class="yellow"><input data-layer="medulla" type="checkbox" checked> Medula</label><label class="orange"><input data-layer="central_echo_complex" type="checkbox" checked> CEC</label></fieldset>
+            <fieldset class="inference-layers"><legend>Camadas</legend><label class="red"><input data-layer="rim" type="checkbox" checked> Rim</label><label class="cyan"><input data-layer="cortex" type="checkbox" checked> Córtex</label><label class="yellow"><input data-layer="medulla" type="checkbox" checked> Medula</label><label class="orange"><input data-layer="central_echo_complex" type="checkbox" checked> CEC</label><label class="uncertainty"><input data-layer="uncertainty" type="checkbox"> Incerteza</label></fieldset>
           </div>
           <aside class="inference-summary">
             <section class="brightness-meter inference-meter" aria-labelledby="inference-meter-title">
@@ -52,6 +54,13 @@
               <p id="inference-quality" class="brightness-quality"></p><small class="brightness-source">Calculado na imagem original, sem CLAHE.</small>
             </section>
             <p id="inference-warning" class="hint"></p>
+            <section class="inference-ai-quality" aria-labelledby="inference-quality-title">
+              <div class="section-title"><h2 id="inference-quality-title">Controle de qualidade da IA</h2><span class="scope">apoio à revisão</span></div>
+              <p id="inference-quality-status" class="quality-status"></p>
+              <div id="inference-confidence-grid" class="confidence-grid"></div>
+              <ul id="inference-review-priority" class="review-priority"></ul>
+              <small>Os valores indicam confiança operacional da segmentação; não são probabilidades diagnósticas.</small>
+            </section>
             <section class="assistant-panel inference-assistant" role="dialog" aria-modal="false" aria-labelledby="inference-assistant-title">
               <div class="section-title"><h2 id="inference-assistant-title">Assistente da inferência</h2><div class="assistant-heading-actions"><span class="scope">usa o image_id gerado</span><button class="assistant-focus-open" type="button" aria-haspopup="dialog">Expandir</button><button class="assistant-focus-close" type="button" aria-label="Fechar modo foco">Voltar</button></div></div>
               <label>Revisor
@@ -64,10 +73,20 @@
                 <textarea id="inference-assistant-question" rows="3">Quais áreas ecogênicas merecem revisão?</textarea>
               </label>
               <label class="assistant-consent"><input id="inference-assistant-consent" type="checkbox"> Permito o envio desta imagem à OpenAI</label>
-              <div class="assistant-actions"><button id="inference-assistant-compare" type="button" disabled>Comparar Qwen × GPT-6 Luna</button></div>
+              <div class="assistant-actions"><button id="inference-assistant-local" type="button" disabled>Analisar com Qwen local</button><button id="inference-assistant-compare" type="button" disabled>Comparar Qwen × GPT-6 Luna</button></div>
               <p id="inference-assistant-message" class="message" role="status"></p>
               <div id="inference-assistant-result" class="assistant-result" hidden>
                 <div id="inference-assistant-evidence" class="assistant-evidence"></div>
+                <div id="inference-assistant-structured" class="assistant-structured" hidden></div>
+                <div id="inference-mask-command" class="mask-command" hidden>
+                  <strong id="inference-mask-command-title"></strong>
+                  <p id="inference-mask-command-instruction"></p>
+                  <p id="inference-mask-command-result"></p>
+                  <div class="assistant-actions">
+                    <button id="inference-mask-propose" type="button">Gerar proposta de máscara</button>
+                    <button id="inference-mask-apply" type="button" hidden>Aplicar proposta à sessão</button>
+                  </div>
+                </div>
                 <div class="assistant-table-wrap"><table class="assistant-table"><thead><tr><th>Modo</th><th>Observação</th><th>Limitações</th></tr></thead><tbody id="inference-assistant-table-body"></tbody></table></div>
               </div>
             </section>
@@ -90,6 +109,6 @@
       </section>
     </main>
     <div class="assistant-focus-backdrop" hidden></div>
-    <script src="/inferencia.js?v=20261027_focus"></script>
+    <script src="/inferencia.js?v=20261028_mask_commands"></script>
   </body>
 </html>
