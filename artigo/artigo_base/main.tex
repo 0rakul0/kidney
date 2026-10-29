@@ -350,7 +350,7 @@ A originalidade reivindicada é, assim, de integração metodológica e avaliaç
 
 \subsection{Contexto e evolução do protocolo}
 
-A pesquisa foi organizada em duas etapas: a primeira, apresentada no artigo SBBD, desenvolveu a segmentação da cápsula renal e a expansão do conjunto de imagens; a segunda, posterior, incorporou a segmentação intrarrenal de córtex, medula e CEC e a Curadoria Web para revisão rastreável das máscaras. A pesquisa iniciou-se com a comparação de arquiteturas para segmentação binária do rim. Nessa configuração, o principal resultado era uma máscara externa e sua concordância com anotações manuais. A limitação de imagens supervisionadas levou à busca por fontes adicionais e à construção de procedimentos de download, conversão, deduplicação e organização de dados externos. Essa evolução ampliou a diversidade potencial de imagens, mas introduziu um problema de procedência: dados externos sem anotações não poderiam ser tratados como equivalentes ao conjunto manual.
+A metodologia é apresentada na Figura~\ref{fig:fluxo_metodologico} como uma evolução em três fases interligadas, cuja descrição geral orienta o detalhamento das subseções seguintes. A Fase~1, iniciada no artigo SBBD, abrange engenharia de dados, comparação de segmentadores, delimitação da cápsula e geração de pseudomáscaras candidatas. A Fase~2 acrescenta consenso para auditoria, destilação de conhecimento entre professores heterogêneos e segmentação hierárquica da cápsula e das estruturas intrarrenais por estudantes compactas. A Fase~3 integra os modelos à Curadoria Web, à mensuração exploratória de ecogenicidade e ao assistente multimodal de IA para análise fundamentada nas evidências produzidas. Rastreabilidade, proveniência, reprodutibilidade e revisão humana são requisitos transversais às três fases; a saída do assistente não constitui diagnóstico clínico. A sequência é uma organização da evolução da pesquisa, não três conjuntos experimentais mutuamente exclusivos. A pesquisa iniciou-se com a comparação de arquiteturas para segmentação binária do rim. Nessa configuração, o principal resultado era uma máscara externa e sua concordância com anotações manuais. A limitação de imagens supervisionadas levou à busca por fontes adicionais e à construção de procedimentos de download, conversão, deduplicação e organização de dados externos. Essa evolução ampliou a diversidade potencial de imagens, mas introduziu um problema de procedência: dados externos sem anotações não poderiam ser tratados como equivalentes ao conjunto manual.
 
 Na primeira etapa (SBBD), o conjunto exploratório kidneyUS reuniu 513 pares de imagens e máscaras; a expansão com 1.002 imagens locais e 4.479 imagens renais curadas do MONAI levou a 5.994 imagens no acervo histórico. As pseudomáscaras de cápsula foram triadas por confiança operacional mínima de 90\% e critérios geométricos, totalizando, naquele relato, 2.961 máscaras automáticas aceitas e 1.001 máscaras preexistentes. O DeepLabV3-ResNet50 treinado com o conjunto expandido atingiu Dice de $0{,}9235$ e IoU de $0{,}8741$ no teste fixo daquele protocolo; esses valores não são diretamente comparáveis aos testes deduplicados desenvolvidos posteriormente~\cite{Singla2023KidneyUS,MONAIClinicalUltrasound}.
 
@@ -366,42 +366,24 @@ A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas et
 
 \begin{figure}[htbp]
 \centering
-\resizebox{0.92\linewidth}{!}{%
-\begin{tikzpicture}[
- >=Latex,
- every node/.style={font=\footnotesize,align=center},
- bloco/.style={draw,rounded corners=3pt,fill=gray!8,minimum height=9mm,text width=42mm,inner sep=4pt},
- fase/.style={draw,rounded corners=3pt,fill=blue!8,minimum height=8mm,text width=93mm,inner sep=4pt},
- seta/.style={->,thick},
- node distance=7mm
-]
-\node[fase] (e1) {\textbf{Etapa 1 -- SBBD: segmentação da cápsula e expansão dos dados}};
-\node[bloco,below=7mm of e1,xshift=-25mm] (kidney) {kidneyUS\\imagens e máscaras originais};
-\node[bloco,right=8mm of kidney] (fontes) {MONAI e subconjuntos locais\\imagens externas};
-\node[bloco,below=12mm of kidney] (treino1) {Treino e avaliação\\da segmentação renal};
-\node[bloco,below=12mm of fontes] (pseudo) {Predição de cápsula e seleção\\de pseudomáscaras próprias};
-\draw[seta] (e1.south) -- ++(0,-3mm) -| (kidney.north);
-\draw[seta] (e1.south) -- ++(0,-3mm) -| (fontes.north);
-\draw[seta] (kidney) -- (treino1);
-\draw[seta] (fontes) -- (pseudo);
-\draw[seta] (treino1.east) -- (pseudo.west);
-\node[fase,below=13mm of treino1,xshift=25mm] (e2) {\textbf{Etapa 2 -- Segmentação intrarrenal e Curadoria Web}};
-\draw[seta] (pseudo.south) -- ++(0,-5mm) -| (e2.north);
-\node[bloco,below=9mm of e2,xshift=-25mm] (roi) {Máscara da cápsula\\delimitação da ROI renal};
-\node[bloco,right=8mm of roi] (interior) {Modelos intrarrenais\\córtex, medula e CEC};
-\draw[seta] (e2.south) -- ++(0,-3mm) -| (roi.north);
-\draw[seta] (roi) -- (interior);
-\node[bloco,below=11mm of interior] (curadoria) {Curadoria Web\\revisão, correção e proveniência};
-\draw[seta] (interior) -- (curadoria);
-\node[bloco,left=8mm of curadoria] (eco) {Medidas exploratórias\\de ecogenicidade nas ROIs};
-\draw[seta] (curadoria.west) -- (eco.east);
-\end{tikzpicture}%
+% Coloque figura5_evolucao_metodologica_renal.png em artigo/artigo_base/figures/.
+% A imagem e ilustrativa; os detalhes e limites experimentais constam do texto.
+\IfFileExists{figures/figura5_evolucao_metodologica_renal.png}{%
+  \includegraphics[width=\linewidth]{figures/figura5_evolucao_metodologica_renal.png}%
+}{%
+  \fbox{\parbox{0.92\linewidth}{\centering
+  \textbf{Fase 1 -- Engenharia de dados e segmentação da cápsula (SBBD)}\\[3pt]
+  \(\downarrow\)\\[3pt]
+  \textbf{Fase 2 -- Consenso, destilação e segmentação hierárquica}\\[3pt]
+  \(\downarrow\)\\[3pt]
+  \textbf{Fase 3 -- Curadoria, ecogenicidade e assistente multimodal}\\[5pt]
+  \textit{Transversal: proveniência, rastreabilidade e revisão humana}}}%
 }
-\caption{Fluxo metodológico das duas etapas da pesquisa. O \texttt{kidneyUS} fornece as anotações originais; as máscaras adicionais e respectivas correções são produzidas pelo projeto. A segunda etapa integra segmentação intrarrenal, Curadoria Web e medidas exploratórias de ecogenicidade. Fonte: elaboração própria.}
+\caption{Evolução metodológica do pipeline de análise de ultrassonografia renal. A Fase 1 reúne a engenharia de dados, a comparação dos segmentadores e a geração de pseudomáscaras candidatas. A Fase 2 introduz consenso entre modelos, destilação multi-professor e segmentação hierárquica da cápsula e das estruturas intrarrenais. A Fase 3 integra inferência destilada, Curadoria Web, descritores de ecogenicidade e assistente multimodal para análise exploratória. Proveniência, rastreabilidade, reprodutibilidade e revisão humana atravessam as três fases. Fonte: elaboração própria.}
 \label{fig:fluxo_metodologico}
 \end{figure}
 
-O fluxo representado separa a origem das imagens e máscaras na primeira etapa e conduz as candidatas à segmentação intrarrenal e à revisão na segunda. A mensuração de ecogenicidade aparece como saída exploratória da curadoria, e não como consequência automática de uma predição não revisada.
+A Figura~\ref{fig:fluxo_metodologico} constitui o mapa geral da metodologia. As subseções seguintes desenvolvem separadamente a construção e a partição dos dados, o treinamento e a avaliação da cápsula, o consenso e a curadoria das pseudomáscaras, a destilação, a segmentação intrarrenal e os descritores de ecogenicidade. As seções da Curadoria Web e do assistente multimodal detalham a integração operacional e a análise assistida. As setas representam dependências de processamento e transferência de informações, não uma validação automática das máscaras nem um diagnóstico inferido pela IA. A figura sintetiza componentes e possibilidades do sistema; os resultados efetivamente medidos e as etapas ainda exploratórias são discriminados no texto.
 
 \subsection{Desenho experimental e unidades de avaliação}
 
