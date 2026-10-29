@@ -276,7 +276,9 @@ Zhao et al.~\cite{Zhao2023MSKD} propuseram destilação estruturada combinando f
 
 Qi et al.~\cite{Qi2024GKD} estudaram destilação generalizável para segmentação médica entre domínios. A questão é pertinente à presente pesquisa, pois diferenças entre equipamentos, exames e fontes de ultrassonografia podem afetar professores e estudantes. Entretanto, a literatura citada não constitui validação externa do modelo aqui desenvolvido.
 
-O diferencial investigado neste trabalho está na passagem de um consenso já utilizado para priorizar revisão humana para um protocolo de destilação entre professores heterogêneos (U-Net, DeepLabV3 e SegFormer-B0), com avaliação de uma U-Net estudante compacta e integração à cascata de segmentação renal. A proposta não reivindica uma técnica inédita de KD; avalia sua utilidade e seus limites em um fluxo rastreável de curadoria e análise intrarrenal.
+Uma referência diretamente próxima é o MK-Net, de Chen et al.~\cite{Chen2026MKNet}, que propõe uma arquitetura própria para segmentação multiclasse no \texttt{KidneyUS}, com propagação semântica multiescala, destilação de canais-base e aproximadamente 12,9 milhões de parâmetros. A proximidade do conjunto e das estruturas anatômicas impede afirmar que este trabalho seja o primeiro a aplicar destilação ao \texttt{KidneyUS}. A diferença está no objeto investigado: o presente estudo não propõe uma nova arquitetura, mas compara professores heterogêneos, separa a destilação da cápsula da destilação intrarrenal, preserva o consenso como mecanismo de auditoria e integra as previsões à Curadoria Web e à mensuração exploratória da ecogenicidade.
+
+O diferencial investigado neste trabalho está, portanto, na passagem de um consenso já utilizado para priorizar revisão humana para um protocolo de destilação multi-professor integrado a uma cascata renal hierárquica. A contribuição central é o desenvolvimento e a avaliação de um pipeline rastreável que busca reduzir o custo de inferência sem perder a possibilidade de auditar a origem das máscaras e de preservar as delimitações necessárias à análise quantitativa. Essa contribuição se materializa em quatro frentes: (i) comparação de combinações de U-Net, DeepLabV3 e SegFormer-B0 com controle sem destilação; (ii) compactação separada das etapas de cápsula e estruturas intrarrenais; (iii) distinção entre predição, consenso, pseudomáscara, revisão e máscara aceita; e (iv) integração entre segmentação e ecogenicidade na imagem original. A proposta não reivindica uma técnica inédita de KD nem superioridade clínica; avalia sua utilidade e seus limites em um fluxo específico de ultrassonografia renal.
 
 \subsection{Representação das máscaras e avaliação técnica}
 
@@ -341,6 +343,8 @@ O uso de regiões de interesse (ROIs) internas e pareadas procura diminuir a inf
 \subsection{Lacuna e posicionamento da proposta}
 
 Os trabalhos anteriores sustentam três frentes complementares: segmentar estruturas, aproveitar dados pouco anotados e investigar descritores de ecogenicidade. A questão abordada aqui é a ligação rastreável entre elas. Uma máscara com bom desempenho médio pode falhar em uma imagem específica; uma pseudomáscara pode ser plausível sem estar correta; e uma medida de brilho pode variar por razões não patológicas. O pipeline proposto reúne essas dependências em um mesmo protocolo, tornando explícito quais resultados já foram medidos e quais precisam de avaliação futura.
+
+A originalidade reivindicada é, assim, de integração metodológica e avaliação operacional, e não de invenção de uma arquitetura ou da destilação de conhecimento. O sistema combina professores heterogêneos, estudantes específicas para a cápsula e para as estruturas intrarrenais, consenso para auditoria, Curadoria Web para revisão humana e descritores de ecogenicidade para análise exploratória. Essa formulação também posiciona o trabalho diante de arquiteturas recentes específicas do \texttt{KidneyUS}, como o MK-Net, evitando uma alegação de pioneirismo incompatível com o estado da arte.
 
 \section{Materiais e Métodos}
 
@@ -473,6 +477,51 @@ com $T=2$, $\lambda_{sup}=1$ e $\lambda_{KD}=0{,}5$. No controle sem professores
 Os experimentos utilizam os mesmos conjuntos manuais deduplicados de 328 imagens para treino, 70 para validação e 70 para teste. O limiar e o checkpoint de cada estudante devem ser escolhidos na validação e mantidos fixos durante a avaliação independente. Para comparações entre configurações, registram-se Dice, IoU, parâmetros, tamanho dos pesos e tempo de inferência em um protocolo comum. Precisão, \textit{recall}, análise por exame e intervalos de confiança constituem extensões importantes da avaliação. O filtro opcional de concordância mínima entre professores é tratado como uma ablação separada, pois altera a composição do conjunto de treinamento. A escolha da combinação de professores para a implantação foi feita após a matriz completa, incluindo os resultados do teste; portanto, o teste não permaneceu completamente isolado da seleção da configuração operacional, e essa escolha deve ser interpretada como exploratória.
 
 O piloto U-Net--DeepLabV3 e as demais combinações de professores já foram executados e são reportados na Seção de Resultados. A escolha operacional de uma estudante é uma decisão de implantação que deverá ser reavaliada à luz da qualidade anatômica e não apenas da velocidade, especialmente porque a seleção da combinação operacional observou o desempenho no teste.
+
+A Figura~\ref{fig:destilacao_fluxo} resume o desenho metodológico da
+destilação. Os professores permanecem congelados durante a formação dos alvos;
+as combinações são avaliadas separadamente, e a estudante recebe tanto a
+máscara manual quanto a média das probabilidades dos professores. A figura
+representa o fluxo de treinamento, não uma execução simultânea dos professores
+na inferência da aplicação.
+
+\begin{figure}[htb]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  teacher/.style={draw, rounded corners, fill=blue!8, align=center,
+    minimum width=2.7cm, minimum height=0.72cm, font=\small},
+  process/.style={draw, rounded corners, fill=cyan!8, align=center,
+    minimum width=3.2cm, minimum height=0.95cm, font=\small},
+  data/.style={draw, rounded corners, fill=yellow!15, align=center,
+    minimum width=3.0cm, minimum height=0.78cm, font=\small},
+  student/.style={draw, rounded corners, fill=green!10, align=center,
+    minimum width=2.9cm, minimum height=0.95cm, font=\small},
+  arrow/.style={-{Latex[length=2mm]}, thick}
+]
+\node[teacher] (unet) at (0,2.0) {U-Net\ professora};
+\node[teacher] (deeplab) at (0,0) {DeepLabV3\ professora};
+\node[teacher] (segformer) at (0,-2.0) {SegFormer-B0\ professor};
+\node[process] (aggregate) at (4,0.8) {Combinação de professores\\e média de probabilidades};
+\node[data] (manual) at (4,-2.1) {Máscara manual\\de supervisão};
+\node[process] (loss) at (7.2,-2.1) {\(\mathcal{L}_{sup}+\lambda_{KD}\mathcal{L}_{KD}\)\\objetivo de treinamento};
+\node[student] (student) at (7.2,0.8) {U-Net estudante\\compacta};
+\node[data] (output) at (10.4,0.8) {Máscara\\predita};
+\draw[arrow] (unet.east) -- (aggregate.west);
+\draw[arrow] (deeplab.east) -- (aggregate.west);
+\draw[arrow] (segformer.east) -- (aggregate.west);
+\draw[arrow] (aggregate.south) -- node[right, font=\scriptsize]{alvo suave} (student.north);
+\draw[arrow] (aggregate.south east) -- node[right, font=\scriptsize]{\(\mathcal{L}_{KD}\)} (loss.north west);
+\draw[arrow] (manual.east) -- node[above, font=\scriptsize]{\(\mathcal{L}_{sup}\)} (loss.west);
+\draw[arrow] (loss.north) -- node[right, font=\scriptsize]{otimização} (student.south);
+\draw[arrow] (student.east) -- (output.west);
+\end{tikzpicture}%
+}
+\caption{Fluxo metodológico da destilação multi-professor. As combinações
+de U-Net, DeepLabV3 e SegFormer-B0 geram alvos suaves; a estudante é treinada
+combinando essa informação com a máscara manual.}
+\label{fig:destilacao_fluxo}
+\end{figure}
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
@@ -646,7 +695,7 @@ A Figura~\ref{fig:divergencia} ilustra um caso em que a discordância entre mode
 
 O caso ilustra a função do consenso como mecanismo de triagem: a diferença entre as máscaras indica a necessidade de inspeção, mas a concordância entre modelos também não constitui prova de correção anatômica.
 
-\subsection{Segmentação de córtex, medula e CEC}
+\subsection{Destilação das estruturas intrarrenais: córtex, medula e CEC}
 
 A Tabela~\ref{tab:intrarenal} apresenta o desempenho dos modelos no teste manual de 50 imagens, discriminado por estrutura intrarrenal.
 
@@ -666,6 +715,8 @@ U-Net estudante destilada & 0,6959 & 0,7076 & 0,8467 & 0,7501 & 0,6051 \\
 \end{table}
 
 A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). A estudante destilada alcançou Dice médio $0{,}7501$ e IoU médio $0{,}6051$, com desempenho próximo aos professores neste teste. Em todos os modelos, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
+
+\subsection{Destilação da cápsula renal}
 
 Como experimento piloto inicial do caminho de destilação, foi treinada uma U-Net
 estudante com 32 canais de base, usando 328 imagens manuais para treino, 70
@@ -702,14 +753,16 @@ diretas.
 
 O resultado confirma a execução do protocolo, mas não demonstra superioridade
 da estudante: nesta primeira configuração, seu desempenho ficou abaixo dos dois
-professores. Ainda assim, o checkpoint destilado foi adotado como modelo
-operacional da aplicação por concentrar o conhecimento dos professores em uma
-única rede e reduzir o custo de memória em relação a mantê-los simultaneamente
-na inferência. Essa é uma decisão de implantação, não uma alegação de
-superioridade estatística; a qualidade da estudante deve continuar sendo
-monitorada e comparada com os professores em avaliações futuras.
+professores. Esse checkpoint do piloto não foi adotado como modelo operacional
+final; o piloto foi sucedido pela matriz posterior de combinações, que orientou
+a seleção operacional exploratória da estudante U-Net--DeepLabV3. A motivação
+de implantação foi concentrar o conhecimento dos professores em uma única rede
+e reduzir o custo de memória em relação a mantê-los simultaneamente na
+inferência. Essa é uma decisão operacional, não uma alegação de superioridade
+estatística; a qualidade da estudante deve continuar sendo monitorada e
+comparada com os professores em avaliações futuras.
 
-\subsection{Modelo operacional destilado: arquitetura, pesos e custo de inferência}
+\subsubsection{Modelo operacional destilado: arquitetura, pesos e custo de inferência}
 
 A estudante é uma U-Net convolucional binária com três canais de entrada e um
 canal de saída. Sua arquitetura utiliza quatro blocos de codificação com 32,
@@ -777,9 +830,11 @@ com 32 canais de base; portanto, o número de professores utilizados durante o
 treino não aumenta o custo de inferência da aplicação. A diferença entre elas
 está no alvo suave usado durante a destilação. A Tabela~\ref{tab:matriz_destilacao}
 apresenta a comparação realizada com o mesmo particionamento manual. Os
-\textit{checkpoints} foram selecionados pela validação; o conjunto de teste
-independente é apresentado para comparação final e não foi usado para ajustar
-hiperparâmetros.
+\textit{checkpoints} e limiares de cada execução foram selecionados pela
+validação. O conjunto de teste independente foi apresentado para comparação
+final e não foi usado para ajustar os pesos ou hiperparâmetros de cada
+execução; entretanto, foi observado posteriormente na escolha exploratória da
+combinação operacional.
 
 \begin{table}[htb]
 \centering
@@ -1088,6 +1143,8 @@ O próximo eixo será verificar como as diferenças de segmentação se propagam
 \section{Conclusão}
 
 Este trabalho apresentou a organização de um pipeline rastreável para análise quantitativa de ultrassonografia renal, articulando segmentação da cápsula, consenso entre modelos, curadoria humana, segmentação intrarrenal e mensuração exploratória de ecogenicidade. O teste manual deduplicado documentou Dice de $0{,}9290$ para a cápsula com U-Net; a mesma arquitetura obteve Dice médio $0{,}7594$ na segmentação multiclasse de córtex, medula e CEC em outro conjunto de teste. A estudante destilada aumentou de 3.534 para 3.707 o número de pseudomáscaras externas não vazias no lote MONAI, demonstrando funcionamento operacional, mas não acurácia clínica.
+
+A contribuição científica deve ser interpretada como integração metodológica e avaliação operacional, e não como uma nova arquitetura ou como a primeira aplicação de destilação ao \texttt{KidneyUS}. Em relação a trabalhos próximos, como o MK-Net~\cite{Chen2026MKNet}, este estudo investiga a combinação de professores heterogêneos, a compactação separada das etapas da cascata, a auditoria por consenso e a revisão humana vinculada à mensuração de ecogenicidade. Os resultados sustentam a viabilidade desse arranjo, mas ainda não demonstram superioridade estatística, confiabilidade anatômica das pseudomáscaras externas ou benefício clínico.
 
 A expansão preliminar de treino de medula não melhorou o Dice do teste manual, evidenciando a necessidade de avaliar qualidade de anotação e efeito da curadoria antes de interpretar quantidade de dados como benefício. A contribuição atual está na estrutura metodológica que preserva proveniência e separa predição automática, revisão humana e medida quantitativa. O protocolo córtex--CEC constitui uma etapa promissora para estudos de estabilidade de imagem, ainda sem validação clínica. A continuidade da pesquisa deverá testar o efeito da revisão humana e a repetibilidade das medidas, mantendo a interpretação de fibrose e de doença renal crônica fora do escopo dos resultados atualmente demonstrados.
 

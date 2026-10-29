@@ -59,6 +59,13 @@ Busch, F., Hoffmann, L., Pinto~dos Santos, D., Makowski, M.~R., Saba, L.,
   present, and future.
 \newblock {\em European Radiology}, 35(5):2589--2602.
 
+\bibitem[Chen et~al. 2026a]{Chen2026MKNet}
+Chen, B., Liu, C., Qi, W., and Chan, S.-C. (2026a).
+\newblock {MK-Net}: A multi-scale semantic propagation and base-channel
+  distillation network for multi-class kidney ultrasound segmentation.
+\newblock In {\em 2026 IEEE International Symposium on Circuits and Systems},
+  pages 155--159. IEEE.
+
 \bibitem[Chen et~al. 2017]{Chen2017DeepLabV3}
 Chen, L.-C., Papandreou, G., Schroff, F., and Adam, H. (2017).
 \newblock Rethinking atrous convolution for semantic image segmentation.
@@ -70,8 +77,8 @@ Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018).
 \newblock In {\em Proceedings of the European Conference on Computer Vision
   (ECCV)}, pages 801--818.
 
-\bibitem[Chen et~al. 2026]{Chen2026ThyroidVLM}
-Chen, Z., Wang, Y., and Chen, F. (2026).
+\bibitem[Chen et~al. 2026b]{Chen2026ThyroidVLM}
+Chen, Z., Wang, Y., and Chen, F. (2026b).
 \newblock Comparative performance of multimodal large language models in
   grayscale ultrasound-based classification of thyroid nodules.
 \newblock {\em Seminars in Ultrasound, CT and MRI}.
