@@ -43,11 +43,11 @@ Felipe da R. Henriques\inst{1}}
 \maketitle
 
 \begin{abstract}
-Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the winning distilled student produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
+Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the distilled student selected for operational use produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
 \end{abstract}
 
 \begin{resumo}
-A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada vencedora produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
+A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada selecionada para operação produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
 \end{resumo}
 
 \section{Introdução}
@@ -430,7 +430,7 @@ A deduplicação por hash identifica conteúdos idênticos; o agrupamento por ex
 
 Os segmentadores são treinados com imagens normalizadas e redimensionadas; na configuração deduplicada de referência da U-Net, a entrada possui 256 por 256 pixels, CLAHE é aplicado ao ramo de segmentação e o aumento de dados é restrito ao treinamento. O treinamento registrado utiliza AdamW, taxa inicial de aprendizado de $10^{-4}$ e perda combinada de entropia cruzada binária e Dice. A seleção do checkpoint e do limiar de decisão ocorre com base na validação; para a U-Net de cápsula consolidada de referência, o limiar documentado é $0{,}35$, enquanto a estudante destilada operacional utiliza $0{,}60$. A inferência de pseudomáscaras externas utiliza também a imagem espelhada horizontalmente, agregando as previsões antes da binarização.
 
-U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 são comparados no mesmo teste deduplicado. A qualidade de sobreposição é reportada por Dice e IoU~\cite{Taha2015Metrics}; precisão e \textit{recall} identificam tendências de supersegmentação ou omissão, enquanto quadros por segundo (FPS) informam o custo de inferência nas condições do benchmark. A U-Net foi a referência inicial da cascata; após o experimento de destilação, a aplicação passou a utilizar a U-Net estudante vencedora da combinação U-Net + DeepLabV3 como modelo operacional único para inferência e geração de pseudomáscaras.
+U-Net, UNet++, DeepLabV3-ResNet50 e SegFormer-B0 são comparados no mesmo teste deduplicado. A qualidade de sobreposição é reportada por Dice e IoU~\cite{Taha2015Metrics}; precisão e \textit{recall} identificam tendências de supersegmentação ou omissão, enquanto quadros por segundo (FPS) informam o custo de inferência nas condições do benchmark. A U-Net foi a referência inicial da cascata; após a matriz de destilação, a aplicação passou a utilizar, como decisão operacional exploratória, a U-Net estudante da combinação U-Net + DeepLabV3 para inferência e geração de pseudomáscaras. A escolha da combinação foi feita após a observação da matriz completa, incluindo o teste, e não deve ser apresentada como seleção independente desse conjunto.
 
 \subsection{Fonte externa, pseudomáscaras e consenso}
 
@@ -470,9 +470,9 @@ Para probabilidade média $p_T$ dos professores, limitada numericamente ao inter
 \end{equation}
 com $T=2$, $\lambda_{sup}=1$ e $\lambda_{KD}=0{,}5$. No controle sem professores, o termo $\mathcal{L}_{KD}$ é removido. A configuração piloto emprega imagens de $256\times256$ pixels, CLAHE, aumento de dados apenas no treinamento, AdamW, taxa inicial de $10^{-4}$, lote 16, semente 42, até 12 épocas e parada antecipada com paciência de quatro épocas.
 
-Os experimentos utilizam os mesmos conjuntos manuais deduplicados de 328 imagens para treino, 70 para validação e 70 para teste. O limiar e o checkpoint da estudante devem ser escolhidos na validação e mantidos fixos durante a avaliação independente. Para comparações entre configurações, registram-se Dice, IoU, parâmetros, tamanho dos pesos e tempo de inferência em um protocolo comum. Precisão, \textit{recall}, análise por exame e intervalos de confiança constituem extensões importantes da avaliação. O filtro opcional de concordância mínima entre professores é tratado como uma ablação separada, pois altera a composição do conjunto de treinamento.
+Os experimentos utilizam os mesmos conjuntos manuais deduplicados de 328 imagens para treino, 70 para validação e 70 para teste. O limiar e o checkpoint de cada estudante devem ser escolhidos na validação e mantidos fixos durante a avaliação independente. Para comparações entre configurações, registram-se Dice, IoU, parâmetros, tamanho dos pesos e tempo de inferência em um protocolo comum. Precisão, \textit{recall}, análise por exame e intervalos de confiança constituem extensões importantes da avaliação. O filtro opcional de concordância mínima entre professores é tratado como uma ablação separada, pois altera a composição do conjunto de treinamento. A escolha da combinação de professores para a implantação foi feita após a matriz completa, incluindo os resultados do teste; portanto, o teste não permaneceu completamente isolado da seleção da configuração operacional, e essa escolha deve ser interpretada como exploratória.
 
-O piloto U-Net--DeepLabV3 e as demais combinações de professores já foram executados e são reportados na Seção de Resultados. A escolha operacional de uma estudante é uma decisão de implantação que deverá ser reavaliada à luz da qualidade anatômica e não apenas da velocidade.
+O piloto U-Net--DeepLabV3 e as demais combinações de professores já foram executados e são reportados na Seção de Resultados. A escolha operacional de uma estudante é uma decisão de implantação que deverá ser reavaliada à luz da qualidade anatômica e não apenas da velocidade, especialmente porque a seleção da combinação operacional observou o desempenho no teste.
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
@@ -533,7 +533,7 @@ A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração
 
 A tela mostra a seleção da classe e da operação, mas não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída. A persistência e o histórico são propriedades verificáveis na implementação.
 
-O módulo de inferência recebe uma nova imagem, executa a U-Net estudante vencedora da cápsula (\texttt{kidneyus\_capsule\_student\_unet\_deeplab.pth}), recorta a ROI renal, aplica a U-Net estudante intrarrenal destilada (\texttt{intrarenal\_student\_unet\_deeplab.pth}) e reconstrói máscaras no espaço da imagem. O mesmo checkpoint de cápsula é utilizado pelo construtor de pseudomáscaras do MONAI. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
+O módulo de inferência recebe uma nova imagem, executa a U-Net estudante de cápsula selecionada operacionalmente (\texttt{kidneyus\_capsule\_student\_unet\_deeplab.pth}), recorta a ROI renal, aplica a U-Net estudante intrarrenal destilada (\texttt{intrarenal\_student\_unet\_deeplab.pth}) e reconstrói máscaras no espaço da imagem. O mesmo checkpoint de cápsula é utilizado pelo construtor de pseudomáscaras do MONAI. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
@@ -690,6 +690,16 @@ U-Net estudante destilada & 0,8847 & 0,7932 \\
 \end{tabular}
 \end{table}
 
+Os valores de $0{,}8847$ e $0{,}9078$ não correspondem à mesma execução.
+O primeiro pertence ao piloto inicial, executado pelo script
+\texttt{train\_distilled\_unet.py}, com limiar selecionado de $0{,}45$ e
+tempo registrado de 175,1~s. O segundo pertence à matriz posterior de
+combinações, executada pelo script
+\texttt{train\_distillation\_combinations.py}, com limiar $0{,}60$ e tempo
+de 168,2~s. Embora os dois experimentos usem a divisão nominal de 328/70/70
+imagens, são execuções distintas e não devem ser tratados como replicações
+diretas.
+
 O resultado confirma a execução do protocolo, mas não demonstra superioridade
 da estudante: nesta primeira configuração, seu desempenho ficou abaixo dos dois
 professores. Ainda assim, o checkpoint destilado foi adotado como modelo
@@ -725,10 +735,15 @@ ocupam, respectivamente, 118,51~MiB e 160,56~MiB.
 
 A Tabela~\ref{tab:tempo_destilado} compara o custo de uma passagem direta
 pela rede. O protocolo utilizou a mesma RTX 3050, imagens de $256\times256$,
-lote 8, 73 imagens do conjunto de teste, sincronização CUDA e medição somente
-do \textit{forward}, sem incluir carregamento do modelo, leitura do disco ou
-cálculo das métricas. O SegFormer-B0 foi mantido como referência porque havia
-apresentado a maior velocidade entre os comparadores.
+lote 8, sincronização CUDA e medição somente do \textit{forward}, sem incluir
+carregamento do modelo, leitura do disco ou cálculo das métricas. Foram
+processadas 73 imagens porque o benchmark de velocidade utilizou o diretório
+de teste legado `capsule\_annotator\_1`, não deduplicado; a avaliação de
+acurácia da Tabela~\ref{tab:capsule} utiliza o diretório deduplicado com 70
+imagens. Assim, as 73 imagens caracterizam apenas o protocolo de latência e
+não devem ser confundidas com o conjunto independente usado para Dice e IoU.
+O SegFormer-B0 foi mantido como referência porque havia apresentado a maior
+velocidade entre os comparadores.
 
 \begin{table}[htb]
 \centering
@@ -784,13 +799,23 @@ U-Net + DeepLabV3 + SegFormer-B0 & 0,9101 & 0,8351 & 0,9078 & 0,8311 \\
 \end{tabular}
 \end{table}
 
-No conjunto de teste, a combinação U-Net--DeepLabV3 apresentou o maior Dice e
-IoU entre as estudantes, com desempenho praticamente empatado com o trio de
-professores. Essa diferença deve ser interpretada como resultado deste estudo
-piloto, sem alegação de superioridade estatística. O SegFormer-B0 continua
-sendo o modelo mais rápido, com 2,74~ms por imagem; entre as estudantes, o
-tempo permanece aproximadamente igual porque todas executam a mesma U-Net e os
-professores não são carregados durante a inferência.
+Na validação, a combinação DeepLabV3--SegFormer-B0 apresentou o maior Dice
+($0{,}9109$), enquanto U-Net--DeepLabV3 obteve $0{,}9093$. A combinação
+U-Net--DeepLabV3 foi escolhida operacionalmente porque apresentou o maior Dice
+($0{,}9078$) e IoU ($0{,}8312$) no teste observado na matriz. Essa decisão
+utiliza o teste para selecionar a combinação e, portanto, não permite tratar
+esse teste como uma estimativa completamente independente de desempenho da
+configuração escolhida. Em relação ao baseline sem destilação, a estudante
+U-Net--DeepLabV3 aumentou o Dice de $0{,}8978$ para $0{,}9078$ e o IoU de
+$0{,}8145$ para $0{,}8312$ nesse protocolo, diferenças descritivas que ainda
+precisam de repetição e intervalos de confiança. O trio de professores ficou
+praticamente empatado ($0{,}9078$ de Dice), mostrando que adicionar um terceiro
+professor não produziu ganho mensurável. A média de probabilidades pode diluir
+informação complementar ou introduzir alvos suaves conflitantes; assim, mais
+professores não implicam necessariamente melhor transferência. O SegFormer-B0
+continua sendo o modelo mais rápido, com 2,74~ms por imagem; entre as
+estudantes, o tempo permanece aproximadamente igual porque todas executam a
+mesma U-Net e os professores não são carregados durante a inferência.
 
 \subsection{Estudo piloto do comportamento do assistente multimodal}
 
@@ -1016,7 +1041,29 @@ A pseudo-expansão é um resultado negativo informativo. O aumento de 236 para 5
 
 Nesse contexto, o consenso U-Net--DeepLabV3 tem função operacional bem definida: apoiar a triagem. A correlação documentada entre acordo dos modelos e qualidade frente à referência é promissora para ordenar o trabalho de revisão, mas não prova que candidatos de consenso alto sejam anatomicamente corretos. Um estudo \textit{human-in-the-loop} deve medir, por estratos de consenso, taxas de aceitação, correção e rejeição, concordância de revisores, tempo despendido e ganho no desempenho final. Somente essa comparação permitirá estimar o benefício científico e operacional da curadoria implementada.
 
-O piloto de destilação U-Net--DeepLabV3 indicou viabilidade operacional, mas não ganho de acurácia: o Dice da estudante foi inferior ao dos professores, apesar da redução no número de parâmetros e no tempo de passagem direta. Assim, não se pode atribuir vantagem científica à destilação sem compará-la a uma U-Net compacta treinada sem professores. As combinações com SegFormer-B0 e o trio de professores permitirão verificar se a diversidade arquitetural favorece a transferência de probabilidades, mantendo constantes as demais escolhas experimentais. Mesmo um eventual aumento de Dice no teste interno não substituirá validação em imagens externas e revisão anatômica especializada~\cite{Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}.
+O piloto inicial de destilação U-Net--DeepLabV3 indicou viabilidade operacional,
+mas não ganho de acurácia: a estudante obteve Dice $0{,}8847$, inferior aos
+dois professores, apesar da redução no número de parâmetros e no tempo de
+passagem direta. A matriz posterior produziu $0{,}9078$ de Dice para a mesma
+combinação nominal de professores, mas esse valor pertence a uma execução
+distinta, com outro script e limiar selecionado. A diferença não deve ser
+interpretada como melhora longitudinal do mesmo checkpoint; ela evidencia a
+necessidade de congelar o protocolo antes de comparar execuções.
+
+A matriz também permite comparar a estudante destilada com o baseline sem
+professores. O ganho descritivo de $0{,}8978$ para $0{,}9078$ no Dice e de
+$0{,}8145$ para $0{,}8312$ no IoU sugere utilidade potencial da transferência,
+mas a seleção da configuração ocorreu após a observação do teste. Além disso,
+o maior resultado de validação pertenceu à combinação DeepLabV3--SegFormer-B0,
+que não foi a melhor no teste. A inclusão de mais professores também não
+melhorou o resultado: o trio empatou aproximadamente com U-Net--DeepLabV3.
+Esse comportamento pode decorrer da média de alvos suaves heterogêneos,
+conflitos entre erros dos professores ou variância de treinamento; os dados
+atuais não distinguem esses mecanismos. Portanto, a matriz sustenta uma
+decisão operacional exploratória, não uma demonstração de superioridade da
+destilação. Mesmo um eventual aumento de Dice no teste interno não substituirá
+validação em imagens externas e revisão anatômica especializada
+~\cite{Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}.
 
 A análise de ecogenicidade representa a motivação aplicada da segmentação. O uso da imagem original, em lugar de valores após CLAHE, evita introduzir na medida quantitativa o realce produzido especificamente para melhorar a entrada da rede. O pareamento córtex--CEC e a exclusão de bordas tornam explícitas as escolhas de amostragem e podem reduzir certas fontes de heterogeneidade. Entretanto, tais decisões também introduzem hiperparâmetros --- raio, posição, número de pares, erosão e aproximação de profundidade --- cuja sensibilidade ainda não foi medida. A literatura sobre ecogenicidade relativa fornece motivação, não validação direta desse protocolo particular~\cite{Manley2001,Beutler2024SRI,Zhao2025Echogenicity}.
 
@@ -1024,7 +1071,7 @@ Finalmente, a caracterização quantitativa não deve ser confundida com inferê
 
 \section{Limitações e Ameaças à Validade}
 
-\textbf{Validade interna.} Embora a deduplicação e o agrupamento por exame ou paciente reduzam vazamento, diferenças na formação dos subconjuntos e na seleção dos checkpoints precisam continuar documentadas. Os resultados agregados não incluem, nesta versão, intervalos de confiança pareados por paciente, múltiplas sementes sistemáticas ou análise uniforme de significância. Resultados históricos em conjuntos expandidos com pseudomáscaras não podem ser interpretados como replicações independentes do benchmark manual.
+\textbf{Validade interna.} Embora a deduplicação e o agrupamento por exame ou paciente reduzam vazamento, diferenças na formação dos subconjuntos e na seleção dos checkpoints precisam continuar documentadas. Na matriz de destilação, a escolha da combinação operacional ocorreu após a observação do teste; por isso, o resultado da configuração escolhida é exploratório e não equivale a uma estimativa final não enviesada. Os resultados agregados não incluem, nesta versão, intervalos de confiança pareados por paciente, múltiplas sementes sistemáticas ou análise uniforme de significância. Resultados históricos em conjuntos expandidos com pseudomáscaras não podem ser interpretados como replicações independentes do benchmark manual.
 
 \textbf{Validade de construção.} Dice e IoU medem concordância espacial, não adequação clínica. Confiança média e acordo entre modelos são indicadores operacionais, não probabilidades calibradas de correção. A discordância interobservador, sobretudo em córtex e medula, mostra que a escolha da anotação de referência afeta a avaliação. Para ecogenicidade, intensidades derivadas de imagens B-mode processadas pelo equipamento não representam propriedades acústicas absolutas do tecido.
 
