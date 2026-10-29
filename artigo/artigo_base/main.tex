@@ -125,7 +125,7 @@ Uma comparação de segmentadores deve distinguir a arquitetura de base, as estr
 \IfFileExists{figures/arquitetura_unet.png}{%
 A Figura~\ref{fig:arquitetura_unet} apresenta esquematicamente os principais componentes da arquitetura U-Net discutida nesta subseção.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.90\linewidth]{figures/arquitetura_unet.png}
 \caption{Representação esquemática da arquitetura U-Net utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Ronneberger2015}.}
@@ -146,7 +146,7 @@ A vantagem conceitual da U-Net está na combinação entre contexto e localizaç
 \IfFileExists{figures/arquitetura_unetplusplus.png}{%
 A Figura~\ref{fig:arquitetura_unetplusplus} apresenta esquematicamente os principais componentes da arquitetura U-Net++ discutida nesta subseção.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.90\linewidth]{figures/arquitetura_unetplusplus.png}
 \caption{Representação esquemática da arquitetura U-Net++ utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Zhou2018UNetPP}.}
@@ -171,7 +171,7 @@ Diferentemente de variantes da proposta original que utilizam múltiplas saídas
 % Figura gerada pelo projeto; veja README de figuras para publicacao dos PNGs.
 A Figura~\ref{fig:arquitetura_deeplabv3} apresenta a arquitetura DeepLabV3 empregada e suas taxas de dilatação.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \resizebox{0.90\linewidth}{!}{%
 \begin{tikzpicture}[
@@ -220,7 +220,7 @@ O DeepLabV3 pode aproveitar contexto para diferenciar a região renal de outras 
 \IfFileExists{figures/arquitetura_segformer_b0.png}{%
 A Figura~\ref{fig:arquitetura_segformer_b0} apresenta esquematicamente os principais componentes da arquitetura SegFormer-B0 discutida nesta subseção.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.90\linewidth]{figures/arquitetura_segformer_b0.png}
 \caption{Representação esquemática da arquitetura SegFormer-B0 utilizada como referência para o comparador de segmentação renal. Fonte: elaboração própria, com base na arquitetura original e na implementação estudada. A arquitetura original é descrita por \cite{Xie2021SegFormer}.}
@@ -394,7 +394,7 @@ A referência supervisionada original para os experimentos anatômicos é o \tex
 
 A Tabela~\ref{tab:datasets} resume os conjuntos supervisionados e torna explícito que os tamanhos de amostra não são intercambiáveis entre tarefas.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Conjuntos supervisionados do estudo. Os testes de tarefas diferentes não representam uma mesma amostra.}
 \label{tab:datasets}
@@ -468,7 +468,7 @@ máscara manual quanto a média das probabilidades dos professores. A figura
 representa o fluxo de treinamento, não uma execução simultânea dos professores
 na inferência da aplicação.
 
-\begin{figure}[htb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.98\linewidth,trim=0 8cm 0 0,clip]{figures/destilacao_fluxo_multiprofessor.png}
 \caption{Fluxo metodológico da destilação multi-professor. As combinações
@@ -476,6 +476,8 @@ de U-Net, DeepLabV3 e SegFormer-B0 geram alvos suaves; a estudante é treinada
 combinando essa informação com a máscara manual.}
 \label{fig:destilacao_fluxo}
 \end{figure}
+
+A Figura~\ref{fig:destilacao_fluxo} distingue os professores, empregados exclusivamente na preparação dos alvos suaves, da U-Net estudante, utilizada na inferência. As combinações representam experimentos alternativos de treinamento, e não a execução obrigatória dos três professores ao mesmo tempo. A supervisão manual permanece presente em todas as configurações destiladas; a destilação da cápsula e a destilação intrarrenal são realizadas em treinamentos distintos, com máscaras e saídas anatômicas específicas.
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
@@ -507,7 +509,7 @@ O fluxo de trabalho começa com a identificação do revisor e a seleção de um
 A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente. As Figuras~\ref{fig:curadoria_revisao_caso} e~\ref{fig:curadoria_correcao_mascara} apresentam, respectivamente, a inspeção ampliada de um exame e a ferramenta utilizada para preparar uma correção manual.
 
 A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de curadoria, a identificação do revisor e os controles disponíveis na interface.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_visao_geral.png}
 \caption{Visão geral da interface de Curadoria Web: fila de imagens à esquerda, visualizador de ultrassonografia renal ao centro e, à direita, metadados dos modelos e controles de revisão das anotações. O painel de progresso e filtros está recolhido. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -517,7 +519,7 @@ A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de cur
 A visão geral reúne a fila de casos, o visualizador e os controles de revisão em uma única tela. Os metadados do modelo e o estado da curadoria ficam associados ao caso selecionado, enquanto o painel de progresso e os filtros podem permanecer recolhidos durante a inspeção.
 
 A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do mesmo caso, destinada ao exame da imagem renal sem distrações dos painéis laterais.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
 \caption{Visualização ampliada de uma ultrassonografia renal na Curadoria Web: área de inspeção do exame, ferramentas de navegação e controles das camadas anatômicas. As sobreposições das máscaras estão desativadas nesta captura. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -527,7 +529,7 @@ A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do
 Na captura ampliada, as máscaras estão desativadas; na aplicação, elas podem ser habilitadas individualmente para comparar rim, córtex, medula e CEC com a imagem original.
 
 A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração de uma edição manual com a ferramenta de pincel.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
 \caption{Tela de correção manual de máscaras na Curadoria Web: ferramenta pincel selecionada para substituir a máscara da classe córtex. A imagem documenta a configuração da edição, não uma correção concluída. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -560,7 +562,7 @@ A mediana dos $R_i$ é a medida exploratória principal e o IQR descreve sua dis
 
 
 A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativo de duas ROIs circulares posicionadas manualmente sobre as máscaras anatômicas.
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
 \caption{Comparador de ecogenicidade da Curadoria Web: seleção manual de ROIs sobre máscaras anatômicas e cálculo da razão de brilho CEC (A)/córtex (B) para o par selecionado, usando a imagem original sem CLAHE. Essa razão local não corresponde ao indicador global córtex/CEC nem constitui diagnóstico. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -581,7 +583,7 @@ das métricas. Para separar o custo da rede desses componentes, a subseção
 posterior apresenta um benchmark controlado de \textit{forward} com protocolo
 comum à estudante e ao SegFormer.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Segmentação da cápsula em 70 imagens de teste manual deduplicado do \texttt{kidneyUS}.}
 \label{tab:capsule}
@@ -603,7 +605,7 @@ A escolha inicial da U-Net para localizar a ROI renal baseou-se no desempenho ob
 
 A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que as condições de aquisição favorecem a delimitação; a imagem não substitui a avaliação agregada da Tabela~\ref{tab:capsule}.
 
-\begin{figure}[htb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth]{figures/quality_good_comparison.png}
 \caption{Exemplo qualitativo de segmentação em imagem com condições favoráveis de delimitação renal. A inspeção visual complementa, mas não substitui, as métricas agregadas.}
@@ -616,7 +618,7 @@ Na imagem apresentada, o contorno previsto acompanha visualmente a região renal
 
 Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. Para avaliar a implantação da estudante, a Tabela~\ref{tab:pseudomascaras_monai} compara a cobertura operacional no mesmo lote de 4.479 imagens externas do MONAI. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Cobertura operacional de pseudomáscaras no lote externo do MONAI.}
 \label{tab:pseudomascaras_monai}
@@ -640,7 +642,7 @@ comparação com referências manuais, análise por imagem e revisão especializ
 
 A Figura~\ref{fig:divergencia} ilustra um caso em que a discordância entre modelos justifica a inspeção humana.
 
-\begin{figure}[htb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.90\linewidth]{figures/unet_deeplab_divergence.png}
 \caption{Exemplo de divergência entre predições de U-Net e DeepLabV3. Discordância orienta inspeção humana, mas concordância também não certifica o contorno renal.}
@@ -653,7 +655,7 @@ O caso ilustra a função do consenso como mecanismo de triagem: a diferença en
 
 A Tabela~\ref{tab:intrarenal} apresenta o desempenho dos modelos no teste manual de 50 imagens, discriminado por estrutura intrarrenal.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Desempenho intrarrenal no teste manual de 50 imagens; Dice por estrutura e médias sobre classes de primeiro plano.}
 \label{tab:intrarenal}
@@ -680,7 +682,7 @@ médias da U-Net e da DeepLabV3, com temperatura $T=2$ e peso de destilação
 $0{,}5$. A seleção do checkpoint ocorreu na validação; o teste foi consultado
 somente ao final.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Piloto inicial da destilação de conhecimento no teste manual independente; a seleção operacional posterior é apresentada na matriz de combinações de professores.}
 \label{tab:destilacao_capsula}
@@ -752,7 +754,7 @@ não devem ser confundidas com o conjunto independente usado para Dice e IoU.
 O SegFormer-B0 foi mantido como referência porque havia apresentado a maior
 velocidade entre os comparadores.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \scriptsize
 \caption{Custo controlado de inferência na RTX 3050; uma única passagem direta, sem pré-processamento e sem métricas.}
@@ -790,7 +792,7 @@ final e não foi usado para ajustar os pesos ou hiperparâmetros de cada
 execução; entretanto, foi observado posteriormente na escolha exploratória da
 combinação operacional.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \scriptsize
 \caption{Comparação das combinações de professores na destilação da U-Net estudante.}
@@ -846,7 +848,7 @@ especializada, não como decisão clínica autônoma.
 
 A Figura~\ref{fig:assistente_piloto_mascaras} documenta visualmente o conjunto de evidências utilizado no piloto: a imagem B-mode original, cada máscara anatômica individual e a sobreposição conjunta das regiões segmentadas.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth]{figures/assistente_piloto_mascaras_detalhadas.png}
 \caption{Evidências visuais do estudo piloto multimodal: imagem B-mode original, máscaras individuais de rim, córtex, medula e CEC e sobreposição conjunta. As máscaras individuais são apresentadas sobre a imagem para facilitar a localização de cada estrutura; as cores representam rim em vermelho, córtex em ciano, medula em amarelo e CEC em laranja. As máscaras foram geradas automaticamente pela cascata da Curadoria Web, com U-Net da cápsula (\texttt{models/kidneyus\_capsule\_unet.pth}) e U-Net multiclasse intrarrenal (\texttt{models/intrarenal\_unet\_multiclass\_annotator1.pth}). Fonte: elaboração própria a partir da inferência registrada em \texttt{inferencias/infer\_0141d6c60b3a}.}
@@ -857,7 +859,7 @@ A composição mostra que as quatro máscaras estão no mesmo espaço da imagem 
 
 A Tabela~\ref{tab:assistente_piloto} resume a comparação descritiva. Como o estudo possui um único caso e não utiliza um gabarito independente para os achados multimodais, os critérios de resposta devem ser lidos como observações qualitativas dos pesquisadores, e não como métricas de desempenho.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Comparação qualitativa do estudo piloto multimodal ($N=1$).}
 \label{tab:assistente_piloto}
@@ -902,7 +904,7 @@ referência manual de rim, córtex, medula e CEC. A apresentação inicial do ca
 a Figura~\ref{fig:assistente_exemplo_imagem}. Essa etapa delimita o objeto da
 revisão antes da formulação da pergunta ao assistente.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.88\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
 \caption{Exemplo de imagem renal apresentada para apoio assistencial, com a
@@ -920,7 +922,7 @@ mostra a interface assistencial no momento da consulta, incluindo a pergunta,
 o consentimento explícito para o provedor externo e os comandos de análise
 local ou comparação.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.54\linewidth]{figures/assistente_exemplo_interface.png}
 \caption{Interface do assistente visual durante o exemplo de uso assistencial.
@@ -939,7 +941,7 @@ afirmar nem excluir fibrose. Essa diferença é útil para a revisão humana, ma
 não representa acurácia comparativa, pois se trata de um único caso sem
 referência independente para o achado assistencial.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Exemplo de uso assistencial do assistente multimodal.}
 \label{tab:assistente_exemplo_uso}
@@ -964,7 +966,7 @@ incorporada automaticamente como anotação clínica.
 
 Para situar o desempenho obtido, a Tabela~\ref{tab:comparacao_literatura} apresenta, lado a lado, os coeficientes Dice desta pesquisa e os relatados por Zuo et al.~\cite{Zuo2025RenalAttention} para a MAT-UNet. A escolha dessa referência decorre da utilização do \texttt{Open Kidney Ultrasound Data Set} e do interesse nas mesmas quatro estruturas anatômicas. Os números são reproduzidos nas escalas de Dice entre zero e um; a tabela é uma comparação \emph{descritiva entre publicações}, e não uma reavaliação dos modelos sobre as mesmas imagens.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Comparação descritiva do Dice com a MAT-UNet de Zuo et al.~\cite{Zuo2025RenalAttention}. Os resultados provêm de protocolos independentes e não constituem um ranking experimental.}
 \label{tab:comparacao_literatura}
@@ -988,7 +990,7 @@ Outros trabalhos relacionados possuem objetivos complementares, mas seus desfech
 
 A Tabela~\ref{tab:interobserver} apresenta a concordância Dice entre os dois anotadores, organizada por estrutura e pelo número de imagens comuns disponíveis.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Concordância Dice entre os dois anotadores do \texttt{kidneyUS}, nos conjuntos disponíveis por estrutura.}
 \label{tab:interobserver}
@@ -1012,7 +1014,7 @@ Uma heurística inicial para localizar regiões escuras apresentou Dice médio $
 
 A Tabela~\ref{tab:medulla_expand} apresenta a comparação da pseudo-expansão com validação e teste manuais preservados.
 
-\begin{table}[htb]
+\begin{table}[H]
 \centering
 \caption{Experimento de pseudo-expansão do treino da medula, com validação e teste manuais preservados.}
 \label{tab:medulla_expand}
