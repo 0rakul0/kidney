@@ -346,7 +346,7 @@ Os trabalhos anteriores sustentam três frentes complementares: segmentar estrut
 
 A originalidade reivindicada é, assim, de integração metodológica e avaliação operacional, e não de invenção de uma arquitetura ou da destilação de conhecimento. O sistema combina professores heterogêneos, estudantes específicas para a cápsula e para as estruturas intrarrenais, consenso para auditoria, Curadoria Web para revisão humana e descritores de ecogenicidade para análise exploratória. Essa formulação também posiciona o trabalho diante de arquiteturas recentes específicas do \texttt{KidneyUS}, como o MK-Net, evitando uma alegação de pioneirismo incompatível com o estado da arte.
 
-\section{Materiais e Métodos}
+\section{Metodologia}
 
 \subsection{Contexto e evolução do protocolo}
 
@@ -487,36 +487,7 @@ na inferência da aplicação.
 
 \begin{figure}[htb]
 \centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  teacher/.style={draw, rounded corners, fill=blue!8, align=center,
-    minimum width=2.7cm, minimum height=0.72cm, font=\small},
-  process/.style={draw, rounded corners, fill=cyan!8, align=center,
-    minimum width=3.2cm, minimum height=0.95cm, font=\small},
-  data/.style={draw, rounded corners, fill=yellow!15, align=center,
-    minimum width=3.0cm, minimum height=0.78cm, font=\small},
-  student/.style={draw, rounded corners, fill=green!10, align=center,
-    minimum width=2.9cm, minimum height=0.95cm, font=\small},
-  arrow/.style={-{Latex[length=2mm]}, thick}
-]
-\node[teacher] (unet) at (0,2.0) {U-Net\ professora};
-\node[teacher] (deeplab) at (0,0) {DeepLabV3\ professora};
-\node[teacher] (segformer) at (0,-2.0) {SegFormer-B0\ professor};
-\node[process] (aggregate) at (4,0.8) {Combinação de professores\\e média de probabilidades};
-\node[data] (manual) at (4,-2.1) {Máscara manual\\de supervisão};
-\node[process] (loss) at (7.2,-2.1) {\(\mathcal{L}_{sup}+\lambda_{KD}\mathcal{L}_{KD}\)\\objetivo de treinamento};
-\node[student] (student) at (7.2,0.8) {U-Net estudante\\compacta};
-\node[data] (output) at (10.4,0.8) {Máscara\\predita};
-\draw[arrow] (unet.east) -- (aggregate.west);
-\draw[arrow] (deeplab.east) -- (aggregate.west);
-\draw[arrow] (segformer.east) -- (aggregate.west);
-\draw[arrow] (aggregate.south) -- node[right, font=\scriptsize]{alvo suave} (student.north);
-\draw[arrow] (aggregate.south east) -- node[right, font=\scriptsize]{\(\mathcal{L}_{KD}\)} (loss.north west);
-\draw[arrow] (manual.east) -- node[above, font=\scriptsize]{\(\mathcal{L}_{sup}\)} (loss.west);
-\draw[arrow] (loss.north) -- node[right, font=\scriptsize]{otimização} (student.south);
-\draw[arrow] (student.east) -- (output.west);
-\end{tikzpicture}%
-}
+\includegraphics[width=0.98\linewidth,trim=0 8cm 0 0,clip]{figures/destilacao_fluxo_multiprofessor.png}
 \caption{Fluxo metodológico da destilação multi-professor. As combinações
 de U-Net, DeepLabV3 e SegFormer-B0 geram alvos suaves; a estudante é treinada
 combinando essa informação com a máscara manual.}
@@ -553,7 +524,7 @@ O fluxo de trabalho começa com a identificação do revisor e a seleção de um
 A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente. As Figuras~\ref{fig:curadoria_revisao_caso} e~\ref{fig:curadoria_correcao_mascara} apresentam, respectivamente, a inspeção ampliada de um exame e a ferramenta utilizada para preparar uma correção manual.
 
 A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de curadoria, a identificação do revisor e os controles disponíveis na interface.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_visao_geral.png}
 \caption{Visão geral da interface de Curadoria Web: fila de imagens à esquerda, visualizador de ultrassonografia renal ao centro e, à direita, metadados dos modelos e controles de revisão das anotações. O painel de progresso e filtros está recolhido. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -563,7 +534,7 @@ A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de cur
 A visão geral reúne a fila de casos, o visualizador e os controles de revisão em uma única tela. Os metadados do modelo e o estado da curadoria ficam associados ao caso selecionado, enquanto o painel de progresso e os filtros podem permanecer recolhidos durante a inspeção.
 
 A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do mesmo caso, destinada ao exame da imagem renal sem distrações dos painéis laterais.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
 \caption{Visualização ampliada de uma ultrassonografia renal na Curadoria Web: área de inspeção do exame, ferramentas de navegação e controles das camadas anatômicas. As sobreposições das máscaras estão desativadas nesta captura. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -573,7 +544,7 @@ A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do
 Na captura ampliada, as máscaras estão desativadas; na aplicação, elas podem ser habilitadas individualmente para comparar rim, córtex, medula e CEC com a imagem original.
 
 A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração de uma edição manual com a ferramenta de pincel.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
 \caption{Tela de correção manual de máscaras na Curadoria Web: ferramenta pincel selecionada para substituir a máscara da classe córtex. A imagem documenta a configuração da edição, não uma correção concluída. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -606,7 +577,7 @@ A mediana dos $R_i$ é a medida exploratória principal e o IQR descreve sua dis
 
 
 A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativo de duas ROIs circulares posicionadas manualmente sobre as máscaras anatômicas.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.46\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
 \caption{Comparador de ecogenicidade da Curadoria Web: seleção manual de ROIs sobre máscaras anatômicas e cálculo da razão de brilho CEC (A)/córtex (B) para o par selecionado, usando a imagem original sem CLAHE. Essa razão local não corresponde ao indicador global córtex/CEC nem constitui diagnóstico. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
@@ -892,7 +863,7 @@ especializada, não como decisão clínica autônoma.
 
 A Figura~\ref{fig:assistente_piloto_mascaras} documenta visualmente o conjunto de evidências utilizado no piloto: a imagem B-mode original, cada máscara anatômica individual e a sobreposição conjunta das regiões segmentadas.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\linewidth]{figures/assistente_piloto_mascaras_detalhadas.png}
 \caption{Evidências visuais do estudo piloto multimodal: imagem B-mode original, máscaras individuais de rim, córtex, medula e CEC e sobreposição conjunta. As máscaras individuais são apresentadas sobre a imagem para facilitar a localização de cada estrutura; as cores representam rim em vermelho, córtex em ciano, medula em amarelo e CEC em laranja. As máscaras foram geradas automaticamente pela cascata da Curadoria Web, com U-Net da cápsula (\texttt{models/kidneyus\_capsule\_unet.pth}) e U-Net multiclasse intrarrenal (\texttt{models/intrarenal\_unet\_multiclass\_annotator1.pth}). Fonte: elaboração própria a partir da inferência registrada em \texttt{inferencias/infer\_0141d6c60b3a}.}
@@ -948,7 +919,7 @@ referência manual de rim, córtex, medula e CEC. A apresentação inicial do ca
 a Figura~\ref{fig:assistente_exemplo_imagem}. Essa etapa delimita o objeto da
 revisão antes da formulação da pergunta ao assistente.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.88\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
 \caption{Exemplo de imagem renal apresentada para apoio assistencial, com a
@@ -966,7 +937,7 @@ mostra a interface assistencial no momento da consulta, incluindo a pergunta,
 o consentimento explícito para o provedor externo e os comandos de análise
 local ou comparação.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.54\linewidth]{figures/assistente_exemplo_interface.png}
 \caption{Interface do assistente visual durante o exemplo de uso assistencial.
@@ -985,7 +956,7 @@ afirmar nem excluir fibrose. Essa diferença é útil para a revisão humana, ma
 não representa acurácia comparativa, pois se trata de um único caso sem
 referência independente para o achado assistencial.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering
 \caption{Exemplo de uso assistencial do assistente multimodal.}
 \label{tab:assistente_exemplo_uso}
