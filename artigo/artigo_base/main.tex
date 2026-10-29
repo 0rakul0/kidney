@@ -362,14 +362,14 @@ As máscaras originais fornecidas pelo \texttt{kidneyUS} são atribuídas aos an
 
 A etapa mais recente encadeia cápsula, estruturas intrarrenais e mensuração de ecogenicidade. Nesse momento, tornou-se necessário separar ainda mais claramente o pré-processamento usado na inferência do dado usado na análise quantitativa. A mensuração passou a ser realizada na imagem original, por ROIs anatomicamente delimitadas, com resultados exploratórios. Esta seção descreve a origem das escolhas experimentais; as seções seguintes apresentam os protocolos que podem ser reproduzidos e os limites das evidências já obtidas.
 
-A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas etapas, distinguindo as máscaras originais do \texttt{kidneyUS} daquelas produzidas pela pesquisa, a expansão com imagens MONAI e o papel posterior da Curadoria Web. O diagrama representa a organização do sistema; a aplicação sobre imagens sem referência manual permanece sujeita a revisão e não constitui validação clínica.
+A Figura~\ref{fig:fluxo_metodologico} apresenta a visão geral da metodologia e orienta a leitura das subseções seguintes. A representação distingue três fases: (i) engenharia de dados e segmentação da cápsula renal, desenvolvidas a partir do SBBD; (ii) consenso entre modelos, destilação de conhecimento e segmentação hierárquica com estudantes distintas para cápsula e estruturas intrarrenais; e (iii) aplicação dos modelos na Curadoria Web, mensuração de ecogenicidade e análise exploratória assistida por IA multimodal. Em todas as fases, a proveniência das máscaras, a revisão humana e a reprodutibilidade permanecem explícitas.
 
 \begin{figure}[htbp]
 \centering
 % Coloque figura5_evolucao_metodologica_renal.png em artigo/artigo_base/figures/.
-% A imagem e ilustrativa; os detalhes e limites experimentais constam do texto.
+% A imagem original tem legenda interna; trim remove a faixa inferior para evitar duplicacao com caption.
 \IfFileExists{figures/figura5_evolucao_metodologica_renal.png}{%
-  \includegraphics[width=\linewidth]{figures/figura5_evolucao_metodologica_renal.png}%
+  \includegraphics[width=\linewidth,trim=0 82bp 0 0,clip]{figures/figura5_evolucao_metodologica_renal.png}%
 }{%
   \fbox{\parbox{0.92\linewidth}{\centering
   \textbf{Fase 1 -- Engenharia de dados e segmentação da cápsula (SBBD)}\\[3pt]
@@ -379,11 +379,11 @@ A Figura~\ref{fig:fluxo_metodologico} sintetiza o fluxo metodológico em duas et
   \textbf{Fase 3 -- Curadoria, ecogenicidade e assistente multimodal}\\[5pt]
   \textit{Transversal: proveniência, rastreabilidade e revisão humana}}}%
 }
-\caption{Evolução metodológica do pipeline de análise de ultrassonografia renal. A Fase 1 reúne a engenharia de dados, a comparação dos segmentadores e a geração de pseudomáscaras candidatas. A Fase 2 introduz consenso entre modelos, destilação multi-professor e segmentação hierárquica da cápsula e das estruturas intrarrenais. A Fase 3 integra inferência destilada, Curadoria Web, descritores de ecogenicidade e assistente multimodal para análise exploratória. Proveniência, rastreabilidade, reprodutibilidade e revisão humana atravessam as três fases. Fonte: elaboração própria.}
+\caption{Visão geral da evolução metodológica da pesquisa: engenharia de dados e segmentação renal (Fase 1), consenso e destilação hierárquica com estudantes distintas para cápsula e estruturas intrarrenais (Fase 2), e integração à Curadoria Web, mensuração exploratória e assistente multimodal (Fase 3). Proveniência e revisão humana são transversais às fases. Fonte: elaboração própria.}
 \label{fig:fluxo_metodologico}
 \end{figure}
 
-A Figura~\ref{fig:fluxo_metodologico} constitui o mapa geral da metodologia. As subseções seguintes desenvolvem separadamente a construção e a partição dos dados, o treinamento e a avaliação da cápsula, o consenso e a curadoria das pseudomáscaras, a destilação, a segmentação intrarrenal e os descritores de ecogenicidade. As seções da Curadoria Web e do assistente multimodal detalham a integração operacional e a análise assistida. As setas representam dependências de processamento e transferência de informações, não uma validação automática das máscaras nem um diagnóstico inferido pela IA. A figura sintetiza componentes e possibilidades do sistema; os resultados efetivamente medidos e as etapas ainda exploratórias são discriminados no texto.
+A Figura~\ref{fig:fluxo_metodologico} evidencia a evolução do trabalho de um protocolo de segmentação externa para uma cascata de processamento e análise. Na primeira fase, as imagens anotadas do \texttt{kidneyUS} sustentam a comparação dos segmentadores, enquanto as fontes externas fornecem candidatas a pseudomáscaras, sem serem confundidas com referências manuais. Na segunda fase, o consenso orienta a auditoria das predições e a destilação ocorre em dois treinamentos distintos: uma U-Net estudante delimita a cápsula e define a ROI renal; outra U-Net estudante, treinada para a tarefa multiclasse, segmenta córtex, medula e CEC dentro dessa região. Na terceira fase, a aplicação reúne as máscaras, as medidas de ecogenicidade extraídas da imagem original e as evidências apresentadas ao assistente multimodal para interpretação exploratória e revisão na Curadoria Web. As setas expressam dependências de processamento, não validação clínica automática. As subseções seguintes detalham, na mesma lógica, dados, arquiteturas, experimentos, critérios de avaliação e limites de cada componente.
 
 \subsection{Desenho experimental e unidades de avaliação}
 
