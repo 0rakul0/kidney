@@ -176,32 +176,8 @@ A Figura~\ref{fig:arquitetura_deeplabv3} apresenta a arquitetura DeepLabV3 empre
 
 \begin{figure}[!htbp]
 \centering
-\resizebox{0.90\linewidth}{!}{%
-\begin{tikzpicture}[
->=Latex,
-every node/.style={font=\scriptsize,align=center},
-block/.style={draw,rounded corners=2pt,minimum height=9mm,text width=23mm,inner sep=3pt,fill=gray!8},
-rate/.style={draw,rounded corners=2pt,text width=22mm,minimum height=7mm,inner sep=2pt,fill=blue!7},
-arr/.style={->,thick}
-]
-\node[block] (input) {Ultrassom\\256$\times$256$\times$3};
-\node[block,right=6mm of input] (backbone) {ResNet-50\\mapas de atributos};
-\node[rate,right=12mm of backbone,yshift=18mm] (r1) {ASPP $1\times1$};
-\node[rate,below=2mm of r1] (r12) {Atrous $3\times3$\\taxa 12};
-\node[rate,below=2mm of r12] (r24) {Atrous $3\times3$\\taxa 24};
-\node[rate,below=2mm of r24] (r36) {Atrous $3\times3$\\taxa 36};
-\node[rate,below=2mm of r36] (pool) {Pooling global};
-\node[block,right=12mm of r24] (fusion) {Concatenação\\e projeção};
-\node[block,right=6mm of fusion] (out) {Classificador $1\times1$\\e interpolação};
-\draw[arr] (input) -- (backbone);
-\foreach \n in {r1,r12,r24,r36,pool} {
-  \draw[arr] (backbone.east) -- ++(5mm,0) |- (\n.west);
-  \draw[arr] (\n.east) -- ++(5mm,0) |- (fusion.west);
-}
-\draw[arr] (fusion) -- (out);
-\end{tikzpicture}%
-}
-\caption{Arquitetura DeepLabV3 empregada na segmentação renal, com ResNet-50 e ASPP com taxas de dilatação 12, 24 e 36. Fonte: elaboração própria, com base em \cite{Chen2017DeepLabV3} e na implementação estudada.}
+\includegraphics[width=0.90\linewidth,trim=0 2.4cm 0 2.2cm,clip]{figures/arquitetura_deeplabv3.png}
+\caption{Arquitetura DeepLabV3 empregada na segmentação renal. O backbone ResNet-50 fornece mapas de características ao ASPP, cujas ramificações utilizam taxas 12, 24 e 36, além das ramificações $1\times1$ e de pooling global. Fonte: elaboração própria, com base em \cite{Chen2017DeepLabV3} e na implementação estudada.}
 \label{fig:arquitetura_deeplabv3}
 \end{figure}
 \FloatBarrier
@@ -738,7 +714,44 @@ comparada com os professores em avaliações futuras.
 
 \subsubsection{Modelo operacional destilado: arquitetura, pesos e custo de inferência}
 
-A estudante é uma U-Net convolucional binária com três canais de entrada e um
+As duas estudantes operacionais compartilham a topologia U-Net, mas atendem a
+saídas anatômicas diferentes. A Figura~\ref{fig:arquiteturas_estudantes}
+representa essa distinção: a estudante da cápsula recebe três canais e produz
+uma máscara binária, enquanto a estudante intrarrenal recebe a imagem da ROI,
+a ROI mascarada e a máscara renal, produzindo quatro classes. Os professores
+são utilizados somente durante o treinamento; na inferência da aplicação,
+apenas as estudantes são carregadas.
+
+\begin{figure}[!htbp]
+\centering
+\resizebox{0.98\linewidth}{!}{%
+\begin{tikzpicture}[
+>=Latex,
+every node/.style={font=\scriptsize,align=center},
+student/.style={draw,rounded corners=2pt,minimum height=10mm,text width=30mm,inner sep=3pt,fill=blue!7},
+core/.style={draw,rounded corners=2pt,minimum height=13mm,text width=39mm,inner sep=3pt,fill=green!8},
+output/.style={draw,rounded corners=2pt,minimum height=10mm,text width=31mm,inner sep=3pt,fill=yellow!15},
+arr/.style={->,thick}
+]
+\node[student] (cin) {Entrada da cápsula\\$256\times256\times3$};
+\node[core,right=6mm of cin] (cnet) {U-Net estudante da cápsula\\codificação + bottleneck + decodificação\\$32\rightarrow64\rightarrow128\rightarrow256\rightarrow512$};
+\node[output,right=6mm of cnet] (cout) {Convolução $1\times1$\\máscara binária\\$256\times256\times1$};
+\draw[arr] (cin) -- (cnet);
+\draw[arr] (cnet) -- (cout);
+
+\node[student,below=10mm of cin] (iin) {Entrada intrarrenal\\ROI, ROI mascarada e rim\\$256\times256\times3$};
+\node[core,right=6mm of iin] (inet) {U-Net estudante intrarrenal\\mesma topologia e conexões de salto\\base $32$, bottleneck $512$};
+\node[output,right=6mm of inet] (iout) {Convolução $1\times1$\\quatro classes\\fundo, córtex, medula e CEC};
+\draw[arr] (iin) -- (inet);
+\draw[arr] (inet) -- (iout);
+\end{tikzpicture}%
+}
+\caption{Arquiteturas das estudantes destiladas utilizadas na cascata. As duas redes têm a mesma topologia U-Net compacta, mas diferem na semântica dos canais de entrada e no número de classes de saída. Fonte: elaboração própria com base na implementação do projeto e em \cite{Ronneberger2015}.}
+\label{fig:arquiteturas_estudantes}
+\end{figure}
+\FloatBarrier
+
+A estudante da cápsula é uma U-Net convolucional binária com três canais de entrada e um
 canal de saída. Sua arquitetura utiliza quatro blocos de codificação com 32,
 64, 128 e 256 canais, um \textit{bottleneck} com 512 canais e quatro blocos de
 decodificação com convoluções transpostas e conexões de salto. Cada bloco
@@ -746,7 +759,9 @@ decodificação com convoluções transpostas e conexões de salto. Cada bloco
 ReLU; a saída é produzida por uma convolução $1\times1$. Em comparação, a U-Net
 professora utiliza a mesma topologia com 64 canais de base, enquanto a
 DeepLabV3 professora utiliza backbone ResNet-50 e ASPP com convoluções
-atrous. Assim, a destilação não combina as arquiteturas em uma rede híbrida:
+atrous. A estudante intrarrenal reutiliza os mesmos blocos e canais de base,
+mas termina com quatro logits para fundo, córtex, medula e CEC. Assim, a
+destilação não combina as arquiteturas em uma rede híbrida:
 transfere para a U-Net menor as probabilidades médias produzidas pelos dois
 professores.
 
