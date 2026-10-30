@@ -43,6 +43,17 @@ def test_quality_assessment_is_explicitly_non_diagnostic():
     assert "não é probabilidade diagnóstica" in quality["interpretacao"]
 
 
+def test_distilled_checkpoint_is_described_for_traceability():
+    descriptor = InferenceService._model_descriptor(
+        Path("models/kidneyus_capsule_student_unet_deeplab.pth"),
+        "localização da cápsula renal",
+    )
+
+    assert descriptor["destilado"] is True
+    assert "U-Net estudante destilada" in descriptor["nome"]
+    assert descriptor["checkpoint"] == "kidneyus_capsule_student_unet_deeplab.pth"
+
+
 def test_structured_assistant_response_reports_regions_and_evidence():
     result = AssistantService._structured_response(
         "**Observação:** revisar o córtex e o CEC.",
@@ -56,6 +67,25 @@ def test_structured_assistant_response_reports_regions_and_evidence():
     assert result["regioes_mencionadas"] == ["cortex", "central_echo_complex"]
     assert result["regioes_priorizadas"][0]["prioridade"] == "alta"
     assert result["status"] == "revisao_humana_obrigatoria"
+
+
+def test_structured_response_links_chat_regions_to_segmentation_evidence():
+    result = AssistantService._structured_response(
+        "Revisar o córtex e o CEC.",
+        {"limitacoes": ["Revisão humana obrigatória."]},
+        {
+            "evidence_refs": ["imagem_original", "mascara_cortex", "mascara_central_echo_complex"],
+            "mascaras_disponiveis": ["cortex", "central_echo_complex"],
+            "modelos_segmentacao": {"capsula": {"nome": "U-Net estudante destilada"}},
+            "qualidade_inferencia": {"status": "revisar_com_atencao"},
+            "medidor_brilho": {"diferenca_cec_cortex": 12.4},
+        },
+    )
+
+    assert result["regioes_com_evidencia"] == ["cortex", "central_echo_complex"]
+    assert result["regioes_sem_evidencia"] == []
+    assert result["modelos_segmentacao"]["capsula"]["nome"].startswith("U-Net")
+    assert result["metricas_ecogenicidade"]["diferenca_cec_cortex"] == 12.4
 
 
 def test_mask_command_is_a_confirmation_dependent_proposal():

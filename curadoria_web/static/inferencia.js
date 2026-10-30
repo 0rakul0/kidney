@@ -71,6 +71,10 @@ async function runInference() {
     currentInferenceId = result.image_id;
     currentMaskProposal = null;
     $("result-name").textContent = result.filename;
+    $("result-models").textContent = Object.values(result.modelos_segmentacao || {})
+      .map((model) => model.nome)
+      .filter(Boolean)
+      .join(" · ") || "Modelo configurado";
     $("result-dimensions").textContent = `${result.info.dimensao} · ${result.info.dispositivo}`;
     $("inference-image").src = `${result.image_url}?v=${Date.now()}`;
     Object.entries(result.layers).forEach(([name, url]) => {
@@ -150,6 +154,68 @@ function renderInferenceStructured(results) {
     `Prioridade alta da segmentação: ${priority.join(", ") || "nenhuma"}`,
     "A priorização é operacional e não representa probabilidade diagnóstica.",
   ].join("\n");
+  target.hidden = false;
+}
+function renderInferenceAnalyticalTrace(results, context = {}) {
+  const target = $("inference-assistant-analysis");
+  if (!target) return;
+  const models = Object.values(context.modelos_segmentacao || {});
+  const modelText = models.length
+    ? models.map((model) => [
+      model.nome || "modelo",
+      model.tarefa || "segmentação",
+      model.checkpoint || "checkpoint não informado",
+    ].join(" · ")).join("\n")
+    : "Modelo da segmentação não informado nesta sessão.";
+  const regionLabels = {rim: "rim", cortex: "córtex", medulla: "medula", central_echo_complex: "CEC"};
+  const available = (context.mascaras_disponiveis || []).map((name) => regionLabels[name] || name);
+  const regions = (context.priorizacao_regioes || []).map((region) => {
+    const confidence = Number.isFinite(region.confianca)
+      ? " " + (region.confianca * 100).toFixed(1) + "%"
+      : "";
+    return (region.rotulo || region.regiao) + ": prioridade "
+      + (region.prioridade || "—") + confidence;
+  });
+  const meter = context.medidor_brilho || {};
+  const metricText = meter.disponivel === false
+    ? "Indisponível para esta combinação de máscaras."
+    : [
+      Number.isFinite(meter.cortex_mediana) ? "mediana córtex " + meter.cortex_mediana : null,
+      Number.isFinite(meter.cec_mediana) ? "mediana CEC " + meter.cec_mediana : null,
+      Number.isFinite(meter.diferenca_cec_cortex) ? "Δ CEC–córtex " + meter.diferenca_cec_cortex : null,
+      Number.isFinite(meter.contraste_normalizado) ? "contraste " + meter.contraste_normalizado + "%" : null,
+    ].filter(Boolean).join(" · ") || "Métricas não disponíveis.";
+  const chatText = results.length
+    ? results.map((result) => {
+      const structured = result.structured || {};
+      const modelName = String(result.model || "chat").split("/").pop();
+      const mentioned = (structured.regioes_mencionadas || []).join(", ") || "nenhuma região";
+      const supported = (structured.regioes_com_evidencia || []).join(", ") || "nenhuma região";
+      return modelName + ": mencionou " + mentioned
+        + "; com máscara correspondente: " + supported + ".";
+    }).join("\n")
+    : "Aguardando resposta do chat.";
+  target.replaceChildren();
+  const title = document.createElement("strong");
+  title.textContent = "Interação analítica entre segmentação e chat";
+  target.append(title);
+  [
+    ["Segmentação usada", modelText],
+    ["Máscaras entregues ao chat", available.join(", ") || "nenhuma"],
+    ["Controle operacional", (context.qualidade_inferencia?.status || "não informado") + " — revisão humana obrigatória."],
+    ["Prioridade das regiões", regions.join(" · ") || "não calculada"],
+    ["Métricas consultadas", metricText],
+    ["Rastreabilidade da resposta", chatText],
+  ].forEach(([label, value]) => {
+    const row = document.createElement("div");
+    row.className = "assistant-analysis-row";
+    const heading = document.createElement("span");
+    heading.textContent = label;
+    const content = document.createElement("p");
+    content.textContent = value;
+    row.append(heading, content);
+    target.append(row);
+  });
   target.hidden = false;
 }
 function resetMaskCommand() {
@@ -247,6 +313,7 @@ function renderInferenceAssistantResults(results, context = {}) {
     body.append(row);
   });
   renderInferenceStructured(results);
+  renderInferenceAnalyticalTrace(results, context);
   renderMaskCommand(results);
   $("inference-assistant-result").hidden = false;
 }

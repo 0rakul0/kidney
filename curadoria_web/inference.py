@@ -49,6 +49,24 @@ class InferenceService:
         self._models = None
         self._restore_results()
 
+    @staticmethod
+    def _model_descriptor(checkpoint, task):
+        checkpoint_name = Path(str(checkpoint)).name
+        normalized = checkpoint_name.casefold()
+        distilled = "student" in normalized or "distill" in normalized
+        if distilled and ("deeplab" in normalized or "unet_deeplab" in normalized):
+            model_name = "U-Net estudante destilada (U-Net + DeepLabV3)"
+        elif distilled:
+            model_name = "U-Net estudante destilada"
+        else:
+            model_name = "Modelo segmentador configurado"
+        return {
+            "tarefa": task,
+            "nome": model_name,
+            "checkpoint": checkpoint_name,
+            "destilado": distilled,
+        }
+
     def _restore_results(self):
         """Rebuild the inference index after a server restart."""
         if not self.output_dir.exists():
@@ -82,6 +100,7 @@ class InferenceService:
                     "device": str(metadata.get("device", "unknown")),
                     "capsule_checkpoint": str(metadata.get("capsule_checkpoint", "")),
                     "intrarenal_checkpoint": str(metadata.get("intrarenal_checkpoint", "")),
+                    "segmentation_models": metadata.get("segmentation_models", {}),
                     "capsule_bbox": metadata.get("capsule_bbox"),
                     "quality": metadata.get("quality", {}),
                     "region_review": metadata.get("region_review", []),
@@ -105,6 +124,7 @@ class InferenceService:
             "device": result["device"],
             "capsule_checkpoint": result.get("capsule_checkpoint", ""),
             "intrarenal_checkpoint": result.get("intrarenal_checkpoint", ""),
+            "segmentation_models": result.get("segmentation_models", {}),
             "capsule_bbox": result["capsule_bbox"],
             "quality": result.get("quality", {}),
             "region_review": result.get("region_review", []),
@@ -171,6 +191,10 @@ class InferenceService:
             "keep_largest_component": keep_largest_component,
             "predict_probability": predict_probability,
             "prepare_tensor": prepare_tensor,
+            "segmentation_models": {
+                "capsula": self._model_descriptor(kidney_checkpoint, "localização da cápsula renal"),
+                "intrarrenal": self._model_descriptor(inner_checkpoint, "córtex, medula e CEC"),
+            },
         }
         return self._models
 
@@ -538,6 +562,7 @@ class InferenceService:
             "device": models["device"],
             "capsule_checkpoint": str(models["kidney"]["checkpoint_path"]),
             "intrarenal_checkpoint": str(models["inner_checkpoint"]),
+            "segmentation_models": models["segmentation_models"],
             "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
             "quality": quality,
             "region_review": region_review,
@@ -557,6 +582,7 @@ class InferenceService:
             "capsule_bbox": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
             "qualidade": quality,
             "priorizacao_regioes": region_review,
+            "modelos_segmentacao": models["segmentation_models"],
             "info": {
                 "dimensao": f"{image.width} x {image.height}",
                 "dispositivo": models["device"],

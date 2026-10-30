@@ -191,6 +191,7 @@ class AssistantService:
                 "metrics": {},
                 "quality": result.get("quality", {}),
                 "region_review": result.get("region_review", []),
+                "segmentation_models": result.get("segmentation_models", {}),
                 "origin": "inferencia_web",
                 "filename": result.get("filename", image_id),
                 "device": result.get("device", "unknown"),
@@ -214,6 +215,7 @@ class AssistantService:
             "metrics": item.get("metricas", {}),
             "quality": item.get("qualidade_inferencia", {}),
             "region_review": item.get("priorizacao_regioes", []),
+            "segmentation_models": item.get("modelos_segmentacao", {}),
             "origin": item.get("origem_visual", "curadoria"),
             "filename": image_id,
             "device": "curadoria",
@@ -248,6 +250,8 @@ class AssistantService:
             "segmentacao": {"capsule_bbox": bbox, "dispositivo": artifacts["device"]},
             "qualidade_inferencia": artifacts.get("quality", {}),
             "priorizacao_regioes": artifacts.get("region_review", []),
+            "modelos_segmentacao": artifacts.get("segmentation_models", {}),
+            "metricas_ecogenicidade": artifacts.get("meter", {}),
             "sobreposicao_mascaras_enviada": True,
             "limitacoes": [
                 "Máscaras e métricas são evidências de pesquisa e precisam de revisão humana.",
@@ -267,11 +271,18 @@ class AssistantService:
             "image_size": list(image_size),
             "capsule_bbox": bbox,
             "mascaras_disponiveis": available,
+            "modelos_segmentacao": artifacts.get("segmentation_models", {}),
+            "qualidade_inferencia": artifacts.get("quality", {}),
+            "priorizacao_regioes": artifacts.get("region_review", []),
+            "medidor_brilho": artifacts.get("meter", {}),
             "evidence_refs": [
                 "imagem_original",
                 *[f"mascara_{name}" for name in available],
                 "medidor_brilho",
                 "metricas_segmentacao",
+                "modelos_segmentacao",
+                "qualidade_inferencia",
+                "priorizacao_regioes",
             ],
         }
         if artifacts.get("quality"):
@@ -286,6 +297,8 @@ class AssistantService:
         return (
             f"{question.strip()}\n\n"
             "Use as evidências anexadas, incluindo as máscaras e o medidor de brilho. "
+            "Informe quais máscaras, métricas e prioridades sustentam cada região mencionada; "
+            "uma região segmentada é uma evidência operacional e não um achado clínico. "
             "Diferencie observação direta, métrica computacional e hipótese. "
             "Procure áreas ecogênicas dentro da cápsula quando o modo for recorte, "
             "mas não trate o CEC fisiológico como lesão sem evidência independente. "
@@ -313,10 +326,14 @@ class AssistantService:
 
     @classmethod
     def _structured_response(cls, answer, evidence, context):
+        mentioned = cls._regions_mentioned(answer)
+        available = set(context.get("mascaras_disponiveis", []))
         return {
             "observacao": answer,
             "evidencias_utilizadas": context.get("evidence_refs", []),
-            "regioes_mencionadas": cls._regions_mentioned(answer),
+            "regioes_mencionadas": mentioned,
+            "regioes_com_evidencia": [region for region in mentioned if region in available],
+            "regioes_sem_evidencia": [region for region in mentioned if region not in available],
             "regioes_priorizadas": [
                 {
                     "regiao": region.get("regiao"),
@@ -325,6 +342,9 @@ class AssistantService:
                 }
                 for region in context.get("priorizacao_regioes", [])
             ],
+            "modelos_segmentacao": context.get("modelos_segmentacao", {}),
+            "qualidade_segmentacao": context.get("qualidade_inferencia", {}),
+            "metricas_ecogenicidade": context.get("medidor_brilho", {}),
             "limitacoes": evidence.get("limitacoes", []),
             "status": "revisao_humana_obrigatoria",
         }

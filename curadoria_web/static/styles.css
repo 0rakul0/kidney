@@ -257,6 +257,11 @@ body.assistant-focus-open { overflow: hidden; }
 .assistant-result { margin-top: 12px; }
 .assistant-evidence { padding: 8px; color: #53657e; background: #f4f7fb; border-radius: 6px; font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
 .assistant-structured { margin-top: 8px; padding: 8px; color: #315a8c; background: #eef7ff; border: 1px solid #c8dff7; border-radius: 6px; font-size: 10px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistant-analysis { margin-top: 8px; padding: 9px; color: #294d74; background: #f6fbff; border: 1px solid #bdd9ef; border-radius: 7px; font-size: 11px; line-height: 1.35; }
+.assistant-analysis > strong { display: block; margin-bottom: 7px; color: var(--blue); }
+.assistant-analysis-row { display: grid; grid-template-columns: minmax(120px, 32%) 1fr; gap: 7px; padding: 5px 0; border-top: 1px solid rgba(120, 160, 200, .22); }
+.assistant-analysis-row span { font-weight: 650; color: #53657e; }
+.assistant-analysis-row p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .mask-command { margin-top: 8px; padding: 9px; color: #315a8c; background: #fff9ec; border: 1px solid #ead39a; border-radius: 6px; font-size: 11px; line-height: 1.4; }
 .mask-command p { margin: 5px 0 0; }
 .mask-command .assistant-actions { margin-top: 8px; }
@@ -322,6 +327,7 @@ body.assistant-focus-open { overflow: hidden; }
 .inference-result { grid-column: 1 / -1; }
 .result-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 17px; }
 .result-heading h2 { margin-top: 5px; font-size: 17px; overflow-wrap: anywhere; }
+.result-meta { display: grid; gap: 3px; justify-items: end; text-align: right; }
 .inference-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, .9fr); gap: 16px; }
 .inference-viewer { padding: 12px; border-radius: 8px; background: #06090d; }
 .inference-stack { position: relative; max-height: 600px; margin: auto; }

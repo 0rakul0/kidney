@@ -30,7 +30,7 @@
         <p id="inference-message" class="message" role="status"></p>
       </section>
       <section id="inference-result" class="inference-result" hidden>
-        <div class="result-heading"><div><span class="eyebrow">RESULTADO</span><h2 id="result-name">—</h2></div><span id="result-dimensions" class="scope"></span></div>
+        <div class="result-heading"><div><span class="eyebrow">RESULTADO</span><h2 id="result-name">—</h2></div><div class="result-meta"><span id="result-dimensions" class="scope"></span><span id="result-models" class="scope"></span></div></div>
         <div class="inference-grid">
           <div class="inference-viewer">
             <div class="inference-stack">
@@ -78,6 +78,7 @@
               <div id="inference-assistant-result" class="assistant-result" hidden>
                 <div id="inference-assistant-evidence" class="assistant-evidence"></div>
                 <div id="inference-assistant-structured" class="assistant-structured" hidden></div>
+                <div id="inference-assistant-analysis" class="assistant-analysis" hidden></div>
                 <div id="inference-mask-command" class="mask-command" hidden>
                   <strong id="inference-mask-command-title"></strong>
                   <p id="inference-mask-command-instruction"></p>
@@ -109,6 +110,6 @@
       </section>
     </main>
     <div class="assistant-focus-backdrop" hidden></div>
-    <script src="/inferencia.js?v=20261028_mask_commands_openai"></script>
+    <script src="/inferencia.js?v=20261029_distilled_trace"></script>
   </body>
 </html>
