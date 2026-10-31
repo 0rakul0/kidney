@@ -26,9 +26,13 @@ As listas de figuras, tabelas, abreviaturas/siglas e símbolos são **opcionais*
 ## Pendências formais, condicionadas ao tipo de entrega
 
 - [ ] Confirmar com a orientação se o texto da **Defesa de Proposta de Dissertação** pode seguir o artigo-base SBC ou se deve adotar integralmente o template institucional de dissertação
-- [ ] Se for proposta em formato acadêmico: preparar capa e folha de rosto com discente, Programa, natureza do trabalho, orientador(es), cidade e data, sem inventar dados
-- [ ] Se o padrão institucional for exigido: organizar o **Resumo em português antes do Abstract**, em páginas próprias, e conferir fontes, espaçamento, margens e paginação iniciada na Introdução
-- [ ] Revisar o formato das referências frente ao manual e à norma solicitada; o arquivo atual usa o estilo `sbc.bst`
+- [x] Estrutura da proposta: capa e folha de rosto com identificação do discente, PPCIC, natureza do trabalho, cidade e ano; orientação mantida como campo a preencher
+- [ ] Substituir nome abreviado do discente e preencher o nome oficial do(a) orientador(a) antes do envio
+- [x] Resumo em português antes do Abstract, em páginas próprias; margens de 3 cm, Times 12 aproximado e espaçamento 1,5 no modo de qualificação
+- [x] Pré-textuais sem numeração visível; numeração no alto à direita a partir da Introdução
+- [ ] Confirmar aderência final do PDF ao padrão específico aceito pelo PPCIC
+- [x] Separar citações autor-data via `abntex2cite` na qualificação e `sbc.bst` no artigo SBC
+- [ ] Conferir campos e apresentação final da bibliografia em relação às normas vigentes e às orientações da coordenação
 - [ ] Conferir numeração, fonte e localização de todas as figuras e tabelas; registrar a autoria/fonte mesmo quando a imagem é de elaboração própria
 - [ ] Conferir identificação e expansão das siglas no primeiro uso, além da lista pré-textual
 - [ ] Conferir nome do programa, título oficial, resumo em português/inglês, orientação e comunicação à coordenação, conforme o procedimento da banca
@@ -44,7 +48,8 @@ As listas de figuras, tabelas, abreviaturas/siglas e símbolos são **opcionais*
 - [ ] Comparar treino manual × manual+pseudo × manual+pseudo revisado, preservando as mesmas condições de avaliação
 - [ ] Medir repetibilidade e sensibilidade das razões de ecogenicidade (máscaras, tamanho/posição de ROI, profundidade, variação intra/interobservador)
 - [ ] Definir, com orientador, escopo e condições de eventual estudo clínico pareado (exames, eGFR, histopatologia, governança de dados e ética)
-- [ ] Incluir **cronograma com prazos e entregáveis verificáveis** para o que ainda resta até a defesa
+- [x] Incluir cronograma preliminar de novembro/2026 a abril/2027 com prazos e entregáveis verificáveis
+- [ ] Validar as datas indicativas com o orientador e com o calendário institucional
 - [ ] Manter o piloto multimodal como demonstração exploratória até existir amostra, gabarito e documentação técnica do modelo externo
 
 ## Documentos de referência
