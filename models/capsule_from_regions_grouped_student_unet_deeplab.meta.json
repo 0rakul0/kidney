@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "model_name": "DistilledUNet",
+  "model_kwargs": {
+    "in_channels": 3,
+    "out_channels": 1,
+    "base_channels": 32
+  },
+  "best_threshold": 0.5,
+  "experiment": "capsule_distillation_unet_deeplab",
+  "method": "knowledge_distillation",
+  "teachers": {
+    "unet": "D:\\kidney\\models\\capsule_from_regions_grouped_unet_teacher.pth",
+    "deeplab": "D:\\kidney\\models\\capsule_from_regions_grouped_deeplab_teacher.pth"
+  },
+  "fusion": "arithmetic_mean_of_teacher_probabilities",
+  "temperature": 2.0,
+  "supervised_weight": 1.0,
+  "distillation_weight": 0.5,
+  "dataset_root": "D:\\kidney\\dataset_aumentado\\dataset_intrarrenal\\supervisionado\\capsule_from_regions_grouped",
+  "consensus_only": false,
+  "min_teacher_agreement": 0.94,
+  "best_epoch": 17
+}

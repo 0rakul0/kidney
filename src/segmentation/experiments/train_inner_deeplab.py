@@ -34,6 +34,32 @@ DEFAULT_RESULTS_ROOT = PROJECT_ROOT / "results" / "intrarenal_model3"
 CLASS_NAMES = ["background", "cortex", "medulla", "central_echo_complex"]
 
 
+def roi_bounds(kidney_mask, pad_ratio=0.12):
+    """Calcula a caixa da ROI renal com a mesma regra da aplicação."""
+    ys, xs = np.where(kidney_mask > 0)
+    if not xs.size:
+        return None
+    width = int(xs.max() - xs.min() + 1)
+    height = int(ys.max() - ys.min() + 1)
+    padding = max(4, int(round(max(width, height) * pad_ratio)))
+    return (
+        max(0, int(xs.min()) - padding),
+        max(0, int(ys.min()) - padding),
+        min(kidney_mask.shape[1], int(xs.max()) + padding + 1),
+        min(kidney_mask.shape[0], int(ys.max()) + padding + 1),
+    )
+
+
+def crop_to_kidney_roi(image, mask, kidney):
+    """Recorta imagem, rótulo e ROI com o mesmo protocolo da inferência web."""
+    kidney_binary = kidney > 0
+    bounds = roi_bounds(kidney_binary)
+    if bounds is None:
+        return image, mask, kidney
+    x1, y1, x2, y2 = bounds
+    return image[y1:y2, x1:x2], mask[y1:y2, x1:x2], kidney[y1:y2, x1:x2]
+
+
 @dataclass
 class TrainConfig:
     dataset_root: str
@@ -76,6 +102,7 @@ class IntrarenalMulticlassDataset(Dataset):
         if image is None or mask is None or kidney is None:
             raise FileNotFoundError(f"Exemplo multiclasse incompleto: {name}")
 
+        image, mask, kidney = crop_to_kidney_roi(image, mask, kidney)
         image = cv2.resize(image, (self.img_size, self.img_size), interpolation=cv2.INTER_LINEAR)
         mask = cv2.resize(mask, (self.img_size, self.img_size), interpolation=cv2.INTER_NEAREST)
         kidney = cv2.resize(kidney, (self.img_size, self.img_size), interpolation=cv2.INTER_NEAREST)

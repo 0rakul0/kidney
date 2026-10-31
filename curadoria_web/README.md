@@ -10,12 +10,18 @@ documentadas do modelo (`Dice`, `IoU` e `F1`), deixando claro que esses valores
 medem desempenho em teste e nao aprovam automaticamente o caso visualizado.
 
 O caminho atual usa uma etapa intrarrenal multiclasse com a U-Net estudante
-destilada dentro da ROI renal. O checkpoint
-`intrarenal_student_unet_deeplab.pth` aprende com as máscaras manuais e com a
-média das probabilidades dos professores U-Net e DeepLabV3. No teste separado
-por paciente, obteve Dice médio foreground `0.750075`, com `Dice=0.695894`
-para `Cortex`, `0.707624` para `Medulla` e `0.846706` para `Central Echo
-Complex`; portanto, suas máscaras aparecem apenas como propostas para revisão.
+destilada dentro da ROI renal. Os padrões atuais são
+`models/capsule_from_regions_grouped_student_unet_deeplab.pth` para a cápsula e
+`models/intrarenal_grouped_roi_student_unet_deeplab.pth` para córtex, medula e
+CEC. Esses pesos foram treinados em divisões agrupadas por identificador de
+exame, sem compartilhamento de `IM-*` entre treino, validação e teste, e com o
+mesmo recorte de ROI utilizado na aplicação.
+
+No teste agrupado, a estudante da cápsula obteve Dice `0.9566`. Na avaliação
+ponta a ponta, com a ROI gerada pela própria estudante, o Dice foreground
+intrarrenal foi `0.7210`; usando a ROI manual de referência, foi `0.7395`.
+Essa diferença representa a propagação do erro da primeira etapa. As máscaras
+continuam sendo propostas para revisão e não constituem diagnóstico clínico.
 
 ## Executar
 
@@ -41,9 +47,10 @@ Essa função requer o ambiente local do projeto com PyTorch e os checkpoints em
 `models/`; a imagem Docker de curadoria, destinada apenas à revisão de
 máscaras pré-computadas, não inclui os pesos de inferência.
 
-Por padrão, a inferência usa `models/kidneyus_capsule_student_unet_deeplab.pth`,
-a U-Net estudante destilada de U-Net + DeepLabV3 escolhida como modelo
-operacional da aplicação. Para testar
+Por padrão, a inferência usa `models/capsule_from_regions_grouped_student_unet_deeplab.pth`,
+a U-Net estudante destilada e alinhada ao domínio das imagens intrarrenais. A
+etapa multiclasse usa
+`models/intrarenal_grouped_roi_student_unet_deeplab.pth`. Para testar
 outro checkpoint, defina `CURATORIA_CAPSULE_CHECKPOINT` antes de iniciar o
 servidor. A etapa intrarrenal pode ser substituída com
 `CURATORIA_INTRARENAL_CHECKPOINT`. As U-Net e DeepLabV3 originais permanecem
@@ -154,13 +161,13 @@ Esta tabela documenta os arquivos **confirmados no repositorio**. Alguns sao mod
 | Arquivo | O que faz | Objetivo | Entradas e saidas |
 | --- | --- | --- | --- |
 | `curadoria_web/app.py` | Servidor HTTP da curadoria: apresenta casos, imagens, mascaras, ferramentas de revisao e endpoints para exportacao. | Organizar revisao humana auditavel. | Le o manifesto visual e imagens; grava revisoes em `dataset_aumentado/curadoria/respostas/curadoria.sqlite3` e correcoes separadas. |
-| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/kidneyus_capsule_student_unet_deeplab.pth` e `models/intrarenal_student_unet_deeplab.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
+| `curadoria_web/inference.py` | Cascata de inferencia: segmenta a capsula, recorta a ROI renal, prediz cortex, medula e CEC e invoca medidas de ecogenicidade. | Gerar propostas de segmentacao de novas imagens, sem diagnostico clinico. | PNG/JPEG e os modelos `models/capsule_from_regions_grouped_student_unet_deeplab.pth` e `models/intrarenal_grouped_roi_student_unet_deeplab.pth`; grava imagens e mascaras em `dataset_aumentado/curadoria/respostas/inferencias/`. |
 | `curadoria_web/static/app.js` | Logica do navegador: navegacao, zoom, camadas, desenho de correcoes e envio de revisoes ao servidor. | Oferecer ferramentas interativas para inspeção e curadoria. | Endpoints da aplicacao; altera o estado exibido e envia dados ao servidor. |
 | `curadoria_web/static/inferencia.html` | Pagina de upload e visualizacao da inferencia. | Permitir testar uma imagem sem incorpora-la automaticamente ao treino. | Usa a API de `app.py` e apresenta camadas e resultados no navegador. |
-| `src/segmentation/build_dataset_geral.py` | Organiza fontes de imagens e produz pseudomascaras candidatas com checkpoint configuravel; registra manifesto. | Preparar dados com proveniencia para revisao e possivel expansao supervisionada. | Imagens e modelo; padrao do checkpoint: `models/kidneyus_capsule_student_unet_deeplab.pth`; produz `manifest.csv` no diretorio de saida definido. |
+| `src/segmentation/build_dataset_geral.py` | Organiza fontes de imagens e produz pseudomascaras candidatas com checkpoint configuravel; registra manifesto. | Preparar dados com proveniencia para revisao e possivel expansao supervisionada. | Imagens e modelo; padrao do checkpoint: `models/capsule_from_regions_grouped_student_unet_deeplab.pth`; produz `manifest.csv` no diretorio de saida definido. |
 | `src/segmentation/experiments/train_unet.py` | Treina U-Net usando a infraestrutura compartilhada de treinamento. | Aprender segmentacao renal e avaliar o modelo. | Conjuntos particionados e argumentos de treino; gera checkpoint e metricas conforme configuracao. |
 | `src/segmentation/experiments/train_inner_deeplab.py` | Treina DeepLabV3 multiclasse na ROI renal. | Identificar cortex, medula e complexo ecogenico central. | Dataset intrarrenal e parametros; checkpoint padrao `models/intrarenal_deeplab_resnet50_multiclass_annotator1.pth`, metadados e resultados. |
-| `src/segmentation/experiments/train_distilled_inner_unet.py` | Treina a U-Net estudante multiclasse com máscaras manuais e a média das probabilidades da U-Net e da DeepLabV3 intrarrenais. | Concentrar o comportamento dos professores em um único modelo para a inferência da aplicação. | Dataset intrarrenal, dois checkpoints professores e cache de probabilidades; produz `models/intrarenal_student_unet_deeplab.pth` e métricas do teste independente. |
+| `src/segmentation/experiments/train_distilled_inner_unet.py` | Treina a U-Net estudante multiclasse com máscaras manuais e a média das probabilidades da U-Net e da DeepLabV3 intrarrenais. | Concentrar o comportamento dos professores em um único modelo para a inferência da aplicação. | Dataset intrarrenal, dois checkpoints professores e cache de probabilidades; produz a estudante multiclasse e as métricas do teste independente. |
 | `artigo/artigo_base/compilar_artigo.ps1` | Executa LaTeX, BibTeX e repeticoes do LaTeX; verifica citacoes e rotulos das figuras. | Gerar um artigo com bibliografia e referencias cruzadas resolvidas. | `main.tex`, `.bib`, figuras e distribuicao LaTeX; produz `main.pdf`. |
 
 ### Ferramentas criadas na Curadoria Web

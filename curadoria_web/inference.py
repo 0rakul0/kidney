@@ -157,7 +157,7 @@ class InferenceService:
         kidney_checkpoint = (
             Path(configured_checkpoint)
             if configured_checkpoint
-            else self.project_root / "models" / "kidneyus_capsule_student_unet_deeplab.pth"
+            else self.project_root / "models" / "capsule_from_regions_grouped_student_unet_deeplab.pth"
         )
         if not kidney_checkpoint.is_absolute():
             kidney_checkpoint = self.project_root / kidney_checkpoint
@@ -165,7 +165,7 @@ class InferenceService:
         inner_checkpoint = (
             Path(configured_inner_checkpoint)
             if configured_inner_checkpoint
-            else self.project_root / "models" / "intrarenal_student_unet_deeplab.pth"
+            else self.project_root / "models" / "intrarenal_grouped_roi_student_unet_deeplab.pth"
         )
         if not inner_checkpoint.is_absolute():
             inner_checkpoint = self.project_root / inner_checkpoint

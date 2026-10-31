@@ -1,0 +1,69 @@
+{
+  "architecture": "U-Net",
+  "task": "intrarenal_multiclass_roi",
+  "classes": {
+    "0": "background",
+    "1": "cortex",
+    "2": "medulla",
+    "3": "central_echo_complex"
+  },
+  "input_channels": [
+    "grayscale_roi",
+    "masked_kidney_roi",
+    "kidney_mask"
+  ],
+  "checkpoint": "models\\intrarenal_grouped_roi_unet.pth",
+  "device": "cuda",
+  "dataset_sizes": {
+    "train": 234,
+    "val": 50,
+    "test": 51
+  },
+  "best_epoch": 19,
+  "best_val": {
+    "background_dice": 0.943486,
+    "background_iou": 0.893017,
+    "cortex_dice": 0.73403,
+    "cortex_iou": 0.579817,
+    "medulla_dice": 0.76348,
+    "medulla_iou": 0.617443,
+    "central_echo_complex_dice": 0.823743,
+    "central_echo_complex_iou": 0.700309,
+    "mean_foreground_dice": 0.773751,
+    "mean_foreground_iou": 0.632523,
+    "score": 0.703137
+  },
+  "test_loss": 0.735998,
+  "test": {
+    "background_dice": 0.942016,
+    "background_iou": 0.890387,
+    "cortex_dice": 0.694607,
+    "cortex_iou": 0.532106,
+    "medulla_dice": 0.742683,
+    "medulla_iou": 0.590689,
+    "central_echo_complex_dice": 0.846953,
+    "central_echo_complex_iou": 0.734534,
+    "mean_foreground_dice": 0.761414,
+    "mean_foreground_iou": 0.61911,
+    "score": 0.690262
+  },
+  "elapsed_seconds": 501.56,
+  "config": {
+    "dataset_root": "dataset_aumentado\\dataset_intrarrenal\\supervisionado\\regions_multiclass_annotator_1_grouped",
+    "checkpoint_path": "models\\intrarenal_grouped_roi_unet.pth",
+    "experiment_name": "intrarenal_grouped_roi_unet",
+    "img_size": 256,
+    "epochs": 50,
+    "batch_size": 8,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05,
+    "early_stopping": 10,
+    "num_workers": 0,
+    "seed": 42,
+    "clahe": true,
+    "augment": true,
+    "base_channels": 64,
+    "dice_weight": 1.0,
+    "ce_weight": 1.0
+  }
+}

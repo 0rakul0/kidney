@@ -1,0 +1,79 @@
+{
+  "architecture": "Distilled U-Net",
+  "task": "intrarenal_multiclass_roi",
+  "classes": {
+    "0": "background",
+    "1": "cortex",
+    "2": "medulla",
+    "3": "central_echo_complex"
+  },
+  "input_channels": [
+    "grayscale_roi",
+    "masked_kidney_roi",
+    "kidney_mask"
+  ],
+  "checkpoint": "D:\\kidney\\models\\intrarenal_grouped_roi_student_unet_deeplab.pth",
+  "device": "cuda",
+  "teachers": {
+    "unet": "D:\\kidney\\models\\intrarenal_grouped_roi_unet.pth",
+    "deeplab": "D:\\kidney\\models\\intrarenal_grouped_roi_deeplab.pth"
+  },
+  "fusion": "arithmetic_mean_of_teacher_probabilities",
+  "method": "knowledge_distillation",
+  "best_epoch": 35,
+  "best_val": {
+    "background_dice": 0.942016,
+    "background_iou": 0.890389,
+    "cortex_dice": 0.74417,
+    "cortex_iou": 0.592572,
+    "medulla_dice": 0.756413,
+    "medulla_iou": 0.608252,
+    "central_echo_complex_dice": 0.82898,
+    "central_echo_complex_iou": 0.707913,
+    "mean_foreground_dice": 0.776521,
+    "mean_foreground_iou": 0.636246,
+    "score": 0.706384
+  },
+  "test_loss": 1.091809,
+  "test": {
+    "background_dice": 0.942235,
+    "background_iou": 0.890778,
+    "cortex_dice": 0.699308,
+    "cortex_iou": 0.537643,
+    "medulla_dice": 0.731539,
+    "medulla_iou": 0.576714,
+    "central_echo_complex_dice": 0.849485,
+    "central_echo_complex_iou": 0.738352,
+    "mean_foreground_dice": 0.760111,
+    "mean_foreground_iou": 0.61757,
+    "score": 0.68884
+  },
+  "elapsed_seconds": 447.63,
+  "model_kwargs": {
+    "in_channels": 3,
+    "out_channels": 4,
+    "base_channels": 32
+  },
+  "config": {
+    "dataset_root": "D:\\kidney\\dataset_aumentado\\dataset_intrarrenal\\supervisionado\\regions_multiclass_annotator_1_grouped",
+    "student_checkpoint": "D:\\kidney\\models\\intrarenal_grouped_roi_student_unet_deeplab.pth",
+    "teacher_unet": "D:\\kidney\\models\\intrarenal_grouped_roi_unet.pth",
+    "teacher_deeplab": "D:\\kidney\\models\\intrarenal_grouped_roi_deeplab.pth",
+    "experiment_name": "intrarenal_grouped_roi_student_unet_deeplab",
+    "img_size": 256,
+    "epochs": 50,
+    "batch_size": 8,
+    "teacher_batch_size": 2,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05,
+    "early_stopping": 10,
+    "num_workers": 0,
+    "seed": 42,
+    "clahe": true,
+    "augment": true,
+    "base_channels": 32,
+    "temperature": 2.0,
+    "supervised_weight": 1.0,
+    "distillation_weight": 0.5
+  }
+}

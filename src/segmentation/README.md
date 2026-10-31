@@ -47,7 +47,7 @@ Comando principal:
 Por padrao, o script usa:
 
 - modelo: `unet`;
-- checkpoint: `models/kidneyus_capsule_student_unet_deeplab.pth`;
+- checkpoint: `models/capsule_from_regions_grouped_student_unet_deeplab.pth`;
 - CLAHE, como no treinamento;
 - limiar de segmentacao `0.60`, selecionado na validacao do modelo vencedor;
 - media das predicoes original e espelhada horizontalmente.
@@ -55,7 +55,9 @@ Por padrao, o script usa:
 Em 28/10/2026, o comando foi executado sobre o conjunto MONAI disponível no
 projeto. O resultado registrado em `dataset_aumentado/dataset_geral_v2/summary.json`
 contém 4.479 imagens MONAI, das quais 3.707 receberam pseudomáscaras não vazias
-com esse checkpoint; todas permanecem marcadas para revisão humana.
+com o checkpoint operacional anterior; todas permanecem marcadas para revisão
+humana. Novas execuções usam o checkpoint agrupado descrito na seção de
+protocolo corrigido.
 
 A base supervisionada canonica para segmentacao externa do rim agora e criada
 com `engenharia_dataset/create_capsule_splits.py`, usando a classe `Capsule` do
@@ -182,10 +184,36 @@ adoção é uma decisão de implantação e não uma alegação de superioridade
 professores continuam sendo referências de controle e a qualidade deve ser
 monitorada em avaliações posteriores.
 
-O checkpoint vencedor da matriz operacional é
-`models/kidneyus_capsule_student_unet_deeplab.pth`, treinado com U-Net e
-DeepLabV3 como professores. Ele é o padrão usado pela Curadoria Web e pelo
-`build_dataset_geral.py` para gerar pseudomáscaras das imagens do MONAI.
+O checkpoint histórico da matriz operacional foi
+`models/kidneyus_capsule_student_unet_deeplab.pth`. Ele permanece no projeto
+para reprodutibilidade, mas não é mais o padrão: a auditoria identificou que a
+referência de cápsula desse treinamento não era a mesma utilizada na etapa
+intrarrenal da aplicação.
+
+### Correção do protocolo e cascata operacional
+
+Para eliminar a sobreposição de exames entre treino, validação e teste, foi
+criado o conjunto agrupado
+`dataset_aumentado/dataset_intrarrenal/supervisionado/regions_multiclass_annotator_1_grouped`.
+As 335 imagens válidas foram divididas em 234/50/51 imagens, agrupando os 271
+identificadores `IM-*`; a auditoria encontrou zero identificadores compartilhados
+entre as três divisões. A máscara `kidney_mask` desse mesmo conjunto foi usada
+para treinar os professores e a estudante da cápsula. O pré-processamento
+intrarrenal também passou a recortar a ROI renal antes do redimensionamento,
+reproduzindo o fluxo da Curadoria Web.
+
+Os checkpoints alinhados ao domínio são:
+
+- `models/capsule_from_regions_grouped_unet_teacher.pth` — U-Net professora,
+  Dice de teste `0,9583`;
+- `models/capsule_from_regions_grouped_deeplab_teacher.pth` — DeepLabV3
+  professora, Dice de teste `0,9629`;
+- `models/capsule_from_regions_grouped_student_unet_deeplab.pth` — U-Net
+  estudante compacta, base 32 e gargalo 512, Dice de teste `0,9566`.
+
+Os professores participam somente da destilação. A estudante é o modelo
+operacional usado pela Curadoria Web e pelo `build_dataset_geral.py` para gerar
+pseudomáscaras das imagens do MONAI.
 
 ### Estudante intrarrenal destilada
 
@@ -205,13 +233,20 @@ Comando usado na RTX 3050:
   --early-stopping 10
 ```
 
-O checkpoint operacional é
-`models/intrarenal_student_unet_deeplab.pth`. No teste independente de 50
-imagens, a estudante obteve Dice médio foreground `0,750075` e IoU médio
-foreground `0,605106`. Por estrutura, os Dice foram `0,695894` para córtex,
-`0,707624` para medula e `0,846706` para CEC. As métricas são de segmentação
-anatômica no conjunto manual; as máscaras produzidas em novas imagens pela
-Curadoria Web continuam sendo propostas para revisão humana.
+O checkpoint operacional alinhado ao protocolo é
+`models/intrarenal_grouped_roi_student_unet_deeplab.pth`. Com a ROI manual de
+referência, a estudante obteve Dice médio foreground `0,7601` e IoU `0,6176`
+no teste agrupado. Na avaliação ponta a ponta, em que a ROI é produzida pela
+estudante da cápsula, o Dice intrarrenal foi `0,7210` e o IoU `0,5847`; com a
+ROI manual, o mesmo fluxo atingiu Dice `0,7395`. A diferença quantifica a
+propagação do erro entre as duas etapas e deve ser reportada junto ao resultado
+principal. As máscaras produzidas em novas imagens pela Curadoria Web
+continuam sendo propostas para revisão humana.
+
+O protocolo ponta a ponta está em
+`experiments/evaluate_distilled_pipeline.py` e grava `per_image.csv` e
+`summary.json` em
+`results/capsule_distillation_from_regions_grouped/end_to_end/`.
 
 No benchmark controlado da RTX 3050, com lote 8, entrada 256x256 e medição
 somente do `forward`, a estudante alcançou 153,51 FPS (6,51 ms por imagem),

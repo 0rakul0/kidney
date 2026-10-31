@@ -44,11 +44,11 @@ Felipe da R. Henriques\inst{1}}
 \maketitle
 
 \begin{abstract}
-Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the distilled student selected for operational use produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
+Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the distilled student selected for operational use produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). In a grouped cascade re-evaluation with no shared examination identifiers across splits, the intrarenal student achieved foreground Dice 0.7210 with the predicted capsule ROI and 0.7395 with the reference ROI. Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
 \end{abstract}
 
 \begin{resumo}
-A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada selecionada para operação produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
+A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada selecionada para operação produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). Na reavaliação agrupada da cascata, sem identificadores de exame compartilhados entre as divisões, a estudante intrarrenal atingiu Dice foreground de 0,7210 quando recebeu a ROI produzida pela estudante da cápsula, contra 0,7395 com ROI de referência. A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
 \end{resumo}
 
 \section{Introdução}
@@ -337,7 +337,7 @@ Na primeira etapa (SBBD), o conjunto exploratório kidneyUS reuniu 513 pares de 
 
 Na evolução posterior, uma fase exploratória utilizou filtros de confiança, tamanho e geometria para priorizar pseudomáscaras. A observação de predições aparentemente confiantes, porém anatomicamente questionáveis, motivou uma mudança metodológica: os filtros deixaram de significar aceitação automática e passaram a funcionar como critérios de triagem. Foi então acrescentado o consenso U-Net--DeepLabV3, calibrado por predições \textit{out-of-fold}, para estimar a estabilidade entre modelos independentes.
 
-Na segunda etapa, as anotações de córtex, medula e complexo ecogênico central (CEC) do kidneyUS foram utilizadas para preparar os conjuntos supervisionados de segmentação intrarrenal~\cite{Singla2023KidneyUS}. Nessa fase, a máscara da cápsula delimita a região de interesse dentro da qual modelos multiclasse, como U-Net e DeepLabV3, identificam as estruturas internas. Essas anotações de especialistas não devem ser confundidas com as pseudomáscaras de cápsula geradas para as imagens externas do MONAI.
+Na segunda etapa, as anotações de córtex, medula e complexo ecogênico central (CEC) do kidneyUS foram utilizadas para preparar os conjuntos supervisionados de segmentação intrarrenal~\cite{Singla2023KidneyUS}. Nessa fase, a máscara da cápsula delimita a região de interesse dentro da qual modelos multiclasse, como U-Net e DeepLabV3, identificam as estruturas internas. Essas anotações de especialistas não devem ser confundidas com as pseudomáscaras de cápsula geradas para as imagens externas do MONAI. Para a reavaliação da cascata, foi criado um split agrupado por identificador de exame, com 234 imagens de treino, 50 de validação e 51 de teste; nenhuma chave `IM-*` foi compartilhada entre as divisões.
 
 As máscaras originais fornecidas pelo \texttt{kidneyUS} são atribuídas aos anotadores desse conjunto~\cite{Singla2023KidneyUS}. Todas as outras máscaras do acervo foram produzidas no âmbito desta pesquisa: algumas são propostas geradas automaticamente pelos segmentadores, outras são pseudomáscaras selecionadas segundo critérios operacionais e outras podem apresentar correções e decisões registradas pela Curadoria Web. Portanto, a autoria das máscaras deve ser distinguida de seu nível de validação: a produção pelo projeto não caracteriza, por si só, anotação manual ou aprovação especializada. As imagens externas, inclusive as oriundas do repositório MONAI/NVIDIA~\cite{MONAIClinicalUltrasound}, constituem fontes de imagens, não fontes das máscaras produzidas aqui. A investigação avançou da cápsula para a medula e, posteriormente, para segmentação multiclasse de córtex, medula e CEC. O experimento de pseudo-expansão da medula forneceu uma observação decisiva: o aumento do treino não produziu melhora no teste manual. Isso justificou incorporar, na segunda etapa da pesquisa, a Curadoria Web como componente explícito de revisão \textit{human-in-the-loop}, com edição, aprovação, histórico e persistência de versões.
 
@@ -465,11 +465,11 @@ A Figura~\ref{fig:destilacao_fluxo} distingue os professores, empregados exclusi
 
 \subsection{Segmentação intrarrenal e propagação de erro}
 
-A análise interna prediz quatro classes: fundo, córtex, medula e CEC. A U-Net multiclasse e a DeepLabV3 multiclasse recebem, no fluxo consolidado, três canais correspondentes à ROI em tons de cinza, à ROI com o exterior do rim mascarado e à máscara de cápsula. O treinamento da U-Net documentado utiliza imagens de 256 por 256 pixels, AdamW, taxa inicial de $10^{-4}$ e perda de entropia cruzada multiclasse combinada com Dice. A avaliação reporta Dice e IoU por estrutura, além das médias sobre as classes de primeiro plano.
+A análise interna prediz quatro classes: fundo, córtex, medula e CEC. A U-Net multiclasse e a DeepLabV3 multiclasse recebem, no fluxo consolidado, três canais correspondentes à ROI em tons de cinza, à ROI com o exterior do rim mascarado e à máscara de cápsula. O treinamento da U-Net documentado utiliza imagens de 256 por 256 pixels, AdamW, taxa inicial de $10^{-4}$ e perda de entropia cruzada multiclasse combinada com Dice. Na reavaliação corrigida, o conjunto foi agrupado por identificador de exame e o recorte da ROI foi aplicado antes do redimensionamento, reproduzindo o fluxo de produção. A avaliação reporta Dice e IoU por estrutura, além das médias sobre as classes de primeiro plano.
 
 Para a implantação, foi treinada uma segunda estudante destilada, agora
-multiclasse e específica da etapa intrarrenal, com 235 imagens para treino, 50
-para validação e 50 para teste independente. Ela utiliza 32 canais de base e
+multiclasse e específica da etapa intrarrenal, com 234 imagens para treino, 50
+para validação e 51 para teste independente no split agrupado. Ela utiliza 32 canais de base e
 combina a supervisão manual com a média das probabilidades produzidas pela
 U-Net e pela DeepLabV3 intrarrenais, com temperatura $T=2$ e peso de
 destilação $0{,}5$. Os professores são necessários apenas para formar os alvos
@@ -525,7 +525,7 @@ A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração
 
 A tela mostra a seleção da classe e da operação, mas não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída. A persistência e o histórico são propriedades verificáveis na implementação.
 
-O módulo de inferência recebe uma nova imagem, executa a U-Net estudante de cápsula selecionada operacionalmente (\texttt{kidneyus\_capsule\_student\_unet\_deeplab.pth}), recorta a ROI renal, aplica a U-Net estudante intrarrenal destilada (\texttt{intrarenal\_student\_unet\_deeplab.pth}) e reconstrói máscaras no espaço da imagem. O mesmo checkpoint de cápsula é utilizado pelo construtor de pseudomáscaras do MONAI. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
+O módulo de inferência recebe uma nova imagem, executa a U-Net estudante de cápsula alinhada ao domínio (\texttt{capsule\_from\_regions\_grouped\_student\_unet\_deeplab.pth}), recorta a ROI renal, aplica a U-Net estudante intrarrenal destilada (\texttt{intrarenal\_grouped\_roi\_student\_unet\_deeplab.pth}) e reconstrói máscaras no espaço da imagem. O mesmo checkpoint de cápsula é utilizado pelo construtor de pseudomáscaras do MONAI. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
@@ -863,6 +863,41 @@ continua sendo o modelo mais rápido, com 2,74~ms por imagem; entre as
 estudantes, o tempo permanece aproximadamente igual porque todas executam a
 mesma U-Net e os professores não são carregados durante a inferência.
 
+\subsection{Revalidação agrupada da cascata destilada}
+
+Após a auditoria do protocolo, a cápsula e as estruturas intrarrenais foram
+retreinadas no mesmo domínio das imagens anotadas intrarrenais. O split foi
+agrupado por identificador de exame e a estudante da cápsula foi avaliada antes
+de fornecer sua ROI à estudante multiclasse. Essa avaliação não reutiliza a
+ROI manual no caminho principal e, portanto, mede a propagação de erro entre
+os estágios.
+
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\caption{Revalidação da cascata destilada no teste agrupado por exame.}
+\label{tab:cascata_agrupada}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Configuração} & \textbf{Dice} & \textbf{IoU} \\
+\midrule
+Estudante da cápsula & 0,9584 & --- \\
+Estudante intrarrenal com ROI de referência & 0,7395 & 0,6081 \\
+Estudante intrarrenal com ROI prevista & 0,7210 & 0,5847 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+A estudante da cápsula obteve Dice médio de 0,9584 no conjunto de 51 imagens.
+Na etapa intrarrenal, a substituição da ROI manual pela ROI prevista reduziu o
+Dice médio foreground de 0,7395 para 0,7210, uma diferença absoluta de 0,0185.
+O resultado confirma que a estudante intrarrenal não deve ser avaliada somente
+com ROI de referência quando o objetivo é descrever a aplicação. Ao mesmo
+tempo, a avaliação permanece exploratória: a combinação U-Net--DeepLabV3 foi
+mantida por decisão operacional derivada de experimentos anteriores, e não por
+uma seleção independente deste novo teste.
+
 \subsection{Estudo piloto do comportamento do assistente multimodal}
 
 Para avaliar o comportamento do assistente como apoio à interpretação da imagem,
@@ -1119,6 +1154,8 @@ destilação. Mesmo um eventual aumento de Dice no teste interno não substituir
 validação em imagens externas e revisão anatômica especializada
 ~\cite{Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}.
 
+A revalidação agrupada da cascata acrescenta uma evidência diferente da matriz histórica: com 51 exames de teste sem compartilhamento de identificadores, a estudante da cápsula alcançou Dice 0,9584 e a estudante intrarrenal alcançou Dice foreground 0,7210 quando recebeu a ROI prevista. Com a ROI manual de referência, a mesma estudante intrarrenal alcançou 0,7395. A diferença de 0,0185 mostra que a propagação do erro da cápsula é mensurável, embora menor que a observada no protocolo anterior com referências de domínio incompatível. Esse resultado sustenta a avaliação ponta a ponta da aplicação, mas não autoriza afirmar superioridade da destilação nem acurácia clínica; a combinação de professores foi mantida por decisão operacional exploratória.
+
 A análise de ecogenicidade representa a motivação aplicada da segmentação. O uso da imagem original, em lugar de valores após CLAHE, evita introduzir na medida quantitativa o realce produzido especificamente para melhorar a entrada da rede. O pareamento córtex--CEC e a exclusão de bordas tornam explícitas as escolhas de amostragem e podem reduzir certas fontes de heterogeneidade. Entretanto, tais decisões também introduzem hiperparâmetros --- raio, posição, número de pares, erosão e aproximação de profundidade --- cuja sensibilidade ainda não foi medida. A literatura sobre ecogenicidade relativa fornece motivação, não validação direta desse protocolo particular~\cite{Manley2001,Beutler2024SRI,Zhao2025Echogenicity}.
 
 Finalmente, a caracterização quantitativa não deve ser confundida com inferência histopatológica. Uma razão córtex--CEC próxima da unidade informa semelhança relativa de intensidades na imagem disponível; ela não identifica, isoladamente, fibrose, IFTA ou doença renal crônica. A avaliação de associações com eGFR ou biópsia exigirá desenho de estudo, variáveis clínicas e análise de fatores de confusão apropriados~\cite{Moghazi2005,Athavale2021,Qin2024Fibrosis}. O valor atual do projeto reside, portanto, na integração rastreável entre dado, anatomia, revisão e medida, com fronteiras explícitas entre o demonstrado e o ainda hipotético.
@@ -1141,7 +1178,7 @@ O próximo eixo será verificar como as diferenças de segmentação se propagam
 
 \section{Conclusão}
 
-Este trabalho apresentou a organização de um pipeline rastreável para análise quantitativa de ultrassonografia renal, articulando segmentação da cápsula, consenso entre modelos, curadoria humana, segmentação intrarrenal e mensuração exploratória de ecogenicidade. O teste manual deduplicado documentou Dice de $0{,}9290$ para a cápsula com U-Net; a mesma arquitetura obteve Dice médio $0{,}7594$ na segmentação multiclasse de córtex, medula e CEC em outro conjunto de teste. A estudante destilada aumentou de 3.534 para 3.707 o número de pseudomáscaras externas não vazias no lote MONAI, demonstrando funcionamento operacional, mas não acurácia clínica.
+Este trabalho apresentou a organização de um pipeline rastreável para análise quantitativa de ultrassonografia renal, articulando segmentação da cápsula, consenso entre modelos, curadoria humana, segmentação intrarrenal e mensuração exploratória de ecogenicidade. O teste manual deduplicado documentou Dice de $0{,}9290$ para a cápsula com U-Net; a mesma arquitetura obteve Dice médio $0{,}7594$ na segmentação multiclasse de córtex, medula e CEC em outro conjunto de teste. A revalidação agrupada da cascata alcançou Dice de $0{,}9584$ para a estudante da cápsula e $0{,}7210$ para a estudante intrarrenal quando a ROI foi prevista, contra $0{,}7395$ com ROI de referência. A estudante destilada aumentou de 3.534 para 3.707 o número de pseudomáscaras externas não vazias no lote MONAI, demonstrando funcionamento operacional, mas não acurácia clínica.
 
 A contribuição científica deve ser interpretada como integração metodológica e avaliação operacional, e não como uma nova arquitetura ou como a primeira aplicação de destilação ao \texttt{KidneyUS}. Em relação a trabalhos próximos, como o MK-Net~\cite{Chen2026MKNet}, este estudo investiga a combinação de professores heterogêneos, a compactação separada das etapas da cascata, a auditoria por consenso e a revisão humana vinculada à mensuração de ecogenicidade. Os resultados sustentam a viabilidade desse arranjo, mas ainda não demonstram superioridade estatística, confiabilidade anatômica das pseudomáscaras externas ou benefício clínico.
 

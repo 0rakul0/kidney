@@ -1,0 +1,79 @@
+{
+  "architecture": "Distilled U-Net",
+  "task": "intrarenal_multiclass_roi",
+  "classes": {
+    "0": "background",
+    "1": "cortex",
+    "2": "medulla",
+    "3": "central_echo_complex"
+  },
+  "input_channels": [
+    "grayscale_roi",
+    "masked_kidney_roi",
+    "kidney_mask"
+  ],
+  "checkpoint": "D:\\kidney\\models\\intrarenal_grouped_student_unet_deeplab.pth",
+  "device": "cuda",
+  "teachers": {
+    "unet": "D:\\kidney\\models\\intrarenal_grouped_unet.pth",
+    "deeplab": "D:\\kidney\\models\\intrarenal_grouped_deeplab.pth"
+  },
+  "fusion": "arithmetic_mean_of_teacher_probabilities",
+  "method": "knowledge_distillation",
+  "best_epoch": 26,
+  "best_val": {
+    "background_dice": 0.943628,
+    "background_iou": 0.893273,
+    "cortex_dice": 0.746115,
+    "cortex_iou": 0.595042,
+    "medulla_dice": 0.759124,
+    "medulla_iou": 0.611764,
+    "central_echo_complex_dice": 0.826177,
+    "central_echo_complex_iou": 0.703835,
+    "mean_foreground_dice": 0.777139,
+    "mean_foreground_iou": 0.63688,
+    "score": 0.70701
+  },
+  "test_loss": 1.390001,
+  "test": {
+    "background_dice": 0.942702,
+    "background_iou": 0.891614,
+    "cortex_dice": 0.709636,
+    "cortex_iou": 0.54995,
+    "medulla_dice": 0.736891,
+    "medulla_iou": 0.583394,
+    "central_echo_complex_dice": 0.850664,
+    "central_echo_complex_iou": 0.740135,
+    "mean_foreground_dice": 0.76573,
+    "mean_foreground_iou": 0.624493,
+    "score": 0.695111
+  },
+  "elapsed_seconds": 356.72,
+  "model_kwargs": {
+    "in_channels": 3,
+    "out_channels": 4,
+    "base_channels": 32
+  },
+  "config": {
+    "dataset_root": "D:\\kidney\\dataset_aumentado\\dataset_intrarrenal\\supervisionado\\regions_multiclass_annotator_1_grouped",
+    "student_checkpoint": "D:\\kidney\\models\\intrarenal_grouped_student_unet_deeplab.pth",
+    "teacher_unet": "D:\\kidney\\models\\intrarenal_grouped_unet.pth",
+    "teacher_deeplab": "D:\\kidney\\models\\intrarenal_grouped_deeplab.pth",
+    "experiment_name": "intrarenal_grouped_student_unet_deeplab",
+    "img_size": 256,
+    "epochs": 50,
+    "batch_size": 8,
+    "teacher_batch_size": 2,
+    "learning_rate": 0.0001,
+    "weight_decay": 1e-05,
+    "early_stopping": 10,
+    "num_workers": 0,
+    "seed": 42,
+    "clahe": true,
+    "augment": true,
+    "base_channels": 32,
+    "temperature": 2.0,
+    "supervised_weight": 1.0,
+    "distillation_weight": 0.5
+  }
+}

@@ -32,6 +32,7 @@ from src.segmentation.core.checkpoint_metadata import load_checkpoint_metadata, 
 from src.segmentation.experiments.train_inner_deeplab import (
     CLASS_NAMES,
     IntrarenalMulticlassDataset,
+    crop_to_kidney_roi,
     metrics_from_logits,
     multiclass_dice_loss,
 )
@@ -43,12 +44,12 @@ DEFAULT_DATASET_ROOT = (
     / "dataset_aumentado"
     / "dataset_intrarrenal"
     / "supervisionado"
-    / "regions_multiclass_annotator_1"
+    / "regions_multiclass_annotator_1_grouped"
 )
-DEFAULT_UNET_TEACHER = PROJECT_ROOT / "models" / "intrarenal_unet_multiclass_annotator1.pth"
-DEFAULT_DEEPLAB_TEACHER = PROJECT_ROOT / "models" / "intrarenal_deeplab_resnet50_multiclass_annotator1.pth"
-DEFAULT_STUDENT = PROJECT_ROOT / "models" / "intrarenal_student_unet_deeplab.pth"
-DEFAULT_RESULTS_ROOT = PROJECT_ROOT / "results" / "intrarenal_distillation"
+DEFAULT_UNET_TEACHER = PROJECT_ROOT / "models" / "intrarenal_grouped_roi_unet.pth"
+DEFAULT_DEEPLAB_TEACHER = PROJECT_ROOT / "models" / "intrarenal_grouped_roi_deeplab.pth"
+DEFAULT_STUDENT = PROJECT_ROOT / "models" / "intrarenal_grouped_roi_student_unet_deeplab.pth"
+DEFAULT_RESULTS_ROOT = PROJECT_ROOT / "results" / "intrarenal_distillation_grouped_roi"
 DEFAULT_CACHE = DEFAULT_RESULTS_ROOT / "teacher_cache"
 
 
@@ -190,6 +191,7 @@ class DistilledIntrarenalDataset(Dataset):
         if image is None or mask is None or kidney is None:
             raise FileNotFoundError(f"Exemplo multiclasse incompleto: {name}")
 
+        image, mask, kidney = crop_to_kidney_roi(image, mask, kidney)
         image = cv2.resize(image, (self.img_size, self.img_size), interpolation=cv2.INTER_LINEAR)
         mask = cv2.resize(mask, (self.img_size, self.img_size), interpolation=cv2.INTER_NEAREST)
         kidney = cv2.resize(kidney, (self.img_size, self.img_size), interpolation=cv2.INTER_NEAREST)
