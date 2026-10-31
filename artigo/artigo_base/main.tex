@@ -321,7 +321,7 @@ A estudante combina supervisão de máscaras manuais e alinhamento aos alvos sua
  +\lambda_{KD}\mathcal{L}_{KD},
  \label{eq:kd_total}
 \end{equation}
-A destilação é distinta do consenso: o primeiro é um procedimento de treinamento; o segundo é um indicador de concordância usado para triagem. Trabalhos de destilação de canais, regiões e relações espaciais mostram alternativas à simples média de saídas~\cite{Shu2021ChannelKD,Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}. No \texttt{kidneyUS}, o MK-Net de Chen et al.~\cite{Chen2026MKNet} também emprega destilação e estruturas intrarrenais; logo, não há alegação de pioneirismo no uso de KD nesse conjunto. A contribuição a avaliar é sua inserção numa cascata rastreável, com estudantes independentes por tarefa e medição explícita do custo de inferência.
+A destilação é distinta do consenso: o primeiro é um procedimento de treinamento; o segundo é um indicador de concordância usado para triagem. Trabalhos de destilação de canais, regiões e relações espaciais mostram alternativas à simples média de saídas~\cite{Shu2021ChannelKD,Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}. No \texttt{kidneyUS}, a MK-Net~\cite{Chen2026MKNet} também emprega destilação e segmentação de estruturas intrarrenais; logo, não há alegação de pioneirismo no uso de KD nesse conjunto. A contribuição a avaliar é sua inserção numa cascata rastreável, com estudantes independentes por tarefa e medição explícita do custo de inferência.
 
 \subsection{Curadoria humana, proveniência e ferramentas existentes}
 Num fluxo \textit{human-in-the-loop}, a saída do modelo é uma proposta de anotação. O revisor pode aceitar, corrigir, rejeitar ou declarar uma máscara indisponível, mantendo a versão automática e a versão revisada como objetos distintos~\cite{Budd2021HITL}. Para auditoria, devem ser registrados identificador de imagem e exame, origem dos dados, classe anatômica, modelo e checkpoint, decisão do revisor e versão resultante. Esses metadados permitem investigar se uma eventual melhora vem do volume de imagens, do filtro automático ou da intervenção humana.
@@ -345,14 +345,14 @@ Modelos de linguagem podem estruturar laudos e recuperar entidades, negações e
 O assistente da Curadoria Web utiliza as máscaras e medidas como evidências auxiliares. Nesta versão, sua avaliação é um estudo de viabilidade com amostra muito pequena, sem referência independente dos achados; por isso, ocupa posição secundária perante a validação anatômica da cascata e não fundamenta conclusões de superioridade entre modelos.
 
 \subsection{Trabalhos diretamente relacionados e lacuna científica}
-O \texttt{kidneyUS} de Singla et al.~\cite{Singla2023KidneyUS} fornece a base de referência, enquanto Khan et al.~\cite{Khan2024KidneySeg} e Zuo et al.~\cite{Zuo2025RenalAttention} aproximam-se da segmentação renal, esta última incluindo estruturas intrarrenais. Athavale et al.~\cite{Athavale2021} estudaram desfechos histopatológicos associados à fibrose, diferentemente do presente protocolo exploratório de intensidade. MONAI Label~\cite{DiazPinto2024MONAILabel} já explora o ciclo de predição e revisão. Essas pesquisas delimitam o que não pode ser reivindicado como inédito: arquiteturas, pseudorrotulação, destilação, anotação assistida ou associação clínica de ecogenicidade, tomadas isoladamente.
+O \texttt{kidneyUS}~\cite{Singla2023KidneyUS} fornece a base de referência. Estudos de segmentação renal~\cite{Khan2024KidneySeg,Zuo2025RenalAttention} abordam a delimitação do órgão e, no segundo caso, também as estruturas intrarrenais. Em contraste com a análise exploratória de intensidade aqui proposta, investigações com desfechos histopatológicos~\cite{Athavale2021} avaliam associações com fibrose. O MONAI Label~\cite{DiazPinto2024MONAILabel} já contempla inferência e revisão assistida. Essas pesquisas delimitam o que não pode ser reivindicado como inédito: arquiteturas, pseudorrotulação, destilação, anotação assistida ou associação clínica de ecogenicidade, tomadas isoladamente.
 
 A lacuna operacional e metodológica examinada é a avaliação encadeada das dependências entre segmentação externa, segmentação interna, proveniência da máscara, intervenção de revisão e medidas extraídas da imagem original. A pesquisa investiga essa integração por meio de comparadores supervisionados, experimentos de destilação, análise de propagação de erro e um artefato de curadoria. O efeito quantitativo da revisão humana sobre a qualidade final das máscaras e a repetibilidade de ecogenicidade permanece hipótese experimental para a continuidade da dissertação.
 
 \section{Metodologia}
 
 \subsection{Visão geral e evolução do protocolo}
-O protocolo evoluiu em três fases: (i) engenharia de dados, avaliação da segmentação renal e pseudorrotulação, inicialmente publicadas em~\cite{Anjos2026SBBD}; (ii) consenso, destilação de conhecimento e segmentação intrarrenal, com estudo da propagação de erros; e (iii) integração à Curadoria Web, quantificação exploratória da ecogenicidade e piloto multimodal. As fases utilizam protocolos com unidades de avaliação distintas, sintetizados na Figura~\ref{fig:fluxo_metodologico}.
+O protocolo evoluiu em três fases: (i) engenharia de dados, avaliação da segmentação renal e pseudorrotulação, documentadas na publicação precursora~\cite{Anjos2026SBBD}; (ii) consenso, destilação de conhecimento e segmentação intrarrenal, com estudo da propagação de erros; e (iii) integração à Curadoria Web, quantificação exploratória da ecogenicidade e piloto multimodal. As fases utilizam protocolos com unidades de avaliação distintas, sintetizados na Figura~\ref{fig:fluxo_metodologico}.
 
 \begin{figure}[!htbp]
 \centering
@@ -482,7 +482,7 @@ combinando essa informação com a máscara manual.}
 \end{figure}
 \FloatBarrier
 
-A Figura~\ref{fig:destilacao_fluxo} distingue os professores, empregados exclusivamente na preparação dos alvos suaves, da U-Net estudante, utilizada na inferência. As combinações representam experimentos alternativos de treinamento, e não a execução obrigatória dos três professores ao mesmo tempo. A supervisão manual permanece presente em todas as configurações destiladas; a destilação da cápsula e a destilação intrarrenal são realizadas em treinamentos distintos, com máscaras e saídas anatômicas específicas.
+A destilação da cápsula e a das estruturas intrarrenais são treinamentos independentes, com saídas anatômicas e checkpoints específicos, detalhados a seguir.
 
 \subsubsection{Topologia das estudantes operacionais}
 
@@ -565,9 +565,7 @@ Como artefato computacional desta pesquisa, foi desenvolvida a plataforma \texti
 
 O fluxo de trabalho começa com a identificação do revisor e a seleção de um caso na fila. A tela permite filtrar a origem das anotações e o estado da revisão, consultar as informações do modelo e sobrepor ou ocultar individualmente as camadas de rim, córtex, medula e complexo ecogênico central. O revisor pode classificar cada estrutura como aceita, a corrigir, rejeitada ou indisponível. Quando necessária, a correção pode ser realizada por polígono, pincel ou borracha; as operações permitem substituir, adicionar ou remover áreas da máscara. As edições são registradas sem sobrescrever a predição original, de modo que a máscara revisada possa ser distinguida da máscara proposta pelo modelo.
 
-A Figura~\ref{fig:curadoria_visao_geral} apresenta a organização do ambiente. As Figuras~\ref{fig:curadoria_revisao_caso} e~\ref{fig:curadoria_correcao_mascara} apresentam, respectivamente, a inspeção ampliada de um exame e a ferramenta utilizada para preparar uma correção manual.
-
-A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de curadoria, a identificação do revisor e os controles disponíveis na interface.
+As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} documentam, respectivamente, a fila de revisão, a inspeção ampliada e a preparação de uma edição manual. As capturas registram recursos da interface, não a conclusão de uma correção específica.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.40\textheight,keepaspectratio]{figures/curadoria_visao_geral.png}
@@ -575,9 +573,9 @@ A Figura~\ref{fig:curadoria_visao_geral} documenta a disposição da fila de cur
 \label{fig:curadoria_visao_geral}
 \end{figure}
 
-A visão geral reúne a fila de casos, o visualizador e os controles de revisão em uma única tela. Os metadados do modelo e o estado da curadoria ficam associados ao caso selecionado, enquanto o painel de progresso e os filtros podem permanecer recolhidos durante a inspeção.
 
-A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do mesmo caso, destinada ao exame da imagem renal sem distrações dos painéis laterais.
+
+
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.40\textheight,keepaspectratio]{figures/curadoria_revisao_caso.png}
@@ -585,9 +583,9 @@ A Figura~\ref{fig:curadoria_revisao_caso} apresenta a visualização ampliada do
 \label{fig:curadoria_revisao_caso}
 \end{figure}
 
-Na captura ampliada, as máscaras estão desativadas; na aplicação, elas podem ser habilitadas individualmente para comparar rim, córtex, medula e CEC com a imagem original.
 
-A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração de uma edição manual com a ferramenta de pincel.
+
+
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.40\textheight,keepaspectratio]{figures/curadoria_correcao_mascara.png}
@@ -595,9 +593,9 @@ A Figura~\ref{fig:curadoria_correcao_mascara} apresenta a tela de configuração
 \label{fig:curadoria_correcao_mascara}
 \end{figure}
 
-A tela mostra a seleção da classe e da operação, mas não demonstra, isoladamente, uma máscara já alterada ou uma operação de salvamento concluída. A persistência e o histórico são propriedades verificáveis na implementação.
 
-O módulo de inferência recebe uma nova imagem, executa a U-Net estudante de cápsula alinhada ao domínio (\texttt{capsule\_from\_regions\_grouped\_student\_unet\_deeplab.pth}), recorta a ROI renal, aplica a U-Net estudante intrarrenal destilada (\texttt{intrarenal\_grouped\_roi\_student\_unet\_deeplab.pth}) e reconstrói máscaras no espaço da imagem. O mesmo checkpoint de cápsula é utilizado pelo construtor de pseudomáscaras do MONAI. Em seguida, calcula descritores de ecogenicidade quando as regiões necessárias estão disponíveis. As saídas são armazenadas separadamente e não ingressam automaticamente na base de treino, prevenindo incorporação silenciosa de previsões não revisadas.
+
+O módulo de inferência executa a estudante da cápsula, recorta a ROI renal, aplica a estudante intrarrenal e reconstrói as máscaras no espaço da imagem. Os checkpoints utilizados são identificados na configuração versionada do projeto\footnote{Cápsula: \path{capsule_from_regions_grouped_student_unet_deeplab.pth}; intrarrenal: \path{intrarenal_grouped_roi_student_unet_deeplab.pth}.}. O mesmo checkpoint da cápsula alimenta a geração de pseudomáscaras externas. As medidas de ecogenicidade são calculadas sobre a imagem original, e as predições são armazenadas separadamente, sem incorporação automática à base de treinamento.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
@@ -624,7 +622,7 @@ A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativ
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.40\textheight,keepaspectratio]{figures/curadoria_rois_ecogenicidade.png}
-\caption[Comparador de ROIs para mensuração da ecogenicidade]{Comparador de ecogenicidade da Curadoria Web: seleção manual de ROIs sobre máscaras anatômicas e cálculo da razão de brilho CEC (A)/córtex (B) para o par selecionado, usando a imagem original sem CLAHE. Essa razão local não corresponde ao indicador global córtex/CEC nem constitui diagnóstico. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
+\caption[Comparador de ROIs para mensuração da ecogenicidade]{Comparador da Curadoria Web: seleção manual de ROIs e cálculo da razão local CEC (A)/córtex (B) sobre a imagem original sem CLAHE. \protect\\ \textit{Fonte: elaboração própria (captura de tela do sistema desenvolvido).}}
 \label{fig:curadoria_rois_ecogenicidade}
 \end{figure}
 
@@ -640,7 +638,7 @@ Os resultados são organizados por tarefa: parte-se da linha de base de segmenta
 
 \subsection{Segmentação da cápsula renal}
 
-A Tabela~\ref{tab:capsule} reúne o benchmark da cápsula em 70 imagens manuais deduplicadas. Os resultados da U-Net, anteriormente publicados em~\cite{Anjos2026SBBD}, são apresentados como linha de base para os experimentos de destilação e integração da cascata.
+A Tabela~\ref{tab:capsule} reúne o benchmark da cápsula em 70 imagens manuais deduplicadas. Os resultados da U-Net, apresentados no trabalho precursor~\cite{Anjos2026SBBD}, são apresentados como linha de base para os experimentos de destilação e integração da cascata.
 
 As taxas de FPS dessa tabela pertencem ao benchmark original, que inclui
 carregamento dos lotes, transferência para a GPU, pós-processamento e cálculo
@@ -682,7 +680,7 @@ Na imagem apresentada, o contorno previsto acompanha visualmente a região renal
 
 \subsection{Consenso entre modelos e imagens externas}
 
-Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. A Tabela~\ref{tab:pseudomascaras_monai} compara, no mesmo lote de 4.479 imagens externas do MONAI, a cobertura da U-Net inicial publicada em~\cite{Anjos2026SBBD} com a cobertura posterior da estudante destilada. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
+Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. A Tabela~\ref{tab:pseudomascaras_monai} compara, no mesmo lote de 4.479 imagens externas do MONAI, a cobertura da U-Net do estudo precursor~\cite{Anjos2026SBBD} com a cobertura posterior da estudante destilada. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
 
 \begin{table}[!htbp]
 \centering
@@ -966,9 +964,9 @@ A expansão elevou numericamente o Dice de validação de $0{,}7235$ para $0{,}7
 
 \subsection{Plataforma Web de Curadoria}
 
-Além dos experimentos de segmentação, a pesquisa produziu uma aplicação Web funcional para inspeção, edição e documentação de máscaras de ultrassonografia renal. As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} apresentam a interface de triagem de casos, a visualização ampliada e os controles de correção de estruturas anatômicas. A Figura~\ref{fig:curadoria_rois_ecogenicidade} registra a integração entre máscaras intrarrenais e a comparação visual de duas regiões de interesse de ecogenicidade. A aplicação também disponibiliza um fluxo de inferência para novas imagens, separado da inclusão automática de dados na base de treinamento.
+A Curadoria Web implementa um fluxo para examinar predições por estrutura anatômica, registrar decisões e conservar separadamente máscaras originais e revisadas. A interface também permite comparar ROIs de ecogenicidade, conforme a Figura~\ref{fig:curadoria_rois_ecogenicidade}, e executar inferência em novas imagens sem acrescentá-las automaticamente ao treinamento.
 
-O produto implementado demonstra a viabilidade técnica de reunir predição automática, conferência individual por estrutura, edição das máscaras e registro de decisões em uma infraestrutura local auditável. O histórico de alterações e a separação entre máscaras originais e corrigidas são propriedades da implementação; não constituem, isoladamente, evidência de melhora na acurácia, de concordância interobservador ou de utilidade clínica. A mensuração desses aspectos integra o planejamento experimental subsequente.
+Essa integração demonstra viabilidade técnica e rastreabilidade das revisões, mas não quantifica, por si só, melhora de Dice, economia de tempo dos anotadores ou utilidade clínica. Esses efeitos permanecem sujeitos à avaliação controlada descrita no plano de continuidade.
 
 
 \subsection{Estudo exploratório do assistente multimodal}
@@ -1093,11 +1091,11 @@ O cálculo de medidas na imagem B-mode original, separado do CLAHE empregado na 
 A literatura estabelece que ecogenicidade relativa pode ser estudada em contextos renais, mas a razão córtex--CEC aqui proposta não é automaticamente equivalente a comparações rim--fígado, rim--baço ou a exames com desfechos histopatológicos~\cite{Manley2001,Moghazi2005,Beutler2024SRI,Zhao2025Echogenicity,Athavale2021}. Sem uma coorte clínica pareada e controle de parâmetros de aquisição, não se pode interpretar o descritor como marcador validado de fibrose, IFTA ou doença renal crônica. O valor presente é produzir uma variável de imagem definida e rastreável, cuja validade poderá ser investigada em etapa posterior.
 
 \subsection{Posicionamento diante de trabalhos diretamente relacionados}
-A Tabela~\ref{tab:comparacao_literatura} apresenta uma comparação descritiva com a MAT-UNet de Zuo et al.~\cite{Zuo2025RenalAttention}, que também aborda estruturas do \texttt{kidneyUS}. Ela não constitui experimento competitivo sob um mesmo protocolo de teste.
+A Tabela~\ref{tab:comparacao_literatura} compara descritivamente os resultados desta pesquisa com os da MAT-UNet~\cite{Zuo2025RenalAttention}, que também segmenta estruturas do \texttt{kidneyUS}. Os protocolos não são equivalentes; portanto, a tabela não representa um experimento competitivo direto.
 
 \begin{table}[!htbp]
 \centering
-\caption[Comparação descritiva com MAT-UNet]{Comparação descritiva do Dice com a MAT-UNet de Zuo et al.~\cite{Zuo2025RenalAttention}. Os resultados provêm de protocolos independentes e não constituem um ranking experimental.}
+\caption[Comparação descritiva com MAT-UNet]{Comparação descritiva do Dice com a MAT-UNet~\cite{Zuo2025RenalAttention}, segundo protocolos independentes; os valores não constituem um ranking experimental.}
 \label{tab:comparacao_literatura}
 \begin{tabular}{lcc}
 \toprule
@@ -1154,7 +1152,7 @@ A continuidade deve converter os componentes implementados em hipóteses avaliá
 Primeiro, serão unificados os manifestos por identificador de exame, com rastreabilidade de imagem, origem, versão da máscara, configuração do checkpoint e papel de cada amostra. A seleção de arquiteturas e limiares deverá ocorrer sem consulta ao teste final; múltiplas inicializações e intervalos de confiança agrupados por exame ou paciente serão usados para caracterizar a incerteza, conforme a disponibilidade de dados. Resultados históricos permanecerão identificados, sem mistura com o protocolo congelado.
 
 \subsection{Curadoria \textit{human-in-the-loop} e estudo de impacto}
-A etapa seguinte propõe uma amostra para revisão estratificada por alto, médio e baixo consenso, origem e qualidade visual, incluindo também seleção aleatória para detectar erros nos casos aparentemente confiáveis. As máscaras automáticas e corrigidas serão versionadas; revisores independentes documentarão aceitação, correção, rejeição, tempo e discordância. Para isolar o efeito da revisão, os três regimes de treinamento deverão manter arquitetura, testes, orçamento de amostras e critérios de seleção comparáveis. A hipótese será examinada pela diferença de desempenho, não presumida pela implementação da interface.
+A etapa seguinte propõe uma amostra para revisão estratificada por alto, médio e baixo consenso, origem e qualidade visual, incluindo também seleção aleatória para detectar erros nos casos aparentemente confiáveis. As máscaras automáticas e corrigidas serão versionadas; revisores independentes documentarão aceitação, correção, rejeição, tempo e discordância. Para isolar o efeito da revisão, os três regimes de treinamento deverão manter arquitetura, testes, orçamento de amostras e critérios de seleção comparáveis. O impacto será aferido por diferenças de desempenho entre os regimes.
 
 \subsection{Estabilidade da cascata e de ecogenicidade}
 Em seguida, a avaliação ponta a ponta deverá quantificar o deslocamento das ROIs após variações na cápsula e nas máscaras internas. Serão comparadas imagens originais com máscaras manuais, automáticas e revisadas, alterando sistematicamente raio dos discos, erosão, profundidade aproximada e número de pares. O desfecho será a variabilidade dos descritores, mediante repetição de medições, diferenças pareadas e medidas de concordância apropriadas. Uma eventual investigação com eGFR, creatinina ou histopatologia dependerá de dados clínicos pareados, governança institucional e desenho específico; não integra a evidência atual.
@@ -1170,6 +1168,8 @@ de planejamento elaborada para a qualificação}; não correspondem a datas já
 aprovadas pelo Programa nem à confirmação de defesa. O calendário deverá ser
 acordado com a orientação e ajustado à disponibilidade de revisores, exames e
 infraestrutura.
+
+A validação anatômica precederá a análise dos descritores de ecogenicidade. Uma eventual coleta clínica ou histopatológica dependerá de aprovações institucionais e não integra os resultados aqui apresentados.
 
 \begin{table}[!htbp]
 \centering
@@ -1201,11 +1201,7 @@ Versão integral revisada para avaliação da orientação e providências de de
 \bottomrule
 \end{tabular}
 \end{table}
-
-O plano prioriza a validação anatômica antes da interpretação dos descritores
-de ecogenicidade. A coleta de novas informações clínicas ou histopatológicas,
-caso proposta posteriormente, exigirá análise de viabilidade e das aprovações
-institucionais aplicáveis, sem pressupor acesso ou desfechos clínicos já obtidos.
+\FloatBarrier
 \fi
 
 \section{Conclusão}
@@ -1235,7 +1231,7 @@ A contribuição consolidada está na integração auditável das etapas e na di
 \section{Exemplo complementar de uso do assistente}\label{app:exemplo_assistencial}
 
 Como exemplo ilustrativo do uso assistencial, foi selecionada a imagem
-\texttt{dataset\_loader\_\_10\_IM-0415-0078\_anon}, pertencente ao conjunto com
+\path{dataset_loader__10_IM-0415-0078_anon}, pertencente ao conjunto com
 referência manual de rim, córtex, medula e CEC. A apresentação inicial do caso
 é feita pela imagem B-mode e pela sobreposição das regiões anatômicas, conforme
 a Figura~\ref{fig:assistente_exemplo_imagem}. Essa etapa delimita o objeto da
