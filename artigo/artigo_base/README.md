@@ -19,6 +19,6 @@ O PDF apresenta um **Sumário** depois do resumo, com capítulos, subseções, r
 
 ### Se o GitHub mostrar um PDF antigo
 
-O arquivo `main.tex` é a fonte do texto, mas o `main.pdf` precisa ser recompilado depois de cada alteração. A rotina [Artigo-base (PDF de qualificação)](../../actions/workflows/build-artigo-base.yml) recompila, verifica o conteúdo do sumário e publica o PDF. Abra o arquivo `main.pdf` e use **Download raw** para obter a versão do repositório, em vez de uma visualização anteriormente armazenada em cache.
+O arquivo `main.tex` é a fonte do texto, mas o `main.pdf` precisa ser recompilado depois de cada alteração. A rotina [Artigo-base (PDF de qualificação)](https://github.com/0rakul0/kidney/actions/workflows/build-artigo-base.yml) recompila, verifica o conteúdo do sumário e publica o PDF. Abra o arquivo `main.pdf` e use **Download raw** para obter a versão do repositório, em vez de uma visualização anteriormente armazenada em cache.
 
 Para a qualificação, o código utiliza `\versaoqualificacaotrue` e `tocdepth=2`, incluindo seções e subseções. Para eventual submissão no modelo SBC, consulte as instruções de compilação antes de desativar esse modo.
