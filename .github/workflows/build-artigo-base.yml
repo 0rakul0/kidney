@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "artigo/artigo_base/main.tex"
+      - "artigo/artigo_base/qualificacao_capa.tex"
+      - "artigo/artigo_base/sbc.tex"
       - "artigo/artigo_base/sbc-template.bib"
       - "artigo/artigo_base/sbc.bst"
       - "artigo/artigo_base/figures/**"
@@ -59,15 +61,21 @@ jobs:
           test "$num_secoes" -ge 8
           test "$num_subsecoes" -ge 40
           test "$num_figuras" -eq 16
-          test "$num_tabelas" -eq 16
+          test "$num_tabelas" -eq 17
 
           if ! command -v pdftotext >/dev/null 2>&1; then
             sudo apt-get update -qq
             sudo apt-get install -y poppler-utils
           fi
+          # Verificacao basica da capa e da folha de rosto da proposta.
+          pdftotext -layout -f 1 -l 1 artigo/artigo_base/main.pdf /tmp/capa-qualificacao.txt
+          pdftotext -layout -f 2 -l 2 artigo/artigo_base/main.pdf /tmp/folha-rosto.txt
+          grep -q 'PROPOSTA DE DISSERTACAO' /tmp/capa-qualificacao.txt
+          grep -q 'Orientador(a)' /tmp/folha-rosto.txt
+
           pdftotext -layout artigo/artigo_base/main.pdf /tmp/artigo-qualificacao-texto.txt
           tr '\f' '\n' < /tmp/artigo-qualificacao-texto.txt > /tmp/artigo-qualificacao-texto-linhas.txt
-          for termo in "Lista de Figuras" "Lista de Tabelas" "Lista de Abreviaturas e Siglas" "Lista de" "Palavras-chave" "Keywords:"; do
+          for termo in "Lista de Figuras" "Lista de Tabelas" "Lista de Abreviaturas e Siglas" "Lista de Símbolos" "Palavras-chave" "Keywords:" "Cronograma preliminar"; do
             if ! grep -q "$termo" /tmp/artigo-qualificacao-texto-linhas.txt; then
               echo "ERRO: secao pre-textual nao encontrada: $termo"
               exit 1
@@ -91,13 +99,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           sha_tex_gerado=$(sha256sum artigo/artigo_base/main.tex | cut -d' ' -f1)
+          sha_capa_gerado=$(sha256sum artigo/artigo_base/qualificacao_capa.tex | cut -d' ' -f1)
           cp artigo/artigo_base/main.pdf /tmp/artigo-qualificacao-compilado.pdf
           cp artigo/artigo_base/main.bbl /tmp/artigo-bibliografia-compilada.bbl
           publicado=false
           for tentativa in 1 2 3 4; do
             git fetch origin main
             sha_tex_atual=$(git show origin/main:artigo/artigo_base/main.tex | sha256sum | cut -d' ' -f1)
-            if [ "$sha_tex_gerado" != "$sha_tex_atual" ]; then
+            sha_capa_atual=$(git show origin/main:artigo/artigo_base/qualificacao_capa.tex | sha256sum | cut -d' ' -f1)
+            if [ "$sha_tex_gerado" != "$sha_tex_atual" ] || [ "$sha_capa_gerado" != "$sha_capa_atual" ]; then
               echo "O LaTeX mudou durante a compilacao: nao publicar PDF defasado."
               exit 1
             fi
