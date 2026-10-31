@@ -10,7 +10,7 @@
 | [sbc-template.bib](sbc-template.bib) | Base bibliográfica compartilhada |
 | [CHECKLIST-QUALIFICACAO.md](CHECKLIST-QUALIFICACAO.md) | Pendências documentais e experimentais |
 
-O PPCIC é o **Programa de Pós-Graduação em Ciência da Computação do CEFET/RJ**. A folha de rosto trata o documento como **Proposta de Dissertação de Mestrado**, não como trabalho já aprovado nem como dissertação defendida. O campo de **orientador(a)** está explicitamente pendente e deve ser preenchido no arquivo `qualificacao_capa.tex` antes de entregar à banca. Coorientação só deve ser indicada quando confirmada.
+O PPCIC é o **Programa de Pós-Graduação em Ciência da Computação do CEFET/RJ**. A folha de rosto trata o documento como **Proposta de Dissertação de Mestrado**, não como trabalho já aprovado nem como dissertação defendida. O orientador informado é **Felipe da R. Henriques**, já identificado em `qualificacao_capa.tex`. Antes da entrega, conferir se o PPCIC exige o nome por extenso. Coorientação só deve ser indicada quando confirmada.
 
 A formatação acadêmica segue, de forma adaptada, o [Manual do CEFET/RJ](https://eic.cefet-rj.br/ppcic/wp-content/uploads/2018/07/Manual-de-Elaboracao-de-Teses-Dissertacoes-e-Monografias.pdf): formato A4, margens de 3 cm, fonte Times 12 aproximada pelo pacote `times`, entrelinhas 1,5; pré-textuais contados desde a folha de rosto sem numeração visível; números exibidos na primeira página da Introdução, no alto à direita. Foi empregado `abntex2cite` para citações autor-data no modo de qualificação. **Não é uma certificação de conformidade total à norma ABNT atualizada**; revise campos bibliográficos, apresentação das citações, legendas e detalhes institucionais com a orientação.
 
@@ -53,7 +53,8 @@ Não foram criadas ficha catalográfica, folha de aprovação assinada, lista fi
 
 ## Verificações recomendadas
 
-- [ ] Substituir o campo de orientador(a) pelo nome oficial antes de entregar à banca.
+- [x] Incluir Felipe da R. Henriques como orientador na folha de rosto.
+- [ ] Confirmar a grafia por extenso do nome do orientador para a versão entregue à banca.
 - [ ] Conferir a grafia completa do nome do discente na capa/folha de rosto.
 - [ ] Confirmar com a orientação o modelo efetivamente exigido para a qualificação do PPCIC.
 - [ ] Validar os meses e entregáveis do cronograma.
