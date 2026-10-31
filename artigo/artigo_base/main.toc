@@ -1,0 +1,64 @@
+\babel@toc {brazilian}{}\relax 
+\contentsline {section}{\numberline {1}Introdução}{10}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Contextualização e problema}{10}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Questão de pesquisa e hipótese}{10}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Objetivos e escopo}{11}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Contribuições e organização do texto}{11}{subsection.1.4}%
+\contentsline {section}{\numberline {2}Fundamentação Teórica e Trabalhos Relacionados}{12}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Ultrassonografia renal, dados anotados e variabilidade de referência}{12}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Segmentação semântica e arquiteturas comparadas}{12}{subsection.2.2}%
+\contentsline {paragraph}{U-Net e U-Net++.}{13}{paragraph*.1}%
+\contentsline {paragraph}{DeepLabV3.}{13}{paragraph*.4}%
+\contentsline {paragraph}{SegFormer.}{15}{paragraph*.6}%
+\contentsline {subsection}{\numberline {2.3}Máscaras, métricas e unidades de avaliação}{16}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Pseudorrotulação, consenso e destilação de conhecimento}{16}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Curadoria humana, proveniência e ferramentas existentes}{17}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Ecogenicidade quantitativa e limites clínicos}{18}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Modelos multimodais no apoio à revisão}{19}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Trabalhos diretamente relacionados e lacuna científica}{19}{subsection.2.8}%
+\contentsline {section}{\numberline {3}Metodologia}{20}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Visão geral e evolução do protocolo}{20}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Desenho experimental, fontes e unidades de avaliação}{22}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Critérios de comparação e validade da avaliação}{22}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Pré-processamento e benchmark da cápsula}{23}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Fonte externa, pseudomáscaras e consenso}{24}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Destilação multi-professor e comparação controlada}{25}{subsection.3.6}%
+\contentsline {subsubsection}{\numberline {3.6.1}Topologia das estudantes operacionais}{27}{subsubsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.7}Segmentação intrarrenal e propagação de erro}{28}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Pseudo-expansão controlada da medula}{29}{subsection.3.8}%
+\contentsline {subsection}{\numberline {3.9}Curadoria Web: implementação e fluxo de revisão humana}{30}{subsection.3.9}%
+\contentsline {subsection}{\numberline {3.10}Mensuração quantitativa de ecogenicidade}{33}{subsection.3.10}%
+\contentsline {subsection}{\numberline {3.11}Assistente multimodal: desenho do estudo piloto}{34}{subsection.3.11}%
+\contentsline {section}{\numberline {4}Resultados}{35}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Segmentação da cápsula renal}{35}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Consenso entre modelos e imagens externas}{36}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Destilação da cápsula e custo computacional}{37}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Parâmetros, velocidade e matriz de professores}{38}{subsubsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.4}Segmentação e destilação das estruturas intrarrenais}{40}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Reavaliação da cascata e propagação de erro}{41}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Variabilidade da referência humana}{41}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Medula: estabilidade e pseudo-expansão}{42}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Plataforma Web de Curadoria}{43}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}Estudo exploratório do assistente multimodal}{43}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}Síntese das evidências disponíveis}{46}{subsection.4.10}%
+\contentsline {section}{\numberline {5}Discussão}{47}{section.5}%
+\contentsline {subsection}{\numberline {5.1}O que a cascata demonstra sobre segmentação renal}{47}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Destilação: economia computacional e limites da seleção}{48}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Pseudorrótulos, curadoria e qualidade dos dados}{48}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Ecogenicidade e evidência clínica}{49}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Posicionamento diante de trabalhos diretamente relacionados}{50}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Síntese interpretativa}{50}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Limitações e Ameaças à Validade}{51}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Validade interna e seleção de modelos}{51}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Validade de construção e referência anatômica}{51}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Validade externa e deslocamento de domínio}{51}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Validade operacional, clínica e multimodal}{52}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Continuidade da Dissertação}{52}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Congelamento e reavaliação independente}{53}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Curadoria \textit {human-in-the-loop} e estudo de impacto}{53}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Estabilidade da cascata e de ecogenicidade}{53}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Posição do assistente multimodal}{54}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Cronograma preliminar e entregáveis}{54}{subsection.7.5}%
+\contentsline {section}{\numberline {8}Conclusão}{55}{section.8}%
+\contentsline {section}{Referências}{56}{section*.34}%
+\contentsline {section}{\numberline {A}Exemplo complementar de uso do assistente}{60}{appendix.A}%
