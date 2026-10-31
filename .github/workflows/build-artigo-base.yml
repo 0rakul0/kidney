@@ -11,6 +11,10 @@ on:
       - ".github/workflows/build-artigo-base.yml"
   workflow_dispatch:
 
+concurrency:
+  group: artigo-base-main
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -56,6 +60,11 @@ jobs:
           if ! command -v pdftotext >/dev/null 2>&1; then
             sudo apt-get update -qq
             sudo apt-get install -y poppler-utils
+          fi
+          pdftotext -layout -f 3 -l 3 artigo/artigo_base/main.pdf /tmp/artigo-sumario-pagina3.txt
+          if ! grep -Eq '1[.]1[[:space:]]' /tmp/artigo-sumario-pagina3.txt; then
+            echo "ERRO: subsecoes nao apareceram na pagina inicial do sumario."
+            exit 1
           fi
           pdftotext -layout -f 2 -l 6 artigo/artigo_base/main.pdf /tmp/artigo-sumario.txt
           echo "Trecho do sumario efetivamente extraido do PDF:"
