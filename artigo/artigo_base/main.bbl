@@ -7,13 +7,6 @@ Aljabri, M., AlAmir, M., AlGhamdi, M., Abdel-Mottaleb, M., and Collado-Mesa, F.
   imaging: A survey.
 \newblock {\em Multimedia Tools and Applications}, 81(18):25877--25911.
 
-\bibitem[Araújo et~al. 2026]{Araujo2026GlomerularUS}
-Araújo, N.~C., da~Silveira~Rioja, L., and Suassuna, J. H.~R. (2026).
-\newblock Correlation between computer-assisted ultrasonographic parameters and
-  histological findings in glomerular diseases: A multivariate ordinal
-  analysis.
-\newblock {\em Journal of Clinical Ultrasound}, 54(8):1885--1893.
-
 \bibitem[Artsi et~al. 2025]{Artsi2025RadiologyLLMReview}
 Artsi, Y., Klang, E., Collins, J.~D., Glicksberg, B.~S., Nadkarni, G.~N.,
   Korfiatis, P., and Sorin, V. (2025).
@@ -77,19 +70,6 @@ Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., and Adam, H. (2018).
 \newblock In {\em Proceedings of the European Conference on Computer Vision
   (ECCV)}, pages 801--818.
 
-\bibitem[Chen et~al. 2026b]{Chen2026ThyroidVLM}
-Chen, Z., Wang, Y., and Chen, F. (2026b).
-\newblock Comparative performance of multimodal large language models in
-  grayscale ultrasound-based classification of thyroid nodules.
-\newblock {\em Seminars in Ultrasound, CT and MRI}.
-
-\bibitem[Cheng et~al. 2026]{Cheng2026BreastUSLLM}
-Cheng, Y., Wang, R., Hong, X., Wang, C., Yin, Y., Wang, J., Liu, X., Yang, L.,
-  Yi, L., Zhao, X., and Wang, Z. (2026).
-\newblock Benchmarking open-source large language models for breast ultrasound
-  report processing: A multicenter study.
-\newblock {\em Diagnostics}, 16(21):3502.
-
 \bibitem[Cui et~al. 2024]{Cui2024BioMedVITAL}
 Cui, H., Mao, L., Liang, X., Zhang, J., Ren, H., Li, Q., Li, X., and Yang, C.
   (2024).
@@ -107,18 +87,6 @@ Diaz-Pinto, A., Alle, S., Nath, V., Tang, Y., Ihsani, A., et~al. (2024).
 \newblock {MONAI Label}: A framework for {AI}-assisted interactive labeling of
   {3D} medical images.
 \newblock {\em Medical Image Analysis}, 95:103207.
-
-\bibitem[Elhaie et~al. 2026]{Elhaie2026RenalUSMeta}
-Elhaie, M., Koozari, A., Nasab, A.~S., and Dehaghi, F.~T. (2026).
-\newblock Diagnostic accuracy of ai-augmented renal ultrasound for degenerative
-  kidney disorders: a systematic review and meta-analysis.
-\newblock {\em Future Science OA}, 12(1).
-
-\bibitem[Hao et~al. 2026]{Hao2026UltraReporter}
-Hao, P., Zhang, J., Zhang, S., Wu, F., and Tian, S. (2026).
-\newblock Ultrareporter for transforming spoken diagnostic cues into structured
-  ultrasound reports with large language models.
-\newblock {\em Scientific Reports}, 16(1).
 
 \bibitem[Hinton et~al. 2015]{Hinton2015Distillation}
 Hinton, G., Vinyals, O., and Dean, J. (2015).
@@ -267,13 +235,6 @@ Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.~M., and Luo, P. (2021).
   transformers.
 \newblock {\em Advances in Neural Information Processing Systems},
   34:12077--12090.
-
-\bibitem[Zhang et~al. 2026a]{Zhang2026ThyroidStructured}
-Zhang, L., Li, X., Qi, R., Wang, S., Shi, X., Song, Y., Li, L., Zhang, N., and
-  Ge, H. (2026a).
-\newblock A comparative study of large language models (chatgpt/deepseek) in
-  generating structured thyroid ultrasound reports.
-\newblock {\em Scientific Reports}, 16(1).
 
 \bibitem[Zhang et~al. 2026b]{Zhang2026RenalUSDLReview}
 Zhang, Y., Hou, Y., Qiu, T., Zhuang, Y., Chen, K., Ling, W., Luo, Y., and Lin,
