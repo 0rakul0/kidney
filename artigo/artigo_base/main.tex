@@ -16,7 +16,6 @@
   \usepackage{fancyhdr}
   \usepackage{caption}
   \usepackage{titlesec}
-  \usepackage[alf]{abntex2cite}
 \else
   \usepackage{sbc-template}
 \fi
@@ -38,6 +37,11 @@
 % Sumario navegavel somente para a versao de qualificacao.
 % O hyperref cria links no sumario e marcadores para secoes/subsecoes no PDF.
 \usepackage[unicode,hidelinks,bookmarksnumbered=true]{hyperref}
+% O abntex2cite deve vir depois do hyperref; caso contrario \abntnextkey
+% fica indefinido no .bbl gerado pelo BibTeX (erro observado na CI).
+\ifversaoqualificacao
+  \usepackage[alf]{abntex2cite}
+\fi
 % O seletor de modo esta definido no inicio do arquivo.
 
 \ifversaoqualificacao
