@@ -891,15 +891,58 @@ F1, concordância por região e taxa de afirmações não sustentadas.
 A demonstração adicional com a interface é documentada no Apêndice~\ref{app:exemplo_assistencial}.
 \fi
 
-\subsection{Registro de resultados históricos e limites}
+\subsection{Síntese das evidências disponíveis}
+A Tabela~\ref{tab:sintese_evidencias} separa resultados em referência supervisionada de indicadores operacionais e componentes implementados ainda não avaliados experimentalmente. Essa separação é necessária porque o projeto reúne fases e bases com diferentes possibilidades de inferência.
 
-Um experimento anterior no \texttt{dataset\_geral} expandido registrou Dice médio de teste $0{,}9366$ para DeepLabV3-ResNet50. O valor é documentado como histórico porque a base, o tipo de referência e o protocolo diferem do teste manual deduplicado; não é utilizado para alegar progresso de $0{,}9290$ para $0{,}9366$. A Curadoria Web e a inferência integrada estão implementadas, mas ainda não há estudo de revisão humana com efeito quantitativo demonstrado no retreinamento. Da mesma forma, o cálculo das ROIs córtex--CEC constitui um procedimento operacional disponível, e não uma avaliação concluída de repetibilidade ou associação clínica.
+\begin{table}[!htbp]
+\centering
+\small
+\caption{Situação dos principais componentes na qualificação e próximo requisito de validação.}
+\label{tab:sintese_evidencias}
+\begin{tabular}{p{0.24\linewidth}p{0.34\linewidth}p{0.32\linewidth}}
+\toprule
+\textbf{Componente} & \textbf{Evidência apresentada} & \textbf{Limite ou teste pendente} \\
+\midrule
+Cápsula & Dice $0{,}9290$ em 70 imagens manuais deduplicadas & Incerteza por exame e teste externo anotado \\
+Destilação da cápsula & Matriz de estudantes, parâmetros e latência; Dice observado $0{,}9078$ & Reavaliar seleção em teste não consultado \\
+Intrarrenal e cascata & Dice $0{,}7594$ (teste original) e $0{,}7210$ com ROI prevista (teste agrupado) & Erros por estrutura, exame e qualidade visual \\
+Pseudomáscaras MONAI & 3.707 propostas não vazias de 4.479 imagens & Correção anatômica por revisão especializada \\
+Curadoria e ecogenicidade & Fluxos de edição e mensuração implementados & Estudo de revisão, repetibilidade e sensibilidade das ROIs \\
+Assistente multimodal & Demonstração qualitativa em caso isolado & Gabarito dos achados e avaliação de amostra independente \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Um checkpoint histórico de DeepLabV3 no \texttt{dataset\_geral} registrou Dice de $0{,}9366$, mas esse resultado pertence a outro protocolo, não é uma replicação dos testes manuais deduplicados e não foi utilizado para selecionar uma estimativa consolidada de desempenho.
 
 \section{Discussão}
 
-\subsection{Comparação descritiva com resultados publicados}
+\subsection{O que a cascata demonstra sobre segmentação renal}
+A questão científica deste trabalho não se limita a identificar qual arquitetura produz o maior Dice isolado. A tarefa central é avaliar como uma delimitação externa condiciona a segmentação de córtex, medula e CEC e, subsequentemente, as medidas extraídas da imagem original. O benchmark da cápsula obteve Dice de $0{,}9290$ com U-Net em 70 imagens deduplicadas; o experimento intrarrenal original obteve Dice médio de $0{,}7594$ em outras 50 imagens. Esses valores são resultados de tarefas e amostras diferentes, não uma comparação pareada de dificuldade. Ainda assim, a discriminação das estruturas internas aparece como um problema que exige atenção própria, sobretudo nas interfaces córtico-medulares.
 
-Para situar o desempenho obtido, a Tabela~\ref{tab:comparacao_literatura} apresenta, lado a lado, os coeficientes Dice desta pesquisa e os relatados por Zuo et al.~\cite{Zuo2025RenalAttention} para a MAT-UNet. A escolha dessa referência decorre da utilização do \texttt{Open Kidney Ultrasound Data Set} e do interesse nas mesmas quatro estruturas anatômicas. Os números são reproduzidos nas escalas de Dice entre zero e um; a tabela é uma comparação \emph{descritiva entre publicações}, e não uma reavaliação dos modelos sobre as mesmas imagens.
+O experimento agrupado da cascata é mais diretamente informativo para o uso pretendido. Mantendo o mesmo teste de 51 imagens e a mesma estudante intrarrenal, substituir a ROI manual por uma ROI prevista reduziu o Dice de primeiro plano de $0{,}7395$ para $0{,}7210$. A diferença absoluta de $0{,}0185$ caracteriza propagação de erro entre estágios; ela não deve ser disfarçada por um bom resultado isolado da cápsula. Uma média modesta pode ainda concentrar falhas relevantes em imagens com sombras, baixo contraste ou recortes incompletos. Na etapa seguinte, é necessário medir o deslocamento das ROIs de córtex e CEC e o efeito correspondente sobre cada razão de ecogenicidade, em vez de supor que o Dice da cápsula seja um substituto da estabilidade dos descritores.
+
+A concordância interobservador de $0{,}5961$ no córtex e $0{,}6936$ na medula oferece contexto adicional: fronteiras internas são discutíveis até entre anotações independentes. Contudo, o experimento humano--humano não utiliza necessariamente os mesmos casos dos testes dos modelos e não estabelece uma referência humana máxima universal. O caminho mais defensável envolve analisar erros por estrutura e exame, reportar discrepâncias para ambos os observadores quando houver pares elegíveis e registrar decisões de adjudicação.
+
+\subsection{Destilação: economia computacional e limites da seleção}
+A estudante da cápsula reduziu o arquivo de pesos e o tempo de \textit{forward} em comparação com a U-Net professora; no ensaio controlado, foram registrados $6{,}51$ ms por imagem e $153{,}51$ FPS. Isso é evidência de redução de custo num protocolo específico, não garantia de igual ganho de latência no fluxo completo da aplicação. O SegFormer-B0 permaneceu mais rápido no mesmo ensaio, e sua inclusão impede concluir que a estudante seja o menor custo computacional possível entre as arquiteturas avaliadas.
+
+A matriz de professores sugere benefício potencial da destilação frente ao controle sem KD: Dice de teste $0{,}9078$ para U-Net--DeepLabV3 contra $0{,}8978$ sem professores. Entretanto, a combinação operacional foi escolhida depois de observado o teste, enquanto outra combinação apresentou o maior Dice de validação. Essa sequência introduz viés de seleção e exige novo teste independente para qualquer alegação confirmatória. O primeiro piloto da mesma dupla nominal, com Dice $0{,}8847$, também reforça a importância de não tratar execuções com códigos, limiares e checkpoints distintos como uma trajetória de melhoria contínua. A proposta acadêmica mais forte não é anunciar um vencedor, mas explicitar o compromisso observado entre custo, fidelidade anatômica e reprodutibilidade.
+
+\subsection{Pseudorrótulos, curadoria e qualidade dos dados}
+No MONAI externo, a estudante operacional produziu 173 propostas não vazias adicionais sobre 4.479 imagens. É um aumento de cobertura de aproximadamente 3,9 pontos percentuais, porém sem referência manual externa não se conhece a proporção de máscaras anatomicamente corretas. De modo semelhante, a correlação entre consenso e menor Dice contra anotação manual sugere uma variável útil de priorização, não um certificado de aprovação. Esses indicadores só adquirem utilidade científica para seleção de dados quando associados a erros verificados por anotadores independentes.
+
+O experimento de medula oferece um contraponto importante ao argumento de que ampliar a base automaticamente melhora a segmentação: adicionar 342 pseudomáscaras elevou o Dice de validação, mas o Dice de teste foi de $0{,}7528$ para $0{,}7523$. A diferença não identifica sua causa; pode refletir rótulos imperfeitos, redundância das imagens, mudança de distribuição ou variação do treinamento~\cite{Tajbakhsh2020Imperfect,Su2024ReliablePseudo}. Sua contribuição é justificar a comparação futura entre três regimes controlados: treino apenas manual, treino manual com pseudorrótulos automáticos e treino manual com pseudorrótulos revisados.
+
+Nesse cenário, a Curadoria Web transforma a procedência e as decisões de revisão em dados auditáveis. O sistema implementa aceitação, correção e rejeição, mas o benefício ainda é uma hipótese. Um experimento de revisão deve registrar por estrato de consenso a proporção de máscaras aceitas, o tipo de correção, a concordância entre revisores e o tempo de trabalho, mantendo um teste manual independente. Só assim será possível atribuir eventual ganho ao processo de curadoria, e não apenas ao maior número de exemplos de treinamento.
+
+\subsection{Ecogenicidade e evidência clínica}
+O cálculo de medidas na imagem B-mode original, separado do CLAHE empregado na inferência, evita que um realce destinado à rede seja confundido com variação física do tecido. A razão córtex--CEC, os pares de ROIs e as estatísticas robustas definem um procedimento explícito e auditável, mas escolhas como erosão, tamanho de disco, profundidade aproximada e posição do par podem alterar o valor obtido. Faltam medidas de repetibilidade intra/interobservador e uma análise de sensibilidade dessas escolhas. O próximo passo é verificar se a medida muda mais quando a máscara é corrigida ou quando o mesmo revisor reposiciona a ROI.
+
+A literatura estabelece que ecogenicidade relativa pode ser estudada em contextos renais, mas a razão córtex--CEC aqui proposta não é automaticamente equivalente a comparações rim--fígado, rim--baço ou a exames com desfechos histopatológicos~\cite{Manley2001,Moghazi2005,Beutler2024SRI,Zhao2025Echogenicity,Athavale2021}. Sem uma coorte clínica pareada e controle de parâmetros de aquisição, não se pode interpretar o descritor como marcador validado de fibrose, IFTA ou doença renal crônica. O valor presente é produzir uma variável de imagem definida e rastreável, cuja validade poderá ser investigada em etapa posterior.
+
+\subsection{Posicionamento diante de trabalhos diretamente relacionados}
+A Tabela~\ref{tab:comparacao_literatura} apresenta uma comparação descritiva com a MAT-UNet de Zuo et al.~\cite{Zuo2025RenalAttention}, que também aborda estruturas do \texttt{kidneyUS}. Ela não constitui experimento competitivo sob um mesmo protocolo de teste.
 
 \begin{table}[!htbp]
 \centering
@@ -917,76 +960,63 @@ CEC & 0,8434 & 0,8469 \\
 \end{tabular}
 \end{table}
 
-Embora a MAT-UNet apresente valor numérico maior para cápsula e os resultados deste trabalho sejam numericamente maiores para córtex, medula e CEC, tais diferenças não demonstram superioridade de uma arquitetura: os conjuntos de teste, procedimentos de divisão, critérios de elegibilidade, referência de anotação e forma de agregação podem divergir. Neste estudo, por exemplo, a cápsula foi avaliada em 70 imagens deduplicadas e a segmentação intrarrenal em 50 imagens, sem que essas avaliações correspondam necessariamente ao mesmo protocolo da MAT-UNet. A comparação controlada exigiria reproduzir as abordagens sob um conjunto de teste comum, com as mesmas anotações e métricas.
+O resultado publicado da MAT-UNet é numericamente maior na cápsula, enquanto valores deste trabalho são maiores em algumas regiões internas. Essa diferença não define um ranking, pois divisões, anotadores, critérios de inclusão e agregação das métricas podem variar. De modo semelhante, MONAI Label já oferece anotação assistida por IA~\cite{DiazPinto2024MONAILabel}, e MK-Net já investiga destilação no \texttt{kidneyUS}~\cite{Chen2026MKNet}. Portanto, a originalidade reivindicada restringe-se à \emph{integração examinável} de modelos, consenso para triagem, estudantes específicas, revisão versionada e medidas de ecogenicidade, não à invenção isolada desses componentes.
 
-Outros trabalhos relacionados possuem objetivos complementares, mas seus desfechos não permitem preencher essa tabela de Dice. Athavale et al.~\cite{Athavale2021} investigaram classificação de fibrose intersticial e atrofia tubular com referência histopatológica, enquanto Zhao et al.~\cite{Zhao2025Echogenicity} avaliaram diferenças de ecogenicidade e sua associação com doença renal crônica. Essas publicações orientam a escolha de desfechos clínicos e de medidas quantitativas para validação futura; os resultados exploratórios aqui apresentados não são equivalentes a seus diagnósticos ou indicadores de desempenho clínico. No eixo de curadoria, o MONAI Label~\cite{DiazPinto2024MONAILabel} fornece referência funcional para anotação interativa, mas sua comparação com a Curadoria Web deve priorizar rastreabilidade, operações de revisão e, em estudo futuro, tempo e concordância dos revisores, em vez de métricas de segmentação não pareadas.
-
-
-
-
-Os resultados mostram uma assimetria entre as tarefas anatômicas. A delimitação da cápsula apresentou Dice de $0{,}9290$ no teste manual deduplicado, enquanto o Dice médio intrarrenal foi $0{,}7594$. A diferença, entretanto, não pode ser interpretada como redução mensurada da qualidade do mesmo modelo em uma única população, porque os conjuntos e as tarefas não coincidem. O que os dois experimentos evidenciam, em seus respectivos protocolos, é que o projeto dispõe de um segmentador externo competitivo e que o detalhamento de córtex e medula ainda constitui um gargalo.
-
-A variabilidade entre anotadores reforça essa leitura. Enquanto a cápsula tem concordância humana relativamente elevada, córtex e medula apresentam menor sobreposição entre referências. Isso expõe duas fontes de erro que devem ser distinguidas: a imprecisão da predição computacional e a ambiguidade da própria anotação. A comparação descritiva com a MAT-UNet (Tabela~\ref{tab:comparacao_literatura}) ajuda a situar a dificuldade relativa das classes, mas diferenças de divisão, anotadores, treinamento e execução impedem um ranking direto entre estudos~\cite{Zuo2025RenalAttention}. O contraste indica valores publicados próximos para a cápsula e o CEC e maior dispersão para córtex e medula; não constitui teste de significância nem comprovação de superioridade de nossa U-Net. Um experimento futuro mais informativo deverá apresentar medidas por exame, distribuição de casos difíceis e, quando viável, múltiplas referências humanas.
-
-O experimento de estabilidade oferece evidência inicial de viabilidade do encadeamento anatômico. Na avaliação específica de medula, substituir a cápsula manual pela prevista teve pequeno efeito na métrica global e preservou elevada correlação de intensidade média. Ainda assim, médias agregadas podem ocultar falhas importantes em exames difíceis. Particularmente em uma cadeia de mensuração, uma região deslocada pode modificar a ROI cortical ou do CEC mesmo quando a sobreposição global é satisfatória. Portanto, a análise de propagação deve ser aprofundada para os três compartimentos intrarrenais e para as medidas pareadas, não apenas para um único descritor de medula.
-
-A pseudo-expansão é um resultado negativo informativo. O aumento de 236 para 578 imagens não elevou o Dice no teste manual da medula, embora a validação tenha melhorado. Existem interpretações plausíveis --- seleção de casos redundantes, erros residuais dos pseudorrótulos, mudança de distribuição ou variância de treinamento ---, mas os dados aqui apresentados não permitem determinar qual mecanismo predominou. A literatura sobre aprendizado com rótulos imperfeitos e correção de pseudorrótulos sustenta a relevância desse problema~\cite{Tajbakhsh2020Imperfect,Su2024ReliablePseudo,Huang2025SemiPLC}. O próximo experimento deve separar explicitamente o efeito do volume de treinamento do efeito da qualidade de anotação.
-
-Nesse contexto, o consenso U-Net--DeepLabV3 tem função operacional bem definida: apoiar a triagem. A correlação documentada entre acordo dos modelos e qualidade frente à referência é promissora para ordenar o trabalho de revisão, mas não prova que candidatos de consenso alto sejam anatomicamente corretos. Um estudo \textit{human-in-the-loop} deve medir, por estratos de consenso, taxas de aceitação, correção e rejeição, concordância de revisores, tempo despendido e ganho no desempenho final. Somente essa comparação permitirá estimar o benefício científico e operacional da curadoria implementada.
-
-O piloto inicial de destilação U-Net--DeepLabV3 indicou viabilidade operacional,
-mas não ganho de acurácia: a estudante obteve Dice $0{,}8847$, inferior aos
-dois professores, apesar da redução no número de parâmetros e no tempo de
-passagem direta. A matriz posterior produziu $0{,}9078$ de Dice para a mesma
-combinação nominal de professores, mas esse valor pertence a uma execução
-distinta, com outro script e limiar selecionado. A diferença não deve ser
-interpretada como melhora longitudinal do mesmo checkpoint; ela evidencia a
-necessidade de congelar o protocolo antes de comparar execuções.
-
-A matriz também permite comparar a estudante destilada com o baseline sem
-professores. O ganho descritivo de $0{,}8978$ para $0{,}9078$ no Dice e de
-$0{,}8145$ para $0{,}8312$ no IoU sugere utilidade potencial da transferência,
-mas a seleção da configuração ocorreu após a observação do teste. Além disso,
-o maior resultado de validação pertenceu à combinação DeepLabV3--SegFormer-B0,
-que não foi a melhor no teste. A inclusão de mais professores também não
-melhorou o resultado: o trio empatou aproximadamente com U-Net--DeepLabV3.
-Esse comportamento pode decorrer da média de alvos suaves heterogêneos,
-conflitos entre erros dos professores ou variância de treinamento; os dados
-atuais não distinguem esses mecanismos. Portanto, a matriz sustenta uma
-decisão operacional exploratória, não uma demonstração de superioridade da
-destilação. Mesmo um eventual aumento de Dice no teste interno não substituirá
-validação em imagens externas e revisão anatômica especializada
-~\cite{Qin2021MedicalKD,Zhao2023MSKD,Qi2024GKD}.
-
-A revalidação agrupada da cascata acrescenta uma evidência diferente da matriz histórica: com 51 exames de teste sem compartilhamento de identificadores, a estudante da cápsula alcançou Dice 0,9584 e a estudante intrarrenal alcançou Dice foreground 0,7210 quando recebeu a ROI prevista. Com a ROI manual de referência, a mesma estudante intrarrenal alcançou 0,7395. A diferença de 0,0185 mostra que a propagação do erro da cápsula é mensurável, embora menor que a observada no protocolo anterior com referências de domínio incompatível. Esse resultado sustenta a avaliação ponta a ponta da aplicação, mas não autoriza afirmar superioridade da destilação nem acurácia clínica; a combinação de professores foi mantida por decisão operacional exploratória.
-
-A análise de ecogenicidade representa a motivação aplicada da segmentação. O uso da imagem original, em lugar de valores após CLAHE, evita introduzir na medida quantitativa o realce produzido especificamente para melhorar a entrada da rede. O pareamento córtex--CEC e a exclusão de bordas tornam explícitas as escolhas de amostragem e podem reduzir certas fontes de heterogeneidade. Entretanto, tais decisões também introduzem hiperparâmetros --- raio, posição, número de pares, erosão e aproximação de profundidade --- cuja sensibilidade ainda não foi medida. A literatura sobre ecogenicidade relativa fornece motivação, não validação direta desse protocolo particular~\cite{Manley2001,Beutler2024SRI,Zhao2025Echogenicity}.
-
-Finalmente, a caracterização quantitativa não deve ser confundida com inferência histopatológica. Uma razão córtex--CEC próxima da unidade informa semelhança relativa de intensidades na imagem disponível; ela não identifica, isoladamente, fibrose, IFTA ou doença renal crônica. A avaliação de associações com eGFR ou biópsia exigirá desenho de estudo, variáveis clínicas e análise de fatores de confusão apropriados~\cite{Moghazi2005,Athavale2021,Qin2024Fibrosis}. O valor atual do projeto reside, portanto, na integração rastreável entre dado, anatomia, revisão e medida, com fronteiras explícitas entre o demonstrado e o ainda hipotético.
+\subsection{Síntese interpretativa}
+Os experimentos demonstram que a cascata pode ser executada e avaliada com referência manual, que a propagação de erro é mensurável e que uma estudante pode reduzir custo computacional. Ainda não demonstram que a revisão humana melhora o desempenho, que as pseudomáscaras externas são anatomicamente corretas ou que as medidas de ecogenicidade antecipam doença. Essa fronteira entre resultados medidos e hipóteses testáveis é central para a validade da contribuição.
 
 \section{Limitações e Ameaças à Validade}
 
-\textbf{Validade interna.} Embora a deduplicação e o agrupamento por exame ou paciente reduzam vazamento, diferenças na formação dos subconjuntos e na seleção dos checkpoints precisam continuar documentadas. Na matriz de destilação, a escolha da combinação operacional ocorreu após a observação do teste; por isso, o resultado da configuração escolhida é exploratório e não equivale a uma estimativa final não enviesada. Os resultados agregados não incluem, nesta versão, intervalos de confiança pareados por paciente, múltiplas sementes sistemáticas ou análise uniforme de significância. Resultados históricos em conjuntos expandidos com pseudomáscaras não podem ser interpretados como replicações independentes do benchmark manual.
+\subsection{Validade interna e seleção de modelos}
+A separação entre treino, validação e teste foi aprimorada com deduplicação e agrupamento por exame/paciente, mas há protocolos históricos com conjuntos e pré-processamentos diferentes. Na matriz de destilação, a decisão sobre a combinação operacional consultou o desempenho do teste; mesmo sem ajuste dos pesos nesse conjunto, essa decisão compromete sua independência para comparar estratégias. Também faltam repetições sistemáticas com diferentes sementes e intervalos de confiança por unidade independente. O plano de mitigação é congelar manifestos, checkpoints, versões dos scripts e limiares antes de uma reavaliação cega por exame, usando o teste somente após a seleção final.
 
-\textbf{Validade de construção.} Dice e IoU medem concordância espacial, não adequação clínica. Confiança média e acordo entre modelos são indicadores operacionais, não probabilidades calibradas de correção. A discordância interobservador, sobretudo em córtex e medula, mostra que a escolha da anotação de referência afeta a avaliação. Para ecogenicidade, intensidades derivadas de imagens B-mode processadas pelo equipamento não representam propriedades acústicas absolutas do tecido.
+\subsection{Validade de construção e referência anatômica}
+Dice e IoU medem sobreposição com máscaras de referência, não adequação para produzir medidas de intensidade ou localizar alterações clínicas. A discordância entre anotadores, sobretudo nas fronteiras de córtex e medula, pode modificar o valor de uma métrica sem mudança correspondente na anatomia subjacente. Confiança dos pixels, concordância entre modelos e número de máscaras não vazias possuem interpretações distintas da acurácia. É necessário avaliar erros por estrutura, dimensões e qualidade visual, além de registrar regras de tratamento de regiões ausentes e de versões corrigidas.
 
-\textbf{Validade externa.} Os testes supervisionados documentados utilizam majoritariamente o \texttt{kidneyUS}. Imagens externas do MONAI foram processadas sem um conjunto manual de teste consolidado, o que impede estimar a acurácia anatômica nesse domínio. Equipamentos, operadores, população, ganho, TGC, profundidade, compressão e qualidade visual podem modificar tanto a segmentação quanto as razões de brilho.
+\subsection{Validade externa e deslocamento de domínio}
+Os principais testes supervisionados usam o \texttt{kidneyUS}; as 4.479 imagens MONAI constituem um conjunto externo não anotado adequadamente para aferir Dice. Equipamento, operador, ganho, profundidade, compressão, qualidade de imagem e prevalência de dificuldades anatômicas podem deslocar a distribuição. Uma amostra externa selecionada para anotação especializada, incluindo casos difíceis e uma seleção aleatória dos diferentes estratos de consenso, é necessária para estimar erro anatômico fora do domínio de treino. Casos escolhidos apenas por confiança alta superestimariam a qualidade do fluxo.
 
-\textbf{Validade clínica e operacional.} Não existe, nesta etapa, base clínica ou histopatológica pareada suficiente para afirmar detecção de fibrose, IFTA ou DRC. A ferramenta de curadoria preserva versões e decisões, mas sua concordância inter-revisores, custo de uso e benefício no retreinamento ainda precisam de medição prospectiva. A disponibilidade de infraestrutura funcional não equivale a validação do seu impacto.
+\subsection{Validade operacional, clínica e multimodal}
+A Curadoria Web implementa o ciclo de revisão, mas ainda não existem medições controladas de tempo, taxa de correção, concordância ou benefício no retreinamento. As razões de ecogenicidade dependem de máscaras, ROIs e parâmetros de aquisição; faltam estudo de sensibilidade, repetibilidade e associação com dados clínicos pareados. Os exemplos do assistente multimodal têm caráter ilustrativo e não incluem gabarito independente dos achados; a versão exata do serviço externo também precisa de documentação para reprodução. Nenhum desses componentes é avaliado como diagnóstico de fibrose, IFTA ou doença renal crônica.
 
 \section{Continuidade da Dissertação}
+A continuidade deve converter os componentes implementados em hipóteses avaliáveis, priorizando a correção das fontes de viés identificadas na presente qualificação. A Tabela~\ref{tab:plano_validacao} relaciona cada eixo a uma comparação controlada e ao desfecho esperado. Os procedimentos descritos são \textbf{propostas de experimentos}, não resultados adicionais.
 
-A primeira prioridade é congelar manifestos, checkpoints, protocolos e conjuntos de avaliação, corrigindo divergências de contagens em relatórios históricos e vinculando cada número ao experimento responsável. A segunda é realizar uma rodada piloto de curadoria estratificada por consenso, qualidade visual e fonte, com participação de revisores independentes e medição de concordância, tempo e operações de correção. Após essa etapa, um teste final revisado e independente deverá ser preservado para comparação controlada dos três regimes de treinamento: manual, manual acrescido de pseudorrótulos automáticos e manual acrescido de pseudorrótulos revisados.
+\begin{table}[!htbp]
+\centering
+\small
+\caption{Plano de validação proposto para a continuidade da dissertação.}
+\label{tab:plano_validacao}
+\begin{tabular}{p{0.23\linewidth}p{0.42\linewidth}p{0.25\linewidth}}
+\toprule
+\textbf{Prioridade} & \textbf{Procedimento proposto} & \textbf{Desfecho principal} \\
+\midrule
+1. Protocolo final & Congelar dados, modelo e limiares por validação; teste independente agrupado por exame & Dice/IoU por classe e incerteza pareada \\
+2. Revisão humana & Amostra estratificada por consenso e qualidade, com revisores independentes & Aceitação, correção, tempo e concordância \\
+3. Efeito no treinamento & Comparar manual, manual + pseudo e manual + pseudo revisado sob mesmo teste & Ganho de segmentação atribuível à curadoria \\
+4. Ecogenicidade & Perturbar máscaras/ROIs e repetir medidas por revisor na imagem original & Repetibilidade, erro e sensibilidade do descritor \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-O próximo eixo será verificar como as diferenças de segmentação se propagam para a análise intrarrenal e para as medidas de ecogenicidade. O protocolo de ROIs pareadas deverá ser examinado por análise de sensibilidade do tamanho e número de discos, da erosão, da profundidade aproximada e da intervenção do revisor. Repetibilidade intra e interobservador, cobertura de pares válidos e distribuição de erros são desfechos prioritários. Somente após consolidar esses estudos computacionais fará sentido investigar, em uma coorte institucional com governança apropriada, associações com creatinina, eGFR, laudos e eventualmente histopatologia.
+\subsection{Congelamento e reavaliação independente}
+Primeiro, serão unificados os manifestos por identificador de exame, com rastreabilidade de imagem, origem, versão da máscara, configuração do checkpoint e papel de cada amostra. A seleção de arquiteturas e limiares deverá ocorrer sem consulta ao teste final; múltiplas inicializações e intervalos de confiança agrupados por exame ou paciente serão usados para caracterizar a incerteza, conforme a disponibilidade de dados. Resultados históricos permanecerão identificados, sem mistura com o protocolo congelado.
+
+\subsection{Curadoria \textit{human-in-the-loop} e estudo de impacto}
+A etapa seguinte propõe uma amostra para revisão estratificada por alto, médio e baixo consenso, origem e qualidade visual, incluindo também seleção aleatória para detectar erros nos casos aparentemente confiáveis. As máscaras automáticas e corrigidas serão versionadas; revisores independentes documentarão aceitação, correção, rejeição, tempo e discordância. Para isolar o efeito da revisão, os três regimes de treinamento deverão manter arquitetura, testes, orçamento de amostras e critérios de seleção comparáveis. A hipótese será examinada pela diferença de desempenho, não presumida pela implementação da interface.
+
+\subsection{Estabilidade da cascata e de ecogenicidade}
+Em seguida, a avaliação ponta a ponta deverá quantificar o deslocamento das ROIs após variações na cápsula e nas máscaras internas. Serão comparadas imagens originais com máscaras manuais, automáticas e revisadas, alterando sistematicamente raio dos discos, erosão, profundidade aproximada e número de pares. O desfecho será a variabilidade dos descritores, mediante repetição de medições, diferenças pareadas e medidas de concordância apropriadas. Uma eventual investigação com eGFR, creatinina ou histopatologia dependerá de dados clínicos pareados, governança institucional e desenho específico; não integra a evidência atual.
+
+\subsection{Posição do assistente multimodal}
+O assistente permanecerá auxiliar à revisão, com prioridade inferior à validação anatômica e à estabilidade da ecogenicidade. Caso seja ampliado, o piloto exigirá gabarito de especialistas, perguntas e entradas padronizadas, identificação técnica dos modelos, registro de afirmações não sustentadas e avaliação por caso. Sem esse protocolo, novas demonstrações não serão tratadas como prova de acurácia clínica.
 
 \section{Conclusão}
+Este trabalho desenvolveu um pipeline rastreável para ultrassonografia renal que articula delimitação da cápsula, segmentação intrarrenal, consenso, destilação, curadoria humana e mensuração exploratória da ecogenicidade. Na avaliação supervisionada deduplicada, a U-Net da cápsula alcançou Dice $0{,}9290$ e IoU $0{,}8722$ em 70 imagens, enquanto a U-Net intrarrenal atingiu Dice médio $0{,}7594$ em outro teste manual de 50 imagens. A revalidação da cascata no teste agrupado quantificou queda de Dice de $0{,}7395$ para $0{,}7210$ ao substituir a ROI de referência pela prevista, demonstrando a importância de avaliar o encadeamento dos modelos.
 
-Este trabalho apresentou a organização de um pipeline rastreável para análise quantitativa de ultrassonografia renal, articulando segmentação da cápsula, consenso entre modelos, curadoria humana, segmentação intrarrenal e mensuração exploratória de ecogenicidade. O teste manual deduplicado documentou Dice de $0{,}9290$ para a cápsula com U-Net; a mesma arquitetura obteve Dice médio $0{,}7594$ na segmentação multiclasse de córtex, medula e CEC em outro conjunto de teste. A revalidação agrupada da cascata alcançou Dice de $0{,}9584$ para a estudante da cápsula e $0{,}7210$ para a estudante intrarrenal quando a ROI foi prevista, contra $0{,}7395$ com ROI de referência. A estudante destilada aumentou de 3.534 para 3.707 o número de pseudomáscaras externas não vazias no lote MONAI, demonstrando funcionamento operacional, mas não acurácia clínica.
+A destilação permitiu executar uma estudante compacta com menor custo que as professoras no ensaio de \textit{forward}, embora a escolha da combinação operacional exija revalidação independente. No MONAI, o aumento de 3.534 para 3.707 candidatas não vazias representa maior cobertura, não acurácia externa. A pseudo-expansão da medula não elevou o Dice de teste, reforçando que quantidade de pseudorrótulos e qualidade anatômica são questões distintas.
 
-A contribuição científica deve ser interpretada como integração metodológica e avaliação operacional, e não como uma nova arquitetura ou como a primeira aplicação de destilação ao \texttt{KidneyUS}. Em relação a trabalhos próximos, como o MK-Net~\cite{Chen2026MKNet}, este estudo investiga a combinação de professores heterogêneos, a compactação separada das etapas da cascata, a auditoria por consenso e a revisão humana vinculada à mensuração de ecogenicidade. Os resultados sustentam a viabilidade desse arranjo, mas ainda não demonstram superioridade estatística, confiabilidade anatômica das pseudomáscaras externas ou benefício clínico.
-
-A expansão preliminar de treino de medula não melhorou o Dice do teste manual, evidenciando a necessidade de avaliar qualidade de anotação e efeito da curadoria antes de interpretar quantidade de dados como benefício. A contribuição atual está na estrutura metodológica que preserva proveniência e separa predição automática, revisão humana e medida quantitativa. O protocolo córtex--CEC constitui uma etapa promissora para estudos de estabilidade de imagem, ainda sem validação clínica. A continuidade da pesquisa deverá testar o efeito da revisão humana e a repetibilidade das medidas, mantendo a interpretação de fibrose e de doença renal crônica fora do escopo dos resultados atualmente demonstrados.
+A contribuição consolidada está na integração auditável das etapas e na distinção entre o que foi medido, o que está implementado e o que permanece hipótese. Os experimentos futuros deverão demonstrar o efeito da revisão humana, a estabilidade das ROIs e a repetibilidade das medidas de ecogenicidade. Até que exista validação clínica pareada, o sistema deve ser interpretado como infraestrutura de análise e pesquisa, não como método de diagnóstico automático de fibrose ou doença renal crônica.
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
