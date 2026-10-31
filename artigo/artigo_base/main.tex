@@ -1156,6 +1156,52 @@ Em seguida, a avaliação ponta a ponta deverá quantificar o deslocamento das R
 \subsection{Posição do assistente multimodal}
 O assistente permanecerá auxiliar à revisão, com prioridade inferior à validação anatômica e à estabilidade da ecogenicidade. Caso seja ampliado, o piloto exigirá gabarito de especialistas, perguntas e entradas padronizadas, identificação técnica dos modelos, registro de afirmações não sustentadas e avaliação por caso. Sem esse protocolo, novas demonstrações não serão tratadas como prova de acurácia clínica.
 
+\ifversaoqualificacao
+\subsection{Cronograma preliminar e entregáveis}
+A Tabela~\ref{tab:cronograma_qualificacao} propõe uma distribuição de atividades
+entre novembro de 2026 e abril de 2027. Os períodos indicam uma \textbf{estimativa
+de planejamento elaborada para a qualificação}; não correspondem a datas já
+aprovadas pelo Programa nem à confirmação de defesa. O calendário deverá ser
+acordado com a orientação e ajustado à disponibilidade de revisores, exames e
+infraestrutura.
+
+\begin{table}[!htbp]
+\centering
+\small
+\caption[Cronograma proposto de novembro de 2026 a abril de 2027]{Cronograma preliminar da continuidade da dissertação, condicionado à aprovação da orientação e às condições de execução.}
+\label{tab:cronograma_qualificacao}
+\begin{tabular}{p{0.18\linewidth}p{0.38\linewidth}p{0.35\linewidth}}
+\toprule
+\textbf{Período} & \textbf{Atividade prevista} & \textbf{Entregável verificável} \\
+\midrule
+Novembro/2026 &
+Reconciliar identificadores de exame, deduplicação, divisões e versões dos checkpoints. &
+Manifestos congelados; registro de parâmetros e protocolo final de seleção. \\
+Dezembro/2026 &
+Selecionar e anotar amostra externa estratificada por consenso, incluindo seleção aleatória e casos difíceis. &
+Conjunto externo revisado, com proveniência e relatório de concordância. \\
+Janeiro/2027 &
+Avaliar a Curadoria Web com revisores, registrando decisões, correções e duração da revisão. &
+Relatório de aceitação, rejeição, tempo e concordância entre revisores. \\
+Fevereiro/2027 &
+Comparar os três regimes de treinamento sob avaliação independente e avaliar a cascata. &
+Métricas por exame e classe, diferenças pareadas e intervalos de confiança. \\
+Março/2027 &
+Medir a repetibilidade da ecogenicidade em ROIs manuais, automáticas e revisadas. &
+Análise de sensibilidade, variabilidade intra/interobservador e figuras finais. \\
+Abril/2027 &
+Consolidar resultados, revisar limitações, redação e reprodutibilidade. &
+Versão integral revisada para avaliação da orientação e providências de depósito. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O plano prioriza a validação anatômica antes da interpretação dos descritores
+de ecogenicidade. A coleta de novas informações clínicas ou histopatológicas,
+caso proposta posteriormente, exigirá análise de viabilidade e das aprovações
+institucionais aplicáveis, sem pressupor acesso ou desfechos clínicos já obtidos.
+\fi
+
 \section{Conclusão}
 Este trabalho desenvolveu um pipeline rastreável para ultrassonografia renal que articula delimitação da cápsula, segmentação intrarrenal, consenso, destilação, curadoria humana e mensuração exploratória da ecogenicidade. Na avaliação supervisionada deduplicada, a U-Net da cápsula alcançou Dice $0{,}9290$ e IoU $0{,}8722$ em 70 imagens, enquanto a U-Net intrarrenal atingiu Dice médio $0{,}7594$ em outro teste manual de 50 imagens. A revalidação da cascata no teste agrupado quantificou queda de Dice de $0{,}7395$ para $0{,}7210$ ao substituir a ROI de referência pela prevista, demonstrando a importância de avaliar o encadeamento dos modelos.
 
