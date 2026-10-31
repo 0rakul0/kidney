@@ -45,36 +45,45 @@ jobs:
             exit 1
           fi
 
-      - name: Verificar que o sumario apareceu no PDF compilado
+      - name: Verificar elementos pre-textuais e sumario no PDF compilado
         shell: bash
         run: |
           test -s artigo/artigo_base/main.toc
-          toc_count=$(grep -c '\\contentsline' artigo/artigo_base/main.toc || true)
-          echo "Entradas do sumario: $toc_count"
-          sed -n '1,8p' artigo/artigo_base/main.toc
-          if [ "$toc_count" -lt 20 ]; then
-            echo "ERRO: o sumario esta vazio ou incompleto."
-            exit 1
-          fi
+          test -s artigo/artigo_base/main.lof
+          test -s artigo/artigo_base/main.lot
+          num_secoes=$(grep -c 'contentsline {section}' artigo/artigo_base/main.toc || true)
+          num_subsecoes=$(grep -c 'contentsline {subsection}' artigo/artigo_base/main.toc || true)
+          num_figuras=$(grep -c 'contentsline {figure}' artigo/artigo_base/main.lof || true)
+          num_tabelas=$(grep -c 'contentsline {table}' artigo/artigo_base/main.lot || true)
+          echo "Secoes: $num_secoes; subsecoes: $num_subsecoes; figuras: $num_figuras; tabelas: $num_tabelas"
+          test "$num_secoes" -ge 8
+          test "$num_subsecoes" -ge 40
+          test "$num_figuras" -eq 16
+          test "$num_tabelas" -eq 16
 
           if ! command -v pdftotext >/dev/null 2>&1; then
             sudo apt-get update -qq
             sudo apt-get install -y poppler-utils
           fi
-          pdftotext -layout -f 3 -l 3 artigo/artigo_base/main.pdf /tmp/artigo-sumario-pagina3.txt
-          if ! grep -Eq '1[.]1[[:space:]]' /tmp/artigo-sumario-pagina3.txt; then
-            echo "ERRO: subsecoes nao apareceram na pagina inicial do sumario."
-            exit 1
-          fi
-          pdftotext -layout -f 2 -l 6 artigo/artigo_base/main.pdf /tmp/artigo-sumario.txt
-          echo "Trecho do sumario efetivamente extraido do PDF:"
-          sed -n '1,100p' /tmp/artigo-sumario.txt
-          for termo in "Introdu" "Metodologia" "Resultados" "Conclus"; do
-            if ! grep -q "$termo" /tmp/artigo-sumario.txt; then
-              echo "ERRO: '$termo' nao foi encontrado nas primeiras paginas do PDF."
+          pdftotext -layout artigo/artigo_base/main.pdf /tmp/artigo-qualificacao-texto.txt
+          tr '\f' '\n' < /tmp/artigo-qualificacao-texto.txt > /tmp/artigo-qualificacao-texto-linhas.txt
+          for termo in "Lista de Figuras" "Lista de Tabelas" "Lista de Abreviaturas e Siglas" "Lista de" "Palavras-chave" "Keywords:"; do
+            if ! grep -q "$termo" /tmp/artigo-qualificacao-texto-linhas.txt; then
+              echo "ERRO: secao pre-textual nao encontrada: $termo"
               exit 1
             fi
           done
+          awk '/^[[:space:]]*Sumário[[:space:]]*$/ {achou=1; prox=0; next} achou && prox++ < 135 {print}' /tmp/artigo-qualificacao-texto-linhas.txt > /tmp/artigo-sumario-extraido.txt
+          test -s /tmp/artigo-sumario-extraido.txt
+          if ! grep -Eq '1[.]1[[:space:]]' /tmp/artigo-sumario-extraido.txt; then
+            echo "ERRO: o sumario renderizado nao mostra subsecoes."
+            exit 1
+          fi
+          if ! grep -q 'Referências Bibliográficas' /tmp/artigo-sumario-extraido.txt; then
+            echo "ERRO: referencias bibliograficas ausentes do sumario."
+            exit 1
+          fi
+          sed -n '1,65p' /tmp/artigo-sumario-extraido.txt
 
       - name: Sincronizar PDF e bibliografia na main
         shell: bash
