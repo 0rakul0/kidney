@@ -52,8 +52,8 @@ Busch, F., Hoffmann, L., Pinto~dos Santos, D., Makowski, M.~R., Saba, L.,
   present, and future.
 \newblock {\em European Radiology}, 35(5):2589--2602.
 
-\bibitem[Chen et~al. 2026a]{Chen2026MKNet}
-Chen, B., Liu, C., Qi, W., and Chan, S.-C. (2026a).
+\bibitem[Chen et~al. 2026]{Chen2026MKNet}
+Chen, B., Liu, C., Qi, W., and Chan, S.-C. (2026).
 \newblock {MK-Net}: A multi-scale semantic propagation and base-channel
   distillation network for multi-class kidney ultrasound segmentation.
 \newblock In {\em 2026 IEEE International Symposium on Circuits and Systems},
@@ -236,9 +236,9 @@ Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.~M., and Luo, P. (2021).
 \newblock {\em Advances in Neural Information Processing Systems},
   34:12077--12090.
 
-\bibitem[Zhang et~al. 2026b]{Zhang2026RenalUSDLReview}
+\bibitem[Zhang et~al. 2026]{Zhang2026RenalUSDLReview}
 Zhang, Y., Hou, Y., Qiu, T., Zhuang, Y., Chen, K., Ling, W., Luo, Y., and Lin,
-  J. (2026b).
+  J. (2026).
 \newblock Deep learning in renal ultrasound: applications, challenges, and
   future outlook.
 \newblock {\em Frontiers in Oncology}, 15:1730628.
