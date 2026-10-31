@@ -197,23 +197,9 @@ A lacuna operacional e metodológica examinada é a avaliação encadeada das de
 
 \section{Metodologia}
 
-\subsection{Contexto e evolução do protocolo}
+\subsection{Visão geral e evolução do protocolo}
+O fluxo de pesquisa foi desenvolvido em três fases que correspondem a níveis progressivos de análise, e não a três bases de teste diretamente comparáveis. A primeira organizou dados, comparou segmentadores da cápsula e explorou pseudorrótulos. A segunda acrescentou consenso, destilação e segmentação intrarrenal, com avaliação do efeito do erro da cápsula. A terceira integrou inferência e revisão humana à Curadoria Web, permitindo calcular descritores de ecogenicidade na imagem original e estudar um assistente multimodal em caráter exploratório. A Figura~\ref{fig:fluxo_metodologico} sintetiza a dependência entre as etapas.
 
-A metodologia é apresentada na Figura~\ref{fig:fluxo_metodologico} como uma evolução em três fases interligadas, cuja descrição geral orienta o detalhamento das subseções seguintes. A Fase~1, iniciada no artigo SBBD, abrange engenharia de dados, comparação de segmentadores, delimitação da cápsula e geração de pseudomáscaras candidatas. A Fase~2 acrescenta consenso para auditoria, destilação de conhecimento entre professores heterogêneos e segmentação hierárquica da cápsula e das estruturas intrarrenais por estudantes compactas. A Fase~3 integra os modelos à Curadoria Web, à mensuração exploratória de ecogenicidade e ao assistente multimodal de IA para análise fundamentada nas evidências produzidas. Rastreabilidade, proveniência, reprodutibilidade e revisão humana são requisitos transversais às três fases; a saída do assistente não constitui diagnóstico clínico. A sequência é uma organização da evolução da pesquisa, não três conjuntos experimentais mutuamente exclusivos. A pesquisa iniciou-se com a comparação de arquiteturas para segmentação binária do rim. Nessa configuração, o principal resultado era uma máscara externa e sua concordância com anotações manuais. A limitação de imagens supervisionadas levou à busca por fontes adicionais e à construção de procedimentos de download, conversão, deduplicação e organização de dados externos. Essa evolução ampliou a diversidade potencial de imagens, mas introduziu um problema de procedência: dados externos sem anotações não poderiam ser tratados como equivalentes ao conjunto manual.
-
-Na primeira etapa (SBBD), o conjunto exploratório kidneyUS reuniu 513 pares de imagens e máscaras; a expansão com 1.002 imagens locais e 4.479 imagens renais curadas do MONAI levou a 5.994 imagens no acervo histórico. As pseudomáscaras de cápsula foram triadas por confiança operacional mínima de 90\% e critérios geométricos, totalizando, naquele relato, 2.961 máscaras automáticas aceitas e 1.001 máscaras preexistentes. O DeepLabV3-ResNet50 treinado com o conjunto expandido atingiu Dice de $0{,}9235$ e IoU de $0{,}8741$ no teste fixo daquele protocolo; esses valores não são diretamente comparáveis aos testes deduplicados desenvolvidos posteriormente~\cite{Singla2023KidneyUS,MONAIClinicalUltrasound}.
-
-Na evolução posterior, uma fase exploratória utilizou filtros de confiança, tamanho e geometria para priorizar pseudomáscaras. A observação de predições aparentemente confiantes, porém anatomicamente questionáveis, motivou uma mudança metodológica: os filtros deixaram de significar aceitação automática e passaram a funcionar como critérios de triagem. Foi então acrescentado o consenso U-Net--DeepLabV3, calibrado por predições \textit{out-of-fold}, para estimar a estabilidade entre modelos independentes.
-
-Na segunda etapa, as anotações de córtex, medula e complexo ecogênico central (CEC) do kidneyUS foram utilizadas para preparar os conjuntos supervisionados de segmentação intrarrenal~\cite{Singla2023KidneyUS}. Nessa fase, a máscara da cápsula delimita a região de interesse dentro da qual modelos multiclasse, como U-Net e DeepLabV3, identificam as estruturas internas. Essas anotações de especialistas não devem ser confundidas com as pseudomáscaras de cápsula geradas para as imagens externas do MONAI. Para a reavaliação da cascata, foi criado um split agrupado por identificador de exame, com 234 imagens de treino, 50 de validação e 51 de teste; nenhuma chave `IM-*` foi compartilhada entre as divisões.
-
-As máscaras originais fornecidas pelo \texttt{kidneyUS} são atribuídas aos anotadores desse conjunto~\cite{Singla2023KidneyUS}. Todas as outras máscaras do acervo foram produzidas no âmbito desta pesquisa: algumas são propostas geradas automaticamente pelos segmentadores, outras são pseudomáscaras selecionadas segundo critérios operacionais e outras podem apresentar correções e decisões registradas pela Curadoria Web. Portanto, a autoria das máscaras deve ser distinguida de seu nível de validação: a produção pelo projeto não caracteriza, por si só, anotação manual ou aprovação especializada. As imagens externas, inclusive as oriundas do repositório MONAI/NVIDIA~\cite{MONAIClinicalUltrasound}, constituem fontes de imagens, não fontes das máscaras produzidas aqui. A investigação avançou da cápsula para a medula e, posteriormente, para segmentação multiclasse de córtex, medula e CEC. O experimento de pseudo-expansão da medula forneceu uma observação decisiva: o aumento do treino não produziu melhora no teste manual. Isso justificou incorporar, na segunda etapa da pesquisa, a Curadoria Web como componente explícito de revisão \textit{human-in-the-loop}, com edição, aprovação, histórico e persistência de versões.
-
-A etapa mais recente encadeia cápsula, estruturas intrarrenais e mensuração de ecogenicidade. Nesse momento, tornou-se necessário separar ainda mais claramente o pré-processamento usado na inferência do dado usado na análise quantitativa. A mensuração passou a ser realizada na imagem original, por ROIs anatomicamente delimitadas, com resultados exploratórios. Esta seção descreve a origem das escolhas experimentais; as seções seguintes apresentam os protocolos que podem ser reproduzidos e os limites das evidências já obtidas.
-
-A Figura~\ref{fig:fluxo_metodologico} apresenta a visão geral da metodologia e orienta a leitura das subseções seguintes. A representação distingue três fases: (i) engenharia de dados e segmentação da cápsula renal, desenvolvidas a partir do SBBD; (ii) consenso entre modelos, destilação de conhecimento e segmentação hierárquica com estudantes distintas para cápsula e estruturas intrarrenais; e (iii) aplicação dos modelos na Curadoria Web, mensuração de ecogenicidade e análise exploratória assistida por IA multimodal. Em todas as fases, a proveniência das máscaras, a revisão humana e a reprodutibilidade permanecem explícitas.
-
-% Figura posicionada aqui para preservar: apresentação -> imagem -> interpretação.
 \begin{figure}[!htbp]
 \centering
 % Coloque figura5_evolucao_metodologica_renal.png em artigo/artigo_base/figures/.
@@ -234,34 +220,50 @@ A Figura~\ref{fig:fluxo_metodologico} apresenta a visão geral da metodologia e 
 \end{figure}
 \FloatBarrier
 
-A Figura~\ref{fig:fluxo_metodologico} evidencia a evolução do trabalho de um protocolo de segmentação externa para uma cascata de processamento e análise. Na primeira fase, as imagens anotadas do \texttt{kidneyUS} sustentam a comparação dos segmentadores, enquanto as fontes externas fornecem candidatas a pseudomáscaras, sem serem confundidas com referências manuais. Na segunda fase, o consenso orienta a auditoria das predições e a destilação ocorre em dois treinamentos distintos: uma U-Net estudante delimita a cápsula e define a ROI renal; outra U-Net estudante, treinada para a tarefa multiclasse, segmenta córtex, medula e CEC dentro dessa região. Na terceira fase, a aplicação reúne as máscaras, as medidas de ecogenicidade extraídas da imagem original e as evidências apresentadas ao assistente multimodal para interpretação exploratória e revisão na Curadoria Web. As setas expressam dependências de processamento, não validação clínica automática. As subseções seguintes detalham, na mesma lógica, dados, arquiteturas, experimentos, critérios de avaliação e limites de cada componente.
+O ponto de partida histórico, documentado no trabalho do SBBD, utilizou 513 pares imagem--máscara do \texttt{kidneyUS} e um acervo que chegou a 5.994 imagens após incluir 1.002 registros locais e 4.479 imagens externas selecionadas do MONAI~\cite{Singla2023KidneyUS,MONAIClinicalUltrasound}. Naquele protocolo, 2.961 pseudomáscaras e 1.001 máscaras preexistentes foram utilizadas no conjunto expandido. O DeepLabV3-ResNet50 obteve Dice de $0{,}9235$ em teste fixo desse experimento anterior, mas sua amostra e seu protocolo não equivalem aos testes manuais deduplicados posteriores. Esses números contextualizam a evolução; os resultados centrais da presente qualificação usam avaliações supervisionadas identificadas por tarefa.
 
-\subsection{Desenho experimental e unidades de avaliação}
+A observação de erros visualmente plausíveis em previsões de alta confiança motivou a mudança de aceitação automática de pseudomáscaras para \textit{triagem e revisão}. Assim, a máscara automática, a referência manual do \texttt{kidneyUS} e a versão corrigida na plataforma permanecem objetos distintos. A destilação busca reduzir o custo de inferência sem assumir que compactação melhore o Dice; a mensuração de ecogenicidade exige ainda validação de repetibilidade e referência clínica. Essas distinções determinam o desenho experimental a seguir.
 
-A organização histórica da pesquisa compreende a etapa inicial documentada no SBBD e uma segunda etapa de segmentação intrarrenal e Curadoria Web. Para avaliar os experimentos atuais, o estudo compreende três eixos: (i) segmentação supervisionada da cápsula; (ii) segmentação e estabilidade de estruturas intrarrenais; e (iii) engenharia de dados, curadoria e quantificação exploratória. Esses eixos não compartilham necessariamente as mesmas amostras nem os mesmos protocolos. Por isso, cada resultado é apresentado juntamente com sua tarefa, a origem do dado e o tipo de referência. Resultados de conjuntos expandidos com pseudorrótulos não são comparados diretamente com testes manuais deduplicados.
-
-A referência supervisionada original para os experimentos anatômicos é o \texttt{kidneyUS}~\cite{Singla2023KidneyUS}; as demais máscaras presentes no conjunto expandido são produtos dos fluxos de segmentação e curadoria desta pesquisa, com proveniência própria. Os polígonos fornecidos nas anotações são rasterizados para produzir máscaras.
-
-A Tabela~\ref{tab:datasets} resume os conjuntos supervisionados e torna explícito que os tamanhos de amostra não são intercambiáveis entre tarefas.
+\subsection{Desenho experimental, fontes e unidades de avaliação}
+Os experimentos são organizados por tarefa anatômica e unidade de divisão, sem combinar suas amostras em uma estimativa única. As referências supervisionadas provêm das anotações do \texttt{kidneyUS}~\cite{Singla2023KidneyUS}; as máscaras adicionais produzidas neste projeto têm identificação de modelo, checkpoint e, quando aplicável, estado de revisão. A Tabela~\ref{tab:datasets} reúne as divisões manuais e identifica a reavaliação agrupada da cascata, cuja partição não é intercambiável com o benchmark intrarrenal anterior.
 
 \begin{table}[!htbp]
 \centering
-\caption{Conjuntos supervisionados do estudo. Os testes de tarefas diferentes não representam uma mesma amostra.}
+\caption{Conjuntos supervisionados utilizados por tarefa. Tamanhos e divisões diferentes não representam o mesmo experimento.}
 \label{tab:datasets}
 \begin{tabular}{lrrrr}
 \toprule
-\textbf{Tarefa} & \textbf{Total} & \textbf{Treino} & \textbf{Val.} & \textbf{Teste} \\
+\textbf{Tarefa/protocolo} & \textbf{Total} & \textbf{Treino} & \textbf{Val.} & \textbf{Teste} \\
 \midrule
 Cápsula deduplicada & 468 & 328 & 70 & 70 \\
-Intrarrenal multiclasse & 335 & 235 & 50 & 50 \\
+Intrarrenal multiclasse (original) & 335 & 235 & 50 & 50 \\
 Medula binária & 336 & 236 & 50 & 50 \\
+Cascata reavaliada por exame & 335 & 234 & 50 & 51 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-A análise da cápsula parte de 486 registros do primeiro anotador que correspondem a 468 imagens únicas; após deduplicação e agrupamento por exame, foram destinadas 328 imagens a treino, 70 a validação e 70 a teste. A tarefa intrarrenal multiclasse utiliza 335 imagens (235/50/50) e a tarefa binária de medula utiliza 336 imagens (236/50/50), conforme os respectivos critérios de elegibilidade. Na divisão intrarrenal, o agrupamento por paciente evita que imagens de um mesmo indivíduo sejam distribuídas entre conjuntos de desenvolvimento e teste.
+A cápsula parte de 486 registros do primeiro anotador, correspondentes a 468 imagens únicas após deduplicação por conteúdo. O benchmark utiliza 328 imagens para treino, 70 para validação e 70 para teste. O experimento intrarrenal original utiliza 335 imagens (235/50/50), e o estudo específico de medula utiliza 336 (236/50/50). A reavaliação da cascata conserva 335 imagens elegíveis, mas define 234/50/51 por identificador de exame, sem chaves \texttt{IM-*} compartilhadas entre divisões. A separação agrupada por paciente ou exame é mais apropriada do que divisão aleatória de quadros correlacionados; as regras e manifestos de cada experimento precisam acompanhar os checkpoints para reprodução.
 
-A deduplicação por hash identifica conteúdos idênticos; o agrupamento por exame ou paciente busca reduzir vazamento de informação por imagens correlacionadas. Quando existem múltiplas representações de anotação para o mesmo conteúdo, o procedimento de preparação define a amostra de referência usada no experimento. A estratégia de divisão, os manifestos e as configurações dos modelos devem acompanhar os resultados para permitir auditoria. A separação reduz, mas não exclui, o risco de semelhanças residuais e de mudança de distribuição entre fontes.
+\begin{table}[!htbp]
+\centering
+\caption{Papel das fontes de dados e alcance das avaliações realizadas.}
+\label{tab:fontes_e_evidencias}
+\begin{tabular}{p{0.27\linewidth}p{0.29\linewidth}p{0.34\linewidth}}
+\toprule
+\textbf{Fonte} & \textbf{Tipo de referência} & \textbf{Uso permitido no estudo} \\
+\midrule
+\texttt{kidneyUS} & Anotações humanas de estruturas renais & Treino, validação e testes supervisionados separados por tarefa \\
+MONAI renal curado (4.479) & Imagens sem máscara manual externa consolidada & Gerar e contar propostas; não estimar Dice externo \\
+Acervo histórico expandido & Máscaras preexistentes e pseudomáscaras de diferentes origens & Contextualização, sem substituir teste manual deduplicado \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Critérios de comparação e validade da avaliação}
+Dice, IoU, precisão e \textit{recall} são interpretados em relação à referência manual pertinente a cada protocolo; as médias intrarrenais consideram classes de primeiro plano, ao passo que a métrica binária refere-se à cápsula ou à medula. O experimento da cascata compara, sobre seus mesmos casos de teste, uma ROI de cápsula de referência com a ROI efetivamente prevista pela estudante. Essa comparação pareada é mais informativa para propagação de erros do que confrontar Dice de conjuntos distintos. Concordância entre professores, confiança média de pixels e porcentagem de propostas não vazias no MONAI são indicadores operacionais, não medidas de acurácia anatômica.
+
+A seleção de limiar e checkpoint deve utilizar exclusivamente a validação. A matriz de combinações de professores teve uma limitação documentada: a combinação operacional foi escolhida após a observação dos resultados de teste, o que impede interpretá-los como confirmação independente da opção selecionada. Para a conclusão da dissertação, uma configuração congelada precisará ser examinada em teste não utilizado na escolha, com estimativas de incerteza por exame/paciente e sensibilidade a inicializações. FPS é reportado separando o benchmark fim a fim do benchmark restrito ao \textit{forward} da rede, pois esses números não são equivalentes.
 
 \subsection{Pré-processamento e benchmark da cápsula}
 
@@ -421,6 +423,11 @@ A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativ
 \end{figure}
 
 No exemplo, o CEC é selecionado como região A e o córtex como região B; por isso, a razão exibida é $100\,\mu_{CEC}/\mu_C$, inversa à razão global $R_{C/CEC}$ definida na Equação~\ref{eq:global_echo}. Os indicadores não devem ser comparados sem considerar a ordem das regiões, e o exemplo interativo de um par não substitui a mediana do protocolo automático de até três pares.
+
+\subsection{Assistente multimodal: desenho do estudo piloto}
+O assistente recebe uma imagem B-mode, sobreposições de máscaras e descritores já produzidos pelo \textit{pipeline}. A avaliação realizada é demonstrativa: um caso principal foi submetido ao Qwen2.5-VL-3B-Instruct-AWQ local e a um assistente multimodal externo, com a mesma pergunta e as mesmas evidências declaradas; outro caso ilustra o uso da interface. O objetivo foi inspecionar se as respostas fazem referência às regiões e aos valores apresentados e se registram corretamente a incerteza, não estabelecer sensibilidade ou especificidade clínica.
+
+Os registros precisam conservar o prompt integral, a imagem efetivamente enviada, as versões das máscaras, a identificação técnica verificável do modelo externo, os parâmetros de inferência e a resposta sem edição. A identificação comercial anotada originalmente para o modelo externo não comprova, por si só, o identificador de checkpoint ou versão. Além disso, as máscaras do exemplo principal foram geradas por checkpoints anteriores indicados na legenda correspondente, de modo que esse piloto não serve de validação independente da cascata destilada operacional. Sem referência especializada dos achados e com amostra tão pequena, a comparação limita-se a observações qualitativas.
 
 \section{Resultados}
 
