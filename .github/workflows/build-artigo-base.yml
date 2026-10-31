@@ -81,10 +81,35 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artigo/artigo_base/main.pdf artigo/artigo_base/main.bbl
-          if ! git diff --cached --quiet; then
+          sha_tex_gerado=$(sha256sum artigo/artigo_base/main.tex | cut -d' ' -f1)
+          cp artigo/artigo_base/main.pdf /tmp/artigo-qualificacao-compilado.pdf
+          cp artigo/artigo_base/main.bbl /tmp/artigo-bibliografia-compilada.bbl
+          publicado=false
+          for tentativa in 1 2 3 4; do
+            git fetch origin main
+            sha_tex_atual=$(git show origin/main:artigo/artigo_base/main.tex | sha256sum | cut -d' ' -f1)
+            if [ "$sha_tex_gerado" != "$sha_tex_atual" ]; then
+              echo "O LaTeX mudou durante a compilacao: nao publicar PDF defasado."
+              exit 1
+            fi
+            git reset --hard origin/main
+            cp /tmp/artigo-qualificacao-compilado.pdf artigo/artigo_base/main.pdf
+            cp /tmp/artigo-bibliografia-compilada.bbl artigo/artigo_base/main.bbl
+            git add artigo/artigo_base/main.pdf artigo/artigo_base/main.bbl
+            if git diff --cached --quiet; then
+              publicado=true
+              break
+            fi
             git commit -m "build(artigo): atualiza PDF e bibliografia [skip ci]"
-            git push origin HEAD:main
+            if git push origin HEAD:main; then
+              publicado=true
+              break
+            fi
+            sleep 3
+          done
+          if [ "$publicado" != true ]; then
+            echo "Falha ao sincronizar PDF apos quatro tentativas."
+            exit 1
           fi
 
       - name: Publicar PDF do artigo-base
