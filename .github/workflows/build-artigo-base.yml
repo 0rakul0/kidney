@@ -1,0 +1,60 @@
+name: Artigo-base (PDF de qualificacao)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artigo/artigo_base/main.tex"
+      - "artigo/artigo_base/sbc-template.bib"
+      - "artigo/artigo_base/sbc.bst"
+      - "artigo/artigo_base/figures/**"
+      - ".github/workflows/build-artigo-base.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Compilar PDF com BibTeX
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main.tex
+          working_directory: artigo/artigo_base
+          texlive_version: 2026
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+
+      - name: Conferir arquivo e referencias
+        shell: bash
+        run: |
+          test -s artigo/artigo_base/main.pdf
+          test -s artigo/artigo_base/main.bbl
+          if grep -Eq 'LaTeX Warning: There were undefined references|Citation .* undefined|Reference .* undefined' artigo/artigo_base/main.log; then
+            echo "O artigo compilou com referencias indefinidas."
+            exit 1
+          fi
+
+      - name: Sincronizar PDF e bibliografia na main
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artigo/artigo_base/main.pdf artigo/artigo_base/main.bbl
+          if ! git diff --cached --quiet; then
+            git commit -m "build(artigo): atualiza PDF e bibliografia [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Publicar PDF do artigo-base
+        uses: actions/upload-artifact@v4
+        with:
+          name: artigo-base-qualificacao
+          path: artigo/artigo_base/main.pdf
+          if-no-files-found: error
