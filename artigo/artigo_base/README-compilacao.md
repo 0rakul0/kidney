@@ -1,42 +1,64 @@
-# Compilação do artigo-base e referências bibliográficas
+# Artigo-base: qualificação e compilação
 
-O artigo-base está em `main.tex`. A bibliografia fonte está em `sbc-template.bib` e utiliza o estilo BibTeX da SBC (`sbc.bst`). O arquivo `main.bbl`, gerado a partir do `.bib`, é mantido no repositório para evitar o desaparecimento das referências em compilações que não executam BibTeX.
+Fonte principal: [main.tex](main.tex). Bibliografia: [sbc-template.bib](sbc-template.bib). O arquivo `main.bbl` é um auxiliar derivado pelo BibTeX e deve ser atualizado junto da fonte quando houver mudança de referências.
 
-**Correção de bibliografia:** o arquivo `main.bbl` é mantido no repositório para incluir todas as 19 referências do texto atual, inclusive quando o editor apenas executa `pdflatex`. Os arquivos temporários `main.aux` e `main.blg` continuam fora do versionamento por poderem conter referências obsoletas. A compilação completa regenera o `main.bbl` a partir do arquivo fonte `sbc-template.bib`.
+## Modos de documento
 
-## Windows: compilação recomendada
+O preâmbulo de `main.tex` contém um seletor:
 
-Após instalar MiKTeX ou TeX Live com BibTeX:
+```tex
+\versaoqualificacaotrue   % sumário clicável e apêndice do assistente
+% \versaoqualificacaofalse  % artigo sem sumário e sem apêndice de qualificação
+```
+
+Na **qualificação**, o documento exibe sumário navegável após o resumo, marcadores de navegação de seções no PDF e exemplo multimodal complementar como apêndice. Na **submissão em formato SBC**, desative a opção acima e confira também as exigências específicas do evento (número de páginas, margens e anonimização, se aplicável).
+
+## Compilação
+
+No Windows, a partir de `D:\kidney\artigo\artigo_base`:
 
 ```powershell
-cd D:\kidney\artigo\artigo_base
 powershell -NoProfile -ExecutionPolicy Bypass -File .\compilar_artigo.ps1
 ```
 
-O script limpa os arquivos auxiliares locais, executa `pdflatex`, `bibtex`, `pdflatex` e `pdflatex`, e verifica se o log ainda reporta citações ou rótulos indefinidos. Ele também regenera localmente o arquivo `main.bbl`; quando houver mudanças na bibliografia, inclua esse arquivo no mesmo commit do `main.tex` e do `.bib`.
-
-## Linux, macOS ou terminal do Overleaf
-
-A partir da pasta deste artigo:
+Em Linux/macOS ou Overleaf, execute BibTeX entre passes de pdfLaTeX; o comando mais simples, com latexmk instalado, é:
 
 ```bash
-rm -f main.aux main.bbl main.blg main.out main.fdb_latexmk main.fls
+cd artigo/artigo_base
+latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error main.tex
+```
+
+Alternativa manual:
+
+```bash
 pdflatex -interaction=nonstopmode -halt-on-error main.tex
 bibtex main
 pdflatex -interaction=nonstopmode -halt-on-error main.tex
 pdflatex -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-No Overleaf, configure o compilador **pdfLaTeX** e use **Recompile from scratch** (recompilar do zero). O Overleaf normalmente executa BibTeX automaticamente via `latexmk`.
+O PDF `main.pdf` versionado pode estar defasado em relação ao `main.tex`. **Não considere a existência do arquivo PDF prova de que o conteúdo atual foi recompilado.** Após compilar, confira título, sumário, figuras, tabelas, páginas finais, apêndice e a lista de referências.
 
-## Como saber se corrigiu?
+## Revisão para qualificação
 
-As referências do texto são chamadas por `\cite{chave}` e devem existir no `sbc-template.bib`. Os rótulos cruzados são chamados por `\ref{rotulo}` e devem ter um `\label{rotulo}`. As chaves citadas e os rótulos do `main.tex` foram confrontados com o `.bib` e com as definições de rótulos; não foram encontradas ausências.
+- A **Introdução** define problema, hipótese, objetivos e contribuições.
+- A **Fundamentação** está agrupada em oito eixos, sem explicações redundantes de curadoria e pseudorrotulação.
+- A **Metodologia** separa bases, testes, máscaras manuais, pseudomáscaras e limites de seleção de modelos.
+- Os **Resultados** seguem o processamento da cápsula até a cascata, curadoria e demonstração exploratória.
+- A **Discussão** interpreta resultados e ameaça à validade, sem tratar cobertura do MONAI como acurácia anatômica.
+- A **Continuidade** propõe experimentos para seleção independente, revisão humana, pseudo-expansão controlada e repetibilidade da ecogenicidade.
+- O **assistente multimodal** permanece demonstrativo e não é usado como prova de diagnóstico.
 
-Se houver erros, consulte `main.log` (LaTeX) e `main.blg` (BibTeX). Rodar somente `pdflatex` uma vez **não é suficiente** depois de uma alteração nas citações ou tabelas.
+## Conferências antes de apresentar à banca
 
-**Observação importante:** o arquivo `main.pdf` já versionado pode representar uma compilação anterior. Ele deve ser regenerado pela sequência acima antes de ser considerado a versão final do artigo.
+1. Confirmar que todos os `\cite{...}` existem no arquivo BibTeX e que os `\ref{...}` possuem `\label{...}`.
+2. Conferir a descrição das arquiteturas frente aos scripts e checkpoints **efetivamente executados**; resultados históricos devem continuar identificados.
+3. Verificar se o teste da combinação de professores foi usado na seleção operacional; a qualificação atual explicita esse viés e propõe reavaliação.
+4. Confirmar as versões reais dos modelos externos no estudo multimodal; sem ID técnico, a conclusão é apenas ilustrativa.
+5. Não afirmar que a pseudomáscara do MONAI é correta sem revisão; 3.707/4.479 expressa cobertura operacional.
+6. Conferir o sentido da razão córtex/CEC em cada tela e equação. A razão inversa deve ser nomeada explicitamente.
+7. Revisar visualmente o PDF inteiro, inclusive diagramas, tabelas longas e páginas do sumário.
 
-## Imagens da Curadoria Web
+## Figuras
 
-As quatro capturas reais já estão em `figures/` e foram incorporadas diretamente ao texto. Elas são imagens obrigatórias do artigo; se faltar algum arquivo, a compilação deve acusar erro em vez de ocultá-lo silenciosamente. Consulte `figures/README-curadoria.md` para nomes e descrição das capturas.
+Os arquivos utilizados estão em `figures/`. As figuras de Curadoria Web são registros da interface real, não evidência isolada de ganho de qualidade. Em particular, o exemplo multimodal utiliza checkpoints descritos em sua legenda; ele não substitui o teste agrupado da cascata destilada.
