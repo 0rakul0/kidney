@@ -1,6 +1,25 @@
 \documentclass[12pt]{article}
 
-\usepackage{sbc-template}
+% Modo normal: proposta de qualificacao. Para gerar o artigo SBC, compile sbc.tex.
+\newif\ifversaoqualificacao
+\ifdefined\compilarsbc
+  \versaoqualificacaofalse
+\else
+  \versaoqualificacaotrue
+\fi
+
+\ifversaoqualificacao
+  % Manual CEFET/RJ: A4, margens de 3 cm, Times 12 e entrelinhas de 1,5.
+  \usepackage[a4paper,margin=3cm,headheight=15pt]{geometry}
+  \usepackage{times}
+  \usepackage{setspace}
+  \usepackage{fancyhdr}
+  \usepackage{caption}
+  \usepackage{titlesec}
+  \usepackage[alf]{abntex2cite}
+\else
+  \usepackage{sbc-template}
+\fi
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
@@ -10,26 +29,47 @@
 \usepackage{multirow}
 \usepackage{booktabs}
 \usepackage{amsmath}
-\usepackage[none]{hyphenat}
+\ifversaoqualificacao\else
+  \usepackage[none]{hyphenat}
+\fi
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta}
 
 % Sumario navegavel somente para a versao de qualificacao.
 % O hyperref cria links no sumario e marcadores para secoes/subsecoes no PDF.
 \usepackage[unicode,hidelinks,bookmarksnumbered=true]{hyperref}
-\newif\ifversaoqualificacao
-\versaoqualificacaotrue % troque por \versaoqualificacaofalse para submissao SBC
+% O seletor de modo esta definido no inicio do arquivo.
 
-\sloppy
-\hyphenpenalty=10000
-\exhyphenpenalty=10000
-\emergencystretch=3em
-\setlength{\textfloatsep}{6pt}
-\setlength{\floatsep}{6pt}
-\setlength{\intextsep}{6pt}
-\setlength{\abovecaptionskip}{4pt}
-\setlength{\belowcaptionskip}{0pt}
-\setlength{\parskip}{2pt}
+\ifversaoqualificacao
+  \setstretch{1.5}
+  \setlength{\parindent}{1.25cm}
+  \setlength{\parskip}{0pt}
+  \setlength{\textfloatsep}{12pt}
+  \setlength{\floatsep}{10pt}
+  \setlength{\intextsep}{10pt}
+  \setlength{\abovecaptionskip}{6pt}
+  \setlength{\belowcaptionskip}{4pt}
+  \captionsetup{font=small,labelfont=bf,justification=centering}
+  \titlespacing*{\section}{0pt}{1.8\baselineskip}{1\baselineskip}
+  \titlespacing*{\subsection}{0pt}{1.1\baselineskip}{0.5\baselineskip}
+  \fancypagestyle{paginaqualificacao}{%
+    \fancyhf{}
+    \fancyhead[R]{\small\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+\else
+  \sloppy
+  \hyphenpenalty=10000
+  \exhyphenpenalty=10000
+  \emergencystretch=3em
+  \setlength{\textfloatsep}{6pt}
+  \setlength{\floatsep}{6pt}
+  \setlength{\intextsep}{6pt}
+  \setlength{\abovecaptionskip}{4pt}
+  \setlength{\belowcaptionskip}{0pt}
+  \setlength{\parskip}{2pt}
+\fi
 % Política de floats: mais liberdade para ocupar a página sem alterar margens SBC.
 \setcounter{topnumber}{4}
 \setcounter{bottomnumber}{3}
@@ -39,6 +79,11 @@
 \renewcommand{\textfraction}{0.06}
 \renewcommand{\floatpagefraction}{0.72}
 
+\newcommand{\tituloqualificacao}{Um Pipeline Rastreável para Segmentação Renal, Curadoria de Máscaras e Quantificação Exploratória da Ecogenicidade em Ultrassonografia}
+\ifversaoqualificacao
+  \hypersetup{pdftitle={Proposta de Dissertacao de Mestrado - Segmentacao Renal},
+              pdfauthor={Jefferson S. dos Anjos}}
+\else
 \title{Um Pipeline Rastreável para Segmentação Renal, Curadoria de Máscaras e Quantificação Exploratória da Ecogenicidade em Ultrassonografia}
 
 \author{Jefferson S. dos Anjos\inst{1}, Amaro A. de Lima\inst{1}, Gabriel M. Araújo\inst{1},\\
@@ -52,6 +97,8 @@ Felipe da R. Henriques\inst{1}}
   \email{\{amaro.lima,gabriel.araujo,felipe.henriques\}@cefet-rj.br}\\
   \email{\{jorge.henriques,norderval.norderval\}@uerj.br}
 }
+
+\fi
 
 \begin{document}
 
@@ -1098,8 +1145,13 @@ A contribuição consolidada está na integração auditável das etapas e na di
   \phantomsection
   \addcontentsline{toc}{section}{Referências Bibliográficas}
 \fi
-\bibliographystyle{sbc}
-\bibliography{sbc-template}
+\ifversaoqualificacao
+  % O pacote abntex2cite seleciona automaticamente a bibliografia autor-data.
+  \bibliography{sbc-template}
+\else
+  \bibliographystyle{sbc}
+  \bibliography{sbc-template}
+\fi
 
 \ifversaoqualificacao
 \clearpage
