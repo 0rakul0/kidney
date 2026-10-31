@@ -26,8 +26,9 @@ As listas de figuras, tabelas, abreviaturas/siglas e símbolos são **opcionais*
 ## Pendências formais, condicionadas ao tipo de entrega
 
 - [ ] Confirmar com a orientação se o texto da **Defesa de Proposta de Dissertação** pode seguir o artigo-base SBC ou se deve adotar integralmente o template institucional de dissertação
-- [x] Estrutura da proposta: capa e folha de rosto com identificação do discente, PPCIC, natureza do trabalho, cidade e ano; orientação mantida como campo a preencher
-- [ ] Substituir nome abreviado do discente e preencher o nome oficial do(a) orientador(a) antes do envio
+- [x] Estrutura da proposta: capa e folha de rosto com identificação do discente, PPCIC, natureza do trabalho, cidade e ano; orientação preenchida com Felipe da R. Henriques
+- [x] Registrar Felipe da R. Henriques como orientador(a) na folha de rosto
+- [ ] Conferir a grafia completa do nome do discente e do orientador para a entrega oficial
 - [x] Resumo em português antes do Abstract, em páginas próprias; margens de 3 cm, Times 12 aproximado e espaçamento 1,5 no modo de qualificação
 - [x] Pré-textuais sem numeração visível; numeração no alto à direita a partir da Introdução
 - [ ] Confirmar aderência final do PDF ao padrão específico aceito pelo PPCIC
