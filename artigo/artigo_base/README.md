@@ -1,8 +1,8 @@
 # Artigo-base — Qualificação de Mestrado
 
-**Navegação rápida:** [PDF com sumário](main.pdf#page=3) · [Fonte LaTeX](main.tex) · [Como compilar](README-compilacao.md)
+**Navegação rápida:** [PDF com sumário](main.pdf) · [Fonte LaTeX](main.tex) · [Como compilar](README-compilacao.md)
 
-O PDF apresenta um **Sumário** depois do resumo, com capítulos, subseções, referências bibliográficas e apêndice. Os números de página são atualizados automaticamente ao compilar o LaTeX.
+Na versão de qualificação, o PDF apresenta **Resumo**, **Abstract**, listas de figuras, tabelas, abreviaturas e siglas, símbolos e **Sumário** navegável, seguido das seções, referências e apêndice. As páginas são recalculadas automaticamente na compilação. Esses elementos pré-textuais suplementares são desativados no modo de artigo SBC.
 
 ## Sumário do trabalho
 
@@ -21,4 +21,4 @@ O PDF apresenta um **Sumário** depois do resumo, com capítulos, subseções, r
 
 O arquivo `main.tex` é a fonte do texto, mas o `main.pdf` precisa ser recompilado depois de cada alteração. A rotina [Artigo-base (PDF de qualificação)](https://github.com/0rakul0/kidney/actions/workflows/build-artigo-base.yml) recompila, verifica o conteúdo do sumário e publica o PDF. Abra o arquivo `main.pdf` e use **Download raw** para obter a versão do repositório, em vez de uma visualização anteriormente armazenada em cache.
 
-Para a qualificação, o código utiliza `\versaoqualificacaotrue` e `tocdepth=2`, incluindo seções e subseções. Para eventual submissão no modelo SBC, consulte as instruções de compilação antes de desativar esse modo.
+Para a qualificação, o código utiliza `\versaoqualificacaotrue` e `tocdepth=2`, incluindo seções e subseções. A posição do sumário varia conforme a quantidade de páginas das listas de figuras e tabelas. A classificação formal da versão de **Proposta de Dissertação** (capa, folha de rosto, orientadores, paginação e margens) exige confirmação do modelo aprovado pelo PPCIC; a presente pasta permanece como artigo-base expandido. Para eventual submissão no modelo SBC, consulte as instruções de compilação antes de desativar esse modo.
