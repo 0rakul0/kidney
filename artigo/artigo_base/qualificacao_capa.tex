@@ -1,0 +1,69 @@
+% Elementos de identificacao da proposta de qualificacao (PPCIC/CEFET-RJ).
+% ATENCAO: revisar os campos abaixo antes de enviar o documento a banca.
+% Nao utilizar nomes de coautores como orientadores sem confirmacao oficial.
+
+\newcommand{\autorqualificacao}{Jefferson S. dos Anjos}
+\newcommand{\orientadorqualificacao}{\textit{[informar nome do(a) orientador(a)]}}
+% Deixe vazio quando nao houver coorientacao formal.
+\newcommand{\coorientadorqualificacao}{}
+\newcommand{\cidadequalificacao}{Rio de Janeiro}
+\newcommand{\anoqualificacao}{2026}
+
+% Capa: nao integra a contagem de folhas conforme o manual institucional.
+\thispagestyle{empty}
+\begin{center}
+{\bfseries CENTRO FEDERAL DE EDUCACAO TECNOLOGICA\\[0.2cm]
+CELSO SUCKOW DA FONSECA -- CEFET/RJ\par}
+\vspace{0.55cm}
+{\bfseries PROGRAMA DE POS-GRADUACAO EM\\
+CIENCIA DA COMPUTACAO -- PPCIC\par}
+
+\vspace{3.6cm}
+{\large\autorqualificacao\par}
+
+\vfill
+{\bfseries\large\MakeUppercase{\tituloqualificacao}\par}
+
+\vfill
+{\large PROPOSTA DE DISSERTACAO DE MESTRADO\par}
+
+\vspace{2.1cm}
+{\cidadequalificacao\par}
+{\anoqualificacao\par}
+\end{center}
+\clearpage
+
+% A contagem comeca na folha de rosto; a numeracao so aparece na Introducao.
+\setcounter{page}{1}
+\thispagestyle{empty}
+\begin{center}
+{\large\autorqualificacao\par}
+
+\vspace{3.0cm}
+{\bfseries\large\MakeUppercase{\tituloqualificacao}\par}
+\end{center}
+
+\vspace{3.0cm}
+\hspace*{0.39\textwidth}%
+\begin{minipage}{0.61\textwidth}
+\setstretch{1.0}
+\small\noindent
+Proposta de Dissertação de Mestrado apresentada ao Programa de Pós-Graduação
+em Ciência da Computação (PPCIC) do Centro Federal de Educação Tecnológica
+Celso Suckow da Fonseca (CEFET/RJ), para exame de qualificação.
+
+\medskip
+\noindent\textbf{Orientador(a):} \orientadorqualificacao
+
+\ifx\coorientadorqualificacao\empty\else
+\medskip
+\noindent\textbf{Coorientador(a):} \coorientadorqualificacao
+\fi
+\end{minipage}
+
+\vfill
+\begin{center}
+{\cidadequalificacao\par}
+{\anoqualificacao\par}
+\end{center}
+\clearpage
