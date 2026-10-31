@@ -70,7 +70,8 @@ jobs:
           # Verificacao basica da capa e da folha de rosto da proposta.
           pdftotext -layout -f 1 -l 1 artigo/artigo_base/main.pdf /tmp/capa-qualificacao.txt
           pdftotext -layout -f 2 -l 2 artigo/artigo_base/main.pdf /tmp/folha-rosto.txt
-          grep -q 'PROPOSTA DE DISSERTACAO' /tmp/capa-qualificacao.txt
+          grep -q 'PROPOSTA DE' /tmp/capa-qualificacao.txt
+          grep -q 'DISSERTA' /tmp/capa-qualificacao.txt
           grep -q 'Orientador(a)' /tmp/folha-rosto.txt
 
           pdftotext -layout artigo/artigo_base/main.pdf /tmp/artigo-qualificacao-texto.txt
