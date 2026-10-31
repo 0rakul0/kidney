@@ -41,6 +41,32 @@ jobs:
             exit 1
           fi
 
+      - name: Verificar que o sumario apareceu no PDF compilado
+        shell: bash
+        run: |
+          test -s artigo/artigo_base/main.toc
+          toc_count=$(grep -c '\\contentsline' artigo/artigo_base/main.toc || true)
+          echo "Entradas do sumario: $toc_count"
+          sed -n '1,8p' artigo/artigo_base/main.toc
+          if [ "$toc_count" -lt 20 ]; then
+            echo "ERRO: o sumario esta vazio ou incompleto."
+            exit 1
+          fi
+
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y poppler-utils
+          fi
+          pdftotext -layout -f 2 -l 6 artigo/artigo_base/main.pdf /tmp/artigo-sumario.txt
+          echo "Trecho do sumario efetivamente extraido do PDF:"
+          sed -n '1,100p' /tmp/artigo-sumario.txt
+          for termo in "Introdu" "Metodologia" "Resultados" "Conclus"; do
+            if ! grep -q "$termo" /tmp/artigo-sumario.txt; then
+              echo "ERRO: '$termo' nao foi encontrado nas primeiras paginas do PDF."
+              exit 1
+            fi
+          done
+
       - name: Sincronizar PDF e bibliografia na main
         shell: bash
         run: |
