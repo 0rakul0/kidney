@@ -100,27 +100,47 @@ Felipe da R. Henriques\inst{1}}
 
 \fi
 
+
+% Conteudo unico para os resumos nos dois modos; evita divergencia editorial.
+\long\def\textoabstract{Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the distilled student selected for operational use produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). In a grouped cascade re-evaluation with no shared examination identifiers across splits, the intrarenal student achieved foreground Dice 0.7210 with the predicted capsule ROI and 0.7395 with the reference ROI. Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.}
+\long\def\textoresumo{A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada selecionada para operação produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). Na reavaliação agrupada da cascata, sem identificadores de exame compartilhados entre as divisões, a estudante intrarrenal atingiu Dice foreground de 0,7210 quando recebeu a ROI produzida pela estudante da cápsula, contra 0,7395 com ROI de referência. A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.}
+
 \begin{document}
-
-\maketitle
-
-\begin{abstract}
-Renal ultrasound is widely available, but computational analysis is affected by acquisition variability, ambiguous anatomical boundaries and scarce expert annotations. This study develops and evaluates a traceable pipeline for capsule and intrarenal structure segmentation, human curation and exploratory echogenicity quantification. The kidneyUS dataset supplies manually annotated references, whereas external MONAI images are used only to generate candidate pseudomasks. In the deduplicated capsule test of 70 images, U-Net achieved Dice 0.9290 and IoU 0.8722. On 4,479 external images, the distilled student selected for operational use produced 3,707 non-empty candidates, compared with 3,534 for the previous operational checkpoint; this coverage was not interpreted as anatomical accuracy. On a separate manually annotated test of 50 images, multiclass U-Net achieved mean Dice 0.7594 for cortex, medulla and central echo complex (CEC). In a grouped cascade re-evaluation with no shared examination identifiers across splits, the intrarenal student achieved foreground Dice 0.7210 with the predicted capsule ROI and 0.7395 with the reference ROI. Expanding medulla training from 236 to 578 images did not improve test Dice (0.7528 versus 0.7523). Echogenicity measures are computed from original B-mode images and remain exploratory because repeatability and clinical associations were not validated. The contribution is an auditable workflow separating predictions, pseudolabels, human review and quantitative measurements; it does not claim automatic diagnosis of fibrosis or chronic kidney disease.
-
 \ifversaoqualificacao
-\par\smallskip
-{\normalfont\bfseries Keywords:} renal ultrasound; semantic segmentation; knowledge distillation; human-in-the-loop; echogenicity.
-\fi
-\end{abstract}
+  \pagestyle{empty}
+  \input{qualificacao_capa.tex}
 
-\begin{resumo}
-A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada selecionada para operação produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). Na reavaliação agrupada da cascata, sem identificadores de exame compartilhados entre as divisões, a estudante intrarrenal atingiu Dice foreground de 0,7210 quando recebeu a ROI produzida pela estudante da cápsula, contra 0,7395 com ROI de referência. A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
+  % Pre-textuais sem numero visivel; resumo em portugues antes do ingles.
+  \thispagestyle{empty}
+  {\centering\bfseries\large RESUMO\par}
+  \vspace{0.9cm}
+  \begin{spacing}{1.0}
+    \noindent\textoresumo\par
+    \medskip
+    \noindent\textbf{Palavras-chave:} ultrassonografia renal; segmentação semântica;
+    destilação de conhecimento; curadoria humana; ecogenicidade.
+  \end{spacing}
+  \clearpage
 
-\ifversaoqualificacao
-\par\smallskip
-{\normalfont\bfseries Palavras-chave:} ultrassonografia renal; segmentação semântica; destilação de conhecimento; curadoria humana; ecogenicidade.
+  \thispagestyle{empty}
+  {\centering\bfseries\large ABSTRACT\par}
+  \vspace{0.9cm}
+  \begin{spacing}{1.0}
+    \noindent\textoabstract\par
+    \medskip
+    \noindent\textbf{Keywords:} renal ultrasound; semantic segmentation;
+    knowledge distillation; human-in-the-loop; echogenicity.
+  \end{spacing}
+  \clearpage
+\else
+  \maketitle
+  \begin{abstract}
+    \textoabstract
+  \end{abstract}
+  \begin{resumo}
+    \textoresumo
+  \end{resumo}
 \fi
-\end{resumo}
 
 % Elementos pre-textuais da qualificacao (nao exportados na versao SBC).
 % As listas de ilustracoes, tabelas, siglas e simbolos sao opcionais na ABNT.
@@ -196,6 +216,9 @@ A ultrassonografia renal é amplamente disponível, mas sua análise computacion
     \tableofcontents
   \endgroup
   \clearpage
+  % Numeracao visivel apenas a partir da primeira pagina da Introducao.
+  \pagestyle{paginaqualificacao}
+  \thispagestyle{paginaqualificacao}
 \fi
 
 \section{Introdução}
