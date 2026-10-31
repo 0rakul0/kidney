@@ -168,7 +168,7 @@ Felipe da R. Henriques\inst{1}}
     \setlength{\parindent}{0pt}
     \renewcommand{\arraystretch}{1.18}
     \begin{tabular}{@{}p{0.17\linewidth}p{0.78\linewidth}@{}}
-      \textbf{ASPP} & \textit{Atrous Spatial Pyramid Pooling} (agrupamento espacial piramidal com convolucoes dilatadas).\\
+      \textbf{ASPP} & \textit{Atrous Spatial Pyramid Pooling} (agrupamento espacial piramidal com convoluções dilatadas).\\
       \textbf{BCE} & \textit{Binary Cross-Entropy} (entropia cruzada binária).\\
       \textbf{CEC} & Complexo Ecogênico Central.\\
       \textbf{CLAHE} & \textit{Contrast Limited Adaptive Histogram Equalization} (equalização adaptativa de histograma limitada por contraste).\\
@@ -217,7 +217,11 @@ Felipe da R. Henriques\inst{1}}
   \begingroup
     \setcounter{tocdepth}{2} % 1: secoes; 2: inclui subsecoes
     \setlength{\parskip}{0pt}
-    \tableofcontents
+    % Sumario em espacamento simples, mantendo o corpo da proposta em 1,5.
+    % Evita uma terceira pagina com apenas tres entradas.
+    \begin{spacing}{1.0}
+      \tableofcontents
+    \end{spacing}
   \endgroup
   \clearpage
   % Numeracao visivel apenas a partir da primeira pagina da Introducao.
