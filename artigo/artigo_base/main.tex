@@ -14,6 +14,12 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta}
 
+% Sumario navegavel somente para a versao de qualificacao.
+% O hyperref cria links no sumario e marcadores para secoes/subsecoes no PDF.
+\usepackage[unicode,hidelinks,bookmarksnumbered=true]{hyperref}
+\newif\ifversaoqualificacao
+\versaoqualificacaotrue % troque por \versaoqualificacaofalse para submissao SBC
+
 \sloppy
 \hyphenpenalty=10000
 \exhyphenpenalty=10000
@@ -58,6 +64,17 @@ Renal ultrasound is widely available, but computational analysis is affected by 
 \begin{resumo}
 A ultrassonografia renal é amplamente disponível, mas sua análise computacional é afetada por variações de aquisição, fronteiras anatômicas ambíguas e escassez de anotações especializadas. Este estudo desenvolve e avalia um pipeline rastreável para segmentação da cápsula e de estruturas intrarrenais, curadoria humana e quantificação exploratória da ecogenicidade. O conjunto \texttt{kidneyUS} fornece referências manuais, enquanto imagens externas do MONAI são usadas apenas para gerar pseudomáscaras candidatas. No teste deduplicado da cápsula, com 70 imagens, a U-Net alcançou Dice de 0,9290 e IoU de 0,8722. Em 4.479 imagens externas, a estudante destilada selecionada para operação produziu 3.707 candidatas não vazias, contra 3.534 do checkpoint operacional anterior; essa cobertura não foi interpretada como acurácia anatômica. Em outro teste manual, com 50 imagens, a U-Net multiclasse obteve Dice médio de 0,7594 para córtex, medula e complexo ecogênico central (CEC). Na reavaliação agrupada da cascata, sem identificadores de exame compartilhados entre as divisões, a estudante intrarrenal atingiu Dice foreground de 0,7210 quando recebeu a ROI produzida pela estudante da cápsula, contra 0,7395 com ROI de referência. A expansão do treinamento da medula de 236 para 578 imagens não aumentou o Dice de teste (0,7528 contra 0,7523). As medidas de ecogenicidade são calculadas na imagem B-mode original e permanecem exploratórias, pois sua repetibilidade e suas associações clínicas não foram validadas. A contribuição é um fluxo auditável que separa predições, pseudorrótulos, revisão humana e medidas quantitativas, sem alegar diagnóstico automático de fibrose ou doença renal crônica.
 \end{resumo}
+
+% Na qualificacao: sumario clicavel. Na submissao SBC: desligue no preambulo.
+\ifversaoqualificacao
+  \clearpage
+  \pdfbookmark[0]{Sumário}{sumario-qualificacao}
+  \begingroup
+    \setcounter{tocdepth}{1} % secoes e subsecoes no sumario
+    \tableofcontents
+  \endgroup
+  \clearpage
+\fi
 
 \section{Introdução}
 
