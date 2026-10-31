@@ -332,6 +332,60 @@ combinando essa informação com a máscara manual.}
 
 A Figura~\ref{fig:destilacao_fluxo} distingue os professores, empregados exclusivamente na preparação dos alvos suaves, da U-Net estudante, utilizada na inferência. As combinações representam experimentos alternativos de treinamento, e não a execução obrigatória dos três professores ao mesmo tempo. A supervisão manual permanece presente em todas as configurações destiladas; a destilação da cápsula e a destilação intrarrenal são realizadas em treinamentos distintos, com máscaras e saídas anatômicas específicas.
 
+\subsubsection{Topologia das estudantes operacionais}
+
+As duas estudantes operacionais compartilham a topologia U-Net, mas atendem a
+saídas anatômicas diferentes. A Figura~\ref{fig:arquiteturas_estudantes}
+representa essa distinção: a estudante da cápsula recebe três canais e produz
+uma máscara binária, enquanto a estudante intrarrenal recebe a imagem da ROI,
+a ROI mascarada e a máscara renal, produzindo quatro classes. Os professores
+são utilizados somente durante o treinamento; na inferência da aplicação,
+apenas as estudantes são carregadas.
+
+\begin{figure}[!htbp]
+\centering
+\resizebox{0.98\linewidth}{!}{%
+\begin{tikzpicture}[
+>=Latex,
+every node/.style={font=\scriptsize,align=center},
+student/.style={draw,rounded corners=2pt,minimum height=10mm,text width=30mm,inner sep=3pt,fill=blue!7},
+core/.style={draw,rounded corners=2pt,minimum height=13mm,text width=39mm,inner sep=3pt,fill=green!8},
+output/.style={draw,rounded corners=2pt,minimum height=10mm,text width=31mm,inner sep=3pt,fill=yellow!15},
+arr/.style={->,thick}
+]
+\node[student] (cin) {Entrada da cápsula\\$256\times256\times3$};
+\node[core,right=6mm of cin] (cnet) {U-Net estudante da cápsula\\codificação + bottleneck + decodificação\\$32\rightarrow64\rightarrow128\rightarrow256\rightarrow512$};
+\node[output,right=6mm of cnet] (cout) {Convolução $1\times1$\\máscara binária\\$256\times256\times1$};
+\draw[arr] (cin) -- (cnet);
+\draw[arr] (cnet) -- (cout);
+
+\node[student,below=10mm of cin] (iin) {Entrada intrarrenal\\ROI, ROI mascarada e rim\\$256\times256\times3$};
+\node[core,right=6mm of iin] (inet) {U-Net estudante intrarrenal\\mesma topologia e conexões de salto\\base $32$, bottleneck $512$};
+\node[output,right=6mm of inet] (iout) {Convolução $1\times1$\\quatro classes\\fundo, córtex, medula e CEC};
+\draw[arr] (iin) -- (inet);
+\draw[arr] (inet) -- (iout);
+\end{tikzpicture}%
+}
+\caption{Arquiteturas das estudantes destiladas utilizadas na cascata. As duas redes têm a mesma topologia U-Net compacta, mas diferem na semântica dos canais de entrada e no número de classes de saída. Fonte: elaboração própria com base na implementação do projeto e em \cite{Ronneberger2015}.}
+\label{fig:arquiteturas_estudantes}
+\end{figure}
+\FloatBarrier
+
+A estudante da cápsula é uma U-Net convolucional binária com três canais de entrada e um
+canal de saída. Sua arquitetura utiliza quatro blocos de codificação com 32,
+64, 128 e 256 canais, um \textit{bottleneck} com 512 canais e quatro blocos de
+decodificação com convoluções transpostas e conexões de salto. Cada bloco
+\texttt{DoubleConv} contém duas convoluções $3\times3$, normalização em lote e
+ReLU; a saída é produzida por uma convolução $1\times1$. Em comparação, a U-Net
+professora utiliza a mesma topologia com 64 canais de base, enquanto a
+DeepLabV3 professora utiliza backbone ResNet-50 e ASPP com convoluções
+atrous. A estudante intrarrenal reutiliza os mesmos blocos e canais de base,
+mas termina com quatro logits para fundo, córtex, medula e CEC. Assim, a
+destilação não combina as arquiteturas em uma rede híbrida:
+transfere para a U-Net menor as probabilidades médias produzidas pelos dois
+professores.
+
+
 \subsection{Segmentação intrarrenal e propagação de erro}
 
 A análise interna prediz quatro classes: fundo, córtex, medula e CEC. A U-Net multiclasse e a DeepLabV3 multiclasse recebem, no fluxo consolidado, três canais correspondentes à ROI em tons de cinza, à ROI com o exterior do rim mascarado e à máscara de cápsula. O treinamento da U-Net documentado utiliza imagens de 256 por 256 pixels, AdamW, taxa inicial de $10^{-4}$ e perda de entropia cruzada multiclasse combinada com Dice. Na reavaliação corrigida, o conjunto foi agrupado por identificador de exame e o recorte da ROI foi aplicado antes do redimensionamento, reproduzindo o fluxo de produção. A avaliação reporta Dice e IoU por estrutura, além das médias sobre as classes de primeiro plano.
@@ -430,8 +484,9 @@ O assistente recebe uma imagem B-mode, sobreposições de máscaras e descritore
 Os registros precisam conservar o prompt integral, a imagem efetivamente enviada, as versões das máscaras, a identificação técnica verificável do modelo externo, os parâmetros de inferência e a resposta sem edição. A identificação comercial anotada originalmente para o modelo externo não comprova, por si só, o identificador de checkpoint ou versão. Além disso, as máscaras do exemplo principal foram geradas por checkpoints anteriores indicados na legenda correspondente, de modo que esse piloto não serve de validação independente da cascata destilada operacional. Sem referência especializada dos achados e com amostra tão pequena, a comparação limita-se a observações qualitativas.
 
 \section{Resultados}
+Os resultados são apresentados por tarefa e pela ordem de dependência da cascata: delimitação externa, triagem de imagens, destilação, estruturas internas e avaliação integrada. Comparações entre protocolos independentes são indicadas como descritivas, não como medições pareadas.
 
-\subsection{Delimitação da cápsula renal}
+\subsection{Segmentação da cápsula renal}
 
 A Tabela~\ref{tab:capsule} apresenta os resultados da segmentação da cápsula no teste manual deduplicado, comum às quatro arquiteturas comparadas.
 
@@ -472,7 +527,8 @@ A Figura~\ref{fig:qualidade_favoravel} apresenta um exemplo qualitativo em que a
 
 Na imagem apresentada, o contorno previsto acompanha visualmente a região renal em condições de contraste favoráveis. Esse exemplo não permite inferir o comportamento do modelo em imagens com sombras, baixo contraste ou limites ambíguos.
 
-\subsection{Consenso \textit{out-of-fold} e imagens externas}
+
+\subsection{Consenso entre modelos e imagens externas}
 
 Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. Para avaliar a implantação da estudante, a Tabela~\ref{tab:pseudomascaras_monai} compara a cobertura operacional no mesmo lote de 4.479 imagens externas do MONAI. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
 
@@ -509,28 +565,8 @@ A Figura~\ref{fig:divergencia} ilustra um caso em que a discordância entre mode
 
 O caso ilustra a função do consenso como mecanismo de triagem: a diferença entre as máscaras indica a necessidade de inspeção, mas a concordância entre modelos também não constitui prova de correção anatômica.
 
-\subsection{Destilação das estruturas intrarrenais: córtex, medula e CEC}
 
-A Tabela~\ref{tab:intrarenal} apresenta o desempenho dos modelos no teste manual de 50 imagens, discriminado por estrutura intrarrenal.
-
-\begin{table}[!htbp]
-\centering
-\caption{Desempenho intrarrenal no teste manual de 50 imagens; Dice por estrutura e médias sobre classes de primeiro plano.}
-\label{tab:intrarenal}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Modelo} & \textbf{Córtex} & \textbf{Medula} & \textbf{CEC} & \textbf{Dice médio} & \textbf{IoU médio} \\
-\midrule
-U-Net & \textbf{0,7075} & \textbf{0,7237} & 0,8469 & \textbf{0,7594} & \textbf{0,6163} \\
-DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
-U-Net estudante destilada & 0,6959 & 0,7076 & 0,8467 & 0,7501 & 0,6051 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). A estudante destilada alcançou Dice médio $0{,}7501$ e IoU médio $0{,}6051$, com desempenho próximo aos professores neste teste. Em todos os modelos, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
-
-\subsection{Destilação da cápsula renal}
+\subsection{Destilação da cápsula e custo computacional}
 
 Como experimento piloto inicial do caminho de destilação, foi treinada uma U-Net
 estudante com 32 canais de base, usando 328 imagens manuais para treino, 70
@@ -576,59 +612,7 @@ inferência. Essa é uma decisão operacional, não uma alegação de superiorid
 estatística; a qualidade da estudante deve continuar sendo monitorada e
 comparada com os professores em avaliações futuras.
 
-\subsubsection{Modelo operacional destilado: arquitetura, pesos e custo de inferência}
-
-As duas estudantes operacionais compartilham a topologia U-Net, mas atendem a
-saídas anatômicas diferentes. A Figura~\ref{fig:arquiteturas_estudantes}
-representa essa distinção: a estudante da cápsula recebe três canais e produz
-uma máscara binária, enquanto a estudante intrarrenal recebe a imagem da ROI,
-a ROI mascarada e a máscara renal, produzindo quatro classes. Os professores
-são utilizados somente durante o treinamento; na inferência da aplicação,
-apenas as estudantes são carregadas.
-
-\begin{figure}[!htbp]
-\centering
-\resizebox{0.98\linewidth}{!}{%
-\begin{tikzpicture}[
->=Latex,
-every node/.style={font=\scriptsize,align=center},
-student/.style={draw,rounded corners=2pt,minimum height=10mm,text width=30mm,inner sep=3pt,fill=blue!7},
-core/.style={draw,rounded corners=2pt,minimum height=13mm,text width=39mm,inner sep=3pt,fill=green!8},
-output/.style={draw,rounded corners=2pt,minimum height=10mm,text width=31mm,inner sep=3pt,fill=yellow!15},
-arr/.style={->,thick}
-]
-\node[student] (cin) {Entrada da cápsula\\$256\times256\times3$};
-\node[core,right=6mm of cin] (cnet) {U-Net estudante da cápsula\\codificação + bottleneck + decodificação\\$32\rightarrow64\rightarrow128\rightarrow256\rightarrow512$};
-\node[output,right=6mm of cnet] (cout) {Convolução $1\times1$\\máscara binária\\$256\times256\times1$};
-\draw[arr] (cin) -- (cnet);
-\draw[arr] (cnet) -- (cout);
-
-\node[student,below=10mm of cin] (iin) {Entrada intrarrenal\\ROI, ROI mascarada e rim\\$256\times256\times3$};
-\node[core,right=6mm of iin] (inet) {U-Net estudante intrarrenal\\mesma topologia e conexões de salto\\base $32$, bottleneck $512$};
-\node[output,right=6mm of inet] (iout) {Convolução $1\times1$\\quatro classes\\fundo, córtex, medula e CEC};
-\draw[arr] (iin) -- (inet);
-\draw[arr] (inet) -- (iout);
-\end{tikzpicture}%
-}
-\caption{Arquiteturas das estudantes destiladas utilizadas na cascata. As duas redes têm a mesma topologia U-Net compacta, mas diferem na semântica dos canais de entrada e no número de classes de saída. Fonte: elaboração própria com base na implementação do projeto e em \cite{Ronneberger2015}.}
-\label{fig:arquiteturas_estudantes}
-\end{figure}
-\FloatBarrier
-
-A estudante da cápsula é uma U-Net convolucional binária com três canais de entrada e um
-canal de saída. Sua arquitetura utiliza quatro blocos de codificação com 32,
-64, 128 e 256 canais, um \textit{bottleneck} com 512 canais e quatro blocos de
-decodificação com convoluções transpostas e conexões de salto. Cada bloco
-\texttt{DoubleConv} contém duas convoluções $3\times3$, normalização em lote e
-ReLU; a saída é produzida por uma convolução $1\times1$. Em comparação, a U-Net
-professora utiliza a mesma topologia com 64 canais de base, enquanto a
-DeepLabV3 professora utiliza backbone ResNet-50 e ASPP com convoluções
-atrous. A estudante intrarrenal reutiliza os mesmos blocos e canais de base,
-mas termina com quatro logits para fundo, córtex, medula e CEC. Assim, a
-destilação não combina as arquiteturas em uma rede híbrida:
-transfere para a U-Net menor as probabilidades médias produzidas pelos dois
-professores.
-
+\subsubsection{Parâmetros, velocidade e matriz de professores}
 O treinamento foi realizado com imagens de $256\times256$ pixels, lote 16,
 AdamW, taxa de aprendizagem $10^{-4}$, decaimento $10^{-5}$, aumento de dados e
 CLAHE no treino. A função objetivo combinou BCE+Dice supervisionada pela
@@ -725,7 +709,30 @@ continua sendo o modelo mais rápido, com 2,74~ms por imagem; entre as
 estudantes, o tempo permanece aproximadamente igual porque todas executam a
 mesma U-Net e os professores não são carregados durante a inferência.
 
-\subsection{Revalidação agrupada da cascata destilada}
+
+\subsection{Segmentação e destilação das estruturas intrarrenais}
+
+A Tabela~\ref{tab:intrarenal} apresenta o desempenho dos modelos no teste manual de 50 imagens, discriminado por estrutura intrarrenal.
+
+\begin{table}[!htbp]
+\centering
+\caption{Desempenho intrarrenal no teste manual de 50 imagens; Dice por estrutura e médias sobre classes de primeiro plano.}
+\label{tab:intrarenal}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Modelo} & \textbf{Córtex} & \textbf{Medula} & \textbf{CEC} & \textbf{Dice médio} & \textbf{IoU médio} \\
+\midrule
+U-Net & \textbf{0,7075} & \textbf{0,7237} & 0,8469 & \textbf{0,7594} & \textbf{0,6163} \\
+DeepLabV3 R50 & 0,6822 & 0,7156 & \textbf{0,8497} & 0,7492 & 0,6045 \\
+U-Net estudante destilada & 0,6959 & 0,7076 & 0,8467 & 0,7501 & 0,6051 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A U-Net multiclasse obteve Dice médio $0{,}7594$ e os maiores Dice de córtex ($0{,}7075$) e medula ($0{,}7237$); a DeepLabV3 foi ligeiramente superior no CEC ($0{,}8497$ contra $0{,}8469$). A estudante destilada alcançou Dice médio $0{,}7501$ e IoU médio $0{,}6051$, com desempenho próximo aos professores neste teste. Em todos os modelos, o CEC apresentou sobreposição mais alta do que córtex e medula. O resultado reforça que a tarefa interna deve ser analisada por estrutura e não apenas por uma média geral.
+
+
+\subsection{Reavaliação da cascata e propagação de erro}
 
 Após a auditoria do protocolo, a cápsula e as estruturas intrarrenais foram
 retreinadas no mesmo domínio das imagens anotadas intrarrenais. O split foi
@@ -759,7 +766,61 @@ tempo, a avaliação permanece exploratória: a combinação U-Net--DeepLabV3 fo
 mantida por decisão operacional derivada de experimentos anteriores, e não por
 uma seleção independente deste novo teste.
 
-\subsection{Estudo piloto do comportamento do assistente multimodal}
+
+\subsection{Variabilidade da referência humana}
+
+A Tabela~\ref{tab:interobserver} apresenta a concordância Dice entre os dois anotadores, organizada por estrutura e pelo número de imagens comuns disponíveis.
+
+\begin{table}[!htbp]
+\centering
+\caption{Concordância Dice entre os dois anotadores do \texttt{kidneyUS}, nos conjuntos disponíveis por estrutura.}
+\label{tab:interobserver}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Estrutura} & \textbf{Imagens comuns} & \textbf{Dice} \\
+\midrule
+Cápsula & 486 & 0,9461 \\
+Córtex & 323 & 0,5961 \\
+Medula & 325 & 0,6936 \\
+CEC & 468 & 0,8688 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A cápsula apresentou concordância mais elevada ($0{,}9461$), ao passo que córtex ($0{,}5961$) e medula ($0{,}6936$) concentraram divergências maiores. As quantidades de imagens comuns também diferem por classe; por isso, a tabela não representa uma avaliação pareada única de quatro estruturas em exatamente os mesmos casos. A menor concordância humana ajuda a interpretar a dificuldade de obter referências internas estáveis, sem constituir prova de que os modelos alcançaram desempenho equivalente ao de especialistas.
+
+
+\subsection{Medula: estabilidade e pseudo-expansão}
+
+Uma heurística inicial para localizar regiões escuras apresentou Dice médio $0{,}3291$ frente à referência do primeiro anotador. No experimento supervisionado específico de medula, a DeepLabV3 atingiu Dice de teste $0{,}7528$ e a MedullaROIUNet, $0{,}7326$. Em avaliação específica da estabilidade da cascata, a troca da ROI de cápsula manual pela cápsula prevista alterou o Dice global da DeepLabV3 de $0{,}7626$ para $0{,}7610$, uma diferença absoluta de $0{,}0016$. Nesse protocolo, a intensidade média estimada na medula teve correlação de $0{,}9508$ entre os dois cenários. Essa correlação descreve o conjunto avaliado; não descarta erros individuais nem certifica estabilidade de outras medidas.
+
+A Tabela~\ref{tab:medulla_expand} apresenta a comparação da pseudo-expansão com validação e teste manuais preservados.
+
+\begin{table}[!htbp]
+\centering
+\caption{Experimento de pseudo-expansão do treino da medula, com validação e teste manuais preservados.}
+\label{tab:medulla_expand}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Configuração} & \textbf{Treino} & \textbf{Val. Dice} & \textbf{Teste Dice} & \textbf{IoU teste} \\
+\midrule
+Manual & 236 & 0,7235 & \textbf{0,7528} & \textbf{0,6035} \\
+Manual + 342 pseudo & 578 & \textbf{0,7424} & 0,7523 & 0,6030 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A expansão elevou numericamente o Dice de validação de $0{,}7235$ para $0{,}7424$, enquanto o Dice de teste passou de $0{,}7528$ para $0{,}7523$. Essa diferença de $-0{,}0005$ no teste não demonstra benefício de generalização; tampouco permite afirmar equivalência estatística ou inutilidade da pseudo-expansão. O achado sinaliza a necessidade de estudar qualidade do rótulo, composição dos casos e variabilidade entre execuções antes de incorporar automaticamente novas máscaras ao treino.
+
+
+\subsection{Plataforma Web de Curadoria}
+
+Além dos experimentos de segmentação, a pesquisa produziu uma aplicação Web funcional para inspeção, edição e documentação de máscaras de ultrassonografia renal. As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} apresentam a interface de triagem de casos, a visualização ampliada e os controles de correção de estruturas anatômicas. A Figura~\ref{fig:curadoria_rois_ecogenicidade} registra a integração entre máscaras intrarrenais e a comparação visual de duas regiões de interesse de ecogenicidade. A aplicação também disponibiliza um fluxo de inferência para novas imagens, separado da inclusão automática de dados na base de treinamento.
+
+O produto implementado demonstra a viabilidade técnica de reunir predição automática, conferência individual por estrutura, edição das máscaras e registro de decisões em uma infraestrutura local auditável. O histórico de alterações e a separação entre máscaras originais e corrigidas são propriedades da implementação; não constituem, isoladamente, evidência de melhora na acurácia, de concordância interobservador ou de utilidade clínica. A mensuração desses aspectos integra o planejamento experimental subsequente.
+
+
+\subsection{Estudo exploratório do assistente multimodal}
 
 Para avaliar o comportamento do assistente como apoio à interpretação da imagem,
 e verificar sua integração com a Curadoria Web e as máscaras anatômicas, foi
@@ -768,7 +829,7 @@ executado um estudo piloto com a imagem
 da cascata foi executada na RTX 3050 de 8~GB, com dispositivo CUDA, imagem de
 $1024\times768$ pixels e máscaras de rim, córtex, medula e CEC. O mesmo
 conjunto de evidências e a mesma sobreposição visual foram enviados ao
-Qwen2.5-VL-3B-Instruct-AWQ local e ao GPT-6 Luna. O recorte da cápsula foi
+Qwen2.5-VL-3B-Instruct-AWQ local e ao assistente multimodal externo. O recorte da cápsula foi
 delimitado por $\texttt{capsule\_bbox}=(120,159,805,742)$.
 
 O piloto não foi desenhado para estabelecer um diagnóstico, mas para observar
@@ -796,7 +857,7 @@ A Tabela~\ref{tab:assistente_piloto} resume a comparação descritiva. Como o es
 \label{tab:assistente_piloto}
 \begin{tabular}{p{0.28\linewidth}p{0.28\linewidth}p{0.28\linewidth}}
 \toprule
-\textbf{Critério} & \textbf{Qwen local} & \textbf{GPT-6 Luna} \\
+\textbf{Critério} & \textbf{Qwen local} & \textbf{assistente multimodal externo} \\
 \midrule
 Evidências recebidas & Imagem, quatro máscaras e métricas & Mesma entrada \\
 Região prioritária & Não delimitada claramente & Região central/CEC, faixa média \\
@@ -811,7 +872,7 @@ Acurácia estatística & Não estimável ($N=1$) & Não estimável ($N=1$) \\
 \textbf{Desfecho do piloto.} Considerando os comportamentos observados, o
 desfecho operacional foi favorável à utilização do assistente como apoio à
 triagem baseada em evidências: os dois modelos receberam a mesma imagem, as
-quatro máscaras e as métricas, mas o GPT-6 Luna produziu, neste caso, uma
+quatro máscaras e as métricas, mas o assistente multimodal externo produziu, neste caso, uma
 resposta mais explicitamente vinculada às regiões e aos valores fornecidos,
 enquanto a resposta do Qwen local exigiu maior mediação interpretativa. Essa
 diferença é uma observação qualitativa de um único caso, e não uma demonstração
@@ -826,72 +887,15 @@ artefatos ecogênicos nem diagnóstico. A avaliação quantitativa requer uma
 amostra anotada por especialistas, com sensibilidade, especificidade, precisão,
 F1, concordância por região e taxa de afirmações não sustentadas.
 
-\subsubsection{Exemplo de uso assistencial na Curadoria Web}
+\ifversaoqualificacao
+A demonstração adicional com a interface é documentada no Apêndice~\ref{app:exemplo_assistencial}.
+\fi
 
-Como exemplo ilustrativo do uso assistencial, foi selecionada a imagem
-\texttt{dataset\_loader\_\_10\_IM-0415-0078\_anon}, pertencente ao conjunto com
-referência manual de rim, córtex, medula e CEC. A apresentação inicial do caso
-é feita pela imagem B-mode e pela sobreposição das regiões anatômicas, conforme
-a Figura~\ref{fig:assistente_exemplo_imagem}. Essa etapa delimita o objeto da
-revisão antes da formulação da pergunta ao assistente.
+\subsection{Registro de resultados históricos e limites}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.88\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
-\caption{Exemplo de imagem renal apresentada para apoio assistencial, com a
-  sobreposição visual das máscaras de rim, córtex, medula e CEC. A imagem e as
-  máscaras foram recuperadas do manifesto de curadoria; a visualização não
-  constitui, isoladamente, uma conclusão diagnóstica.}
-\label{fig:assistente_exemplo_imagem}
-\end{figure}
+Um experimento anterior no \texttt{dataset\_geral} expandido registrou Dice médio de teste $0{,}9366$ para DeepLabV3-ResNet50. O valor é documentado como histórico porque a base, o tipo de referência e o protocolo diferem do teste manual deduplicado; não é utilizado para alegar progresso de $0{,}9290$ para $0{,}9366$. A Curadoria Web e a inferência integrada estão implementadas, mas ainda não há estudo de revisão humana com efeito quantitativo demonstrado no retreinamento. Da mesma forma, o cálculo das ROIs córtex--CEC constitui um procedimento operacional disponível, e não uma avaliação concluída de repetibilidade ou associação clínica.
 
-Após a apresentação do objeto, a pergunta foi normalizada para: ``comparando
-as máscaras do córtex com o CEC, há indícios de fibrose?''. O contexto visual
-selecionado foi o recorte da cápsula renal, acompanhado das máscaras, do
-medidor de brilho e das métricas disponíveis. A Figura~\ref{fig:assistente_exemplo_interface}
-mostra a interface assistencial no momento da consulta, incluindo a pergunta,
-o consentimento explícito para o provedor externo e os comandos de análise
-local ou comparação.
-
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.54\linewidth]{figures/assistente_exemplo_interface.png}
-\caption{Interface do assistente visual durante o exemplo de uso assistencial.
-  A Curadoria Web apresenta o contexto visual, a pergunta, as opções de
-  execução e as evidências recuperadas da imagem selecionada.}
-\label{fig:assistente_exemplo_interface}
-\end{figure}
-
-A Tabela~\ref{tab:assistente_exemplo_uso} organiza o resultado em uma sequência
-assistencial, sem transformar a saída do modelo em diagnóstico. O modelo local
-Qwen2.5-VL-3B-Instruct-AWQ produziu uma resposta mais genérica e incluiu uma
-afirmação sobre fibrose que exige mediação. O GPT-6 Luna descreveu ecos
-brilhantes dispersos, relacionou os valores de córtex ($32{,}7$) e CEC
-($79{,}2$) à diferença de $46{,}5$ e ressaltou que esses dados não permitem
-afirmar nem excluir fibrose. Essa diferença é útil para a revisão humana, mas
-não representa acurácia comparativa, pois se trata de um único caso sem
-referência independente para o achado assistencial.
-
-\begin{table}[!htbp]
-\centering
-\caption{Exemplo de uso assistencial do assistente multimodal.}
-\label{tab:assistente_exemplo_uso}
-\begin{tabular}{p{0.19\linewidth}p{0.49\linewidth}p{0.24\linewidth}}
-\toprule
-\textbf{Etapa} & \textbf{Resultado apresentado} & \textbf{Uso e limite} \\
-\midrule
-Entrada & Imagem B-mode, recorte da cápsula, máscaras anatômicas e métricas de ecogenicidade. & Define o objeto e as evidências da revisão. \\
-Resposta local & Saída genérica sobre a relação CEC--córtex, com afirmação não sustentada sobre fibrose. & Serve como proposta inicial; requer checagem especializada. \\
-Resposta externa & Ecos brilhantes dispersos, sem foco cortical delimitado; córtex $32{,}7$, CEC $79{,}2$ e diferença $46{,}5$. & Prioriza a revisão do contraste, sem caracterizar lesão. \\
-Desfecho assistencial & Encaminhar a imagem e as regiões indicadas para revisão humana. & Não confirma nem exclui fibrose e não substitui laudo. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Esse exemplo mostra a função assistencial pretendida: organizar evidências,
-indicar regiões que merecem atenção e explicitar limitações para apoiar o
-especialista. A decisão final permanece humana, e a saída conversacional não é
-incorporada automaticamente como anotação clínica.
+\section{Discussão}
 
 \subsection{Comparação descritiva com resultados publicados}
 
@@ -917,61 +921,8 @@ Embora a MAT-UNet apresente valor numérico maior para cápsula e os resultados 
 
 Outros trabalhos relacionados possuem objetivos complementares, mas seus desfechos não permitem preencher essa tabela de Dice. Athavale et al.~\cite{Athavale2021} investigaram classificação de fibrose intersticial e atrofia tubular com referência histopatológica, enquanto Zhao et al.~\cite{Zhao2025Echogenicity} avaliaram diferenças de ecogenicidade e sua associação com doença renal crônica. Essas publicações orientam a escolha de desfechos clínicos e de medidas quantitativas para validação futura; os resultados exploratórios aqui apresentados não são equivalentes a seus diagnósticos ou indicadores de desempenho clínico. No eixo de curadoria, o MONAI Label~\cite{DiazPinto2024MONAILabel} fornece referência funcional para anotação interativa, mas sua comparação com a Curadoria Web deve priorizar rastreabilidade, operações de revisão e, em estudo futuro, tempo e concordância dos revisores, em vez de métricas de segmentação não pareadas.
 
-\subsection{Variabilidade da referência humana}
 
-A Tabela~\ref{tab:interobserver} apresenta a concordância Dice entre os dois anotadores, organizada por estrutura e pelo número de imagens comuns disponíveis.
 
-\begin{table}[!htbp]
-\centering
-\caption{Concordância Dice entre os dois anotadores do \texttt{kidneyUS}, nos conjuntos disponíveis por estrutura.}
-\label{tab:interobserver}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Estrutura} & \textbf{Imagens comuns} & \textbf{Dice} \\
-\midrule
-Cápsula & 486 & 0,9461 \\
-Córtex & 323 & 0,5961 \\
-Medula & 325 & 0,6936 \\
-CEC & 468 & 0,8688 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A cápsula apresentou concordância mais elevada ($0{,}9461$), ao passo que córtex ($0{,}5961$) e medula ($0{,}6936$) concentraram divergências maiores. As quantidades de imagens comuns também diferem por classe; por isso, a tabela não representa uma avaliação pareada única de quatro estruturas em exatamente os mesmos casos. A menor concordância humana ajuda a interpretar a dificuldade de obter referências internas estáveis, sem constituir prova de que os modelos alcançaram desempenho equivalente ao de especialistas.
-
-\subsection{Medula: heurística, estabilidade e expansão}
-
-Uma heurística inicial para localizar regiões escuras apresentou Dice médio $0{,}3291$ frente à referência do primeiro anotador. No experimento supervisionado específico de medula, a DeepLabV3 atingiu Dice de teste $0{,}7528$ e a MedullaROIUNet, $0{,}7326$. Em avaliação específica da estabilidade da cascata, a troca da ROI de cápsula manual pela cápsula prevista alterou o Dice global da DeepLabV3 de $0{,}7626$ para $0{,}7610$, uma diferença absoluta de $0{,}0016$. Nesse protocolo, a intensidade média estimada na medula teve correlação de $0{,}9508$ entre os dois cenários. Essa correlação descreve o conjunto avaliado; não descarta erros individuais nem certifica estabilidade de outras medidas.
-
-A Tabela~\ref{tab:medulla_expand} apresenta a comparação da pseudo-expansão com validação e teste manuais preservados.
-
-\begin{table}[!htbp]
-\centering
-\caption{Experimento de pseudo-expansão do treino da medula, com validação e teste manuais preservados.}
-\label{tab:medulla_expand}
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{Configuração} & \textbf{Treino} & \textbf{Val. Dice} & \textbf{Teste Dice} & \textbf{IoU teste} \\
-\midrule
-Manual & 236 & 0,7235 & \textbf{0,7528} & \textbf{0,6035} \\
-Manual + 342 pseudo & 578 & \textbf{0,7424} & 0,7523 & 0,6030 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A expansão elevou numericamente o Dice de validação de $0{,}7235$ para $0{,}7424$, enquanto o Dice de teste passou de $0{,}7528$ para $0{,}7523$. Essa diferença de $-0{,}0005$ no teste não demonstra benefício de generalização; tampouco permite afirmar equivalência estatística ou inutilidade da pseudo-expansão. O achado sinaliza a necessidade de estudar qualidade do rótulo, composição dos casos e variabilidade entre execuções antes de incorporar automaticamente novas máscaras ao treino.
-
-\subsection{Resultados históricos e componentes ainda exploratórios}
-
-Um experimento anterior no \texttt{dataset\_geral} expandido registrou Dice médio de teste $0{,}9366$ para DeepLabV3-ResNet50. O valor é documentado como histórico porque a base, o tipo de referência e o protocolo diferem do teste manual deduplicado; não é utilizado para alegar progresso de $0{,}9290$ para $0{,}9366$. A Curadoria Web e a inferência integrada estão implementadas, mas ainda não há estudo de revisão humana com efeito quantitativo demonstrado no retreinamento. Da mesma forma, o cálculo das ROIs córtex--CEC constitui um procedimento operacional disponível, e não uma avaliação concluída de repetibilidade ou associação clínica.
-
-\subsection{Artefato computacional: plataforma Web de Curadoria}
-
-Além dos experimentos de segmentação, a pesquisa produziu uma aplicação Web funcional para inspeção, edição e documentação de máscaras de ultrassonografia renal. As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} apresentam a interface de triagem de casos, a visualização ampliada e os controles de correção de estruturas anatômicas. A Figura~\ref{fig:curadoria_rois_ecogenicidade} registra a integração entre máscaras intrarrenais e a comparação visual de duas regiões de interesse de ecogenicidade. A aplicação também disponibiliza um fluxo de inferência para novas imagens, separado da inclusão automática de dados na base de treinamento.
-
-O produto implementado demonstra a viabilidade técnica de reunir predição automática, conferência individual por estrutura, edição das máscaras e registro de decisões em uma infraestrutura local auditável. O histórico de alterações e a separação entre máscaras originais e corrigidas são propriedades da implementação; não constituem, isoladamente, evidência de melhora na acurácia, de concordância interobservador ou de utilidade clínica. A mensuração desses aspectos integra o planejamento experimental subsequente.
-
-\section{Discussão}
 
 Os resultados mostram uma assimetria entre as tarefas anatômicas. A delimitação da cápsula apresentou Dice de $0{,}9290$ no teste manual deduplicado, enquanto o Dice médio intrarrenal foi $0{,}7594$. A diferença, entretanto, não pode ser interpretada como redução mensurada da qualidade do mesmo modelo em uma única população, porque os conjuntos e as tarefas não coincidem. O que os dois experimentos evidenciam, em seus respectivos protocolos, é que o projeto dispõe de um segmentador externo competitivo e que o detalhamento de córtex e medula ainda constitui um gargalo.
 
@@ -1039,5 +990,78 @@ A expansão preliminar de treino de medula não melhorou o Dice do teste manual,
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
+
+\ifversaoqualificacao
+\clearpage
+\appendix
+\section{Exemplo complementar de uso do assistente}\label{app:exemplo_assistencial}
+
+Como exemplo ilustrativo do uso assistencial, foi selecionada a imagem
+\texttt{dataset\_loader\_\_10\_IM-0415-0078\_anon}, pertencente ao conjunto com
+referência manual de rim, córtex, medula e CEC. A apresentação inicial do caso
+é feita pela imagem B-mode e pela sobreposição das regiões anatômicas, conforme
+a Figura~\ref{fig:assistente_exemplo_imagem}. Essa etapa delimita o objeto da
+revisão antes da formulação da pergunta ao assistente.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/assistente_exemplo_imagem_dataset_loader_10.png}
+\caption{Exemplo de imagem renal apresentada para apoio assistencial, com a
+  sobreposição visual das máscaras de rim, córtex, medula e CEC. A imagem e as
+  máscaras foram recuperadas do manifesto de curadoria; a visualização não
+  constitui, isoladamente, uma conclusão diagnóstica.}
+\label{fig:assistente_exemplo_imagem}
+\end{figure}
+
+Após a apresentação do objeto, a pergunta foi normalizada para: ``comparando
+as máscaras do córtex com o CEC, há indícios de fibrose?''. O contexto visual
+selecionado foi o recorte da cápsula renal, acompanhado das máscaras, do
+medidor de brilho e das métricas disponíveis. A Figura~\ref{fig:assistente_exemplo_interface}
+mostra a interface assistencial no momento da consulta, incluindo a pergunta,
+o consentimento explícito para o provedor externo e os comandos de análise
+local ou comparação.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.54\linewidth]{figures/assistente_exemplo_interface.png}
+\caption{Interface do assistente visual durante o exemplo de uso assistencial.
+  A Curadoria Web apresenta o contexto visual, a pergunta, as opções de
+  execução e as evidências recuperadas da imagem selecionada.}
+\label{fig:assistente_exemplo_interface}
+\end{figure}
+
+A Tabela~\ref{tab:assistente_exemplo_uso} organiza o resultado em uma sequência
+assistencial, sem transformar a saída do modelo em diagnóstico. O modelo local
+Qwen2.5-VL-3B-Instruct-AWQ produziu uma resposta mais genérica e incluiu uma
+afirmação sobre fibrose que exige mediação. O assistente multimodal externo descreveu ecos
+brilhantes dispersos, relacionou os valores de córtex ($32{,}7$) e CEC
+($79{,}2$) à diferença de $46{,}5$ e ressaltou que esses dados não permitem
+afirmar nem excluir fibrose. Essa diferença é útil para a revisão humana, mas
+não representa acurácia comparativa, pois se trata de um único caso sem
+referência independente para o achado assistencial.
+
+\begin{table}[!htbp]
+\centering
+\caption{Exemplo de uso assistencial do assistente multimodal.}
+\label{tab:assistente_exemplo_uso}
+\begin{tabular}{p{0.19\linewidth}p{0.49\linewidth}p{0.24\linewidth}}
+\toprule
+\textbf{Etapa} & \textbf{Resultado apresentado} & \textbf{Uso e limite} \\
+\midrule
+Entrada & Imagem B-mode, recorte da cápsula, máscaras anatômicas e métricas de ecogenicidade. & Define o objeto e as evidências da revisão. \\
+Resposta local & Saída genérica sobre a relação CEC--córtex, com afirmação não sustentada sobre fibrose. & Serve como proposta inicial; requer checagem especializada. \\
+Resposta externa & Ecos brilhantes dispersos, sem foco cortical delimitado; córtex $32{,}7$, CEC $79{,}2$ e diferença $46{,}5$. & Prioriza a revisão do contraste, sem caracterizar lesão. \\
+Desfecho assistencial & Encaminhar a imagem e as regiões indicadas para revisão humana. & Não confirma nem exclui fibrose e não substitui laudo. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Esse exemplo mostra a função assistencial pretendida: organizar evidências,
+indicar regiões que merecem atenção e explicitar limitações para apoiar o
+especialista. A decisão final permanece humana, e a saída conversacional não é
+incorporada automaticamente como anotação clínica.
+
+
+\fi
 
 \end{document}
