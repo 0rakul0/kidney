@@ -184,7 +184,7 @@ Felipe da R. Henriques\inst{1}}
       \textbf{MONAI} & \textit{Medical Open Network for AI}, ecossistema para aplicações de IA em saúde.\\
       \textbf{RGB} & \textit{Red, Green, Blue} (vermelho, verde e azul).\\
       \textbf{ROI} & \textit{Region of Interest} (região de interesse).\\
-      \textbf{SBBD} & Simpósio Brasileiro de Bancos de Dados.\\
+      \textbf{SBBD} & Simpósio Brasileiro de Banco de Dados.\\
     \end{tabular}
   \endgroup
   \clearpage
@@ -234,7 +234,7 @@ A ultrassonografia é amplamente empregada na avaliação morfológica renal por
 
 Este trabalho considera duas tarefas anatômicas encadeadas: segmentar o contorno externo do rim, aqui referido operacionalmente como máscara da cápsula, e identificar córtex, medula e complexo ecogênico central (CEC) no interior da região delimitada. Os erros da primeira etapa podem propagar-se à segunda; por isso, uma boa métrica isolada de segmentação não assegura a confiabilidade das medidas intrarrenais. A escassez de anotações especializadas e a divergência entre observadores ampliam esse desafio~\cite{Singla2023KidneyUS,Taha2015Metrics}.
 
-Parte dos resultados desta pesquisa foi publicada anteriormente no XLI Simpósio Brasileiro de Banco de Dados (SBBD 2026), no artigo de Anjos et al.~\cite{Anjos2026SBBD}. Essa publicação documentou a fase inicial de engenharia de dados, segmentação renal e expansão do acervo por pseudorrotulação. O presente trabalho dá continuidade à investigação por meio de avaliação deduplicada, consenso, destilação de conhecimento, segmentação intrarrenal e curadoria rastreável, distinguindo os resultados já publicados dos experimentos posteriores.
+Parte dos resultados desta pesquisa foi publicada no XLI Simpósio Brasileiro de Banco de Dados (SBBD 2026)~\cite{Anjos2026SBBD}, contemplando a engenharia inicial do acervo, o benchmark de segmentação renal e a geração de pseudomáscaras candidatas. Esta dissertação aprofunda a investigação com consenso e destilação de conhecimento, segmentação intrarrenal, avaliação da propagação de erros e curadoria humana rastreável.
 
 \subsection{Questão de pesquisa e hipótese}
 A pergunta central é: \textit{como integrar segmentação hierárquica, destilação de conhecimento, triagem de pseudorrótulos e revisão humana em um fluxo rastreável que permita avaliar a confiabilidade de máscaras e de descritores de ecogenicidade renal?} A hipótese metodológica é que a procedência e a qualidade das máscaras, especialmente nas interfaces intrarrenais, influenciam as medidas de imagem mais do que a simples ampliação do número de exemplos pseudorrotulados. Trata-se de uma hipótese a testar, e não de um efeito já demonstrado pela plataforma.
@@ -352,7 +352,7 @@ A lacuna operacional e metodológica examinada é a avaliação encadeada das de
 \section{Metodologia}
 
 \subsection{Visão geral e evolução do protocolo}
-O fluxo de pesquisa foi desenvolvido em três fases que correspondem a níveis progressivos de análise, e não a três bases de teste diretamente comparáveis. A primeira organizou dados, comparou segmentadores da cápsula e explorou pseudorrótulos. A segunda acrescentou consenso, destilação e segmentação intrarrenal, com avaliação do efeito do erro da cápsula. A terceira integrou inferência e revisão humana à Curadoria Web, permitindo calcular descritores de ecogenicidade na imagem original e estudar um assistente multimodal em caráter exploratório. A Figura~\ref{fig:fluxo_metodologico} sintetiza a dependência entre as etapas.
+O protocolo evoluiu em três fases: (i) engenharia de dados, avaliação da segmentação renal e pseudorrotulação, inicialmente publicadas em~\cite{Anjos2026SBBD}; (ii) consenso, destilação de conhecimento e segmentação intrarrenal, com estudo da propagação de erros; e (iii) integração à Curadoria Web, quantificação exploratória da ecogenicidade e piloto multimodal. As fases utilizam protocolos com unidades de avaliação distintas, sintetizados na Figura~\ref{fig:fluxo_metodologico}.
 
 \begin{figure}[!htbp]
 \centering
@@ -373,10 +373,6 @@ O fluxo de pesquisa foi desenvolvido em três fases que correspondem a níveis p
 \label{fig:fluxo_metodologico}
 \end{figure}
 \FloatBarrier
-
-A etapa inicial de engenharia de dados e segmentação foi publicada por Anjos et al.~\cite{Anjos2026SBBD} nos anais do SBBD 2026. Nesse trabalho, os modelos foram retreinados com as imagens originais do \texttt{kidneyUS} e pré-processamento por CLAHE. Em teste deduplicado de 70 imagens, a U-Net obteve Dice de $0{,}9290$, IoU de $0{,}8722$ e precisão de $0{,}9236$. Aplicada a 4.479 imagens externas, essa U-Net gerou 3.534 pseudomáscaras candidatas, ainda pendentes de revisão humana e não incluídas nas métricas supervisionadas publicadas. Esses números descrevem o protocolo efetivamente divulgado no SBBD, e não resultados inéditos desta versão.
-
-A continuidade da pesquisa incorporou o consenso entre modelos, a destilação de conhecimento, a segmentação das estruturas intrarrenais e a Curadoria Web. A comparação posterior de cobertura de pseudomáscaras no mesmo lote externo é apresentada na Tabela~\ref{tab:pseudomascaras_monai}; por utilizar máscaras candidatas sem referência manual externa, essa comparação é operacional e não uma validação de acurácia anatômica.
 
 A observação de erros visualmente plausíveis em previsões de alta confiança motivou a mudança de aceitação automática de pseudomáscaras para \textit{triagem e revisão}. Assim, a máscara automática, a referência manual do \texttt{kidneyUS} e a versão corrigida na plataforma permanecem objetos distintos. A destilação busca reduzir o custo de inferência sem assumir que compactação melhore o Dice; a mensuração de ecogenicidade exige ainda validação de repetibilidade e referência clínica. Essas distinções determinam o desenho experimental a seguir.
 
@@ -640,13 +636,11 @@ O assistente recebe uma imagem B-mode, sobreposições de máscaras e descritore
 Os registros precisam conservar o prompt integral, a imagem efetivamente enviada, as versões das máscaras, a identificação técnica verificável do modelo externo, os parâmetros de inferência e a resposta sem edição. A identificação comercial anotada originalmente para o modelo externo não comprova, por si só, o identificador de checkpoint ou versão. Além disso, as máscaras do exemplo principal foram geradas por checkpoints anteriores indicados na legenda correspondente, de modo que esse piloto não serve de validação independente da cascata destilada operacional. Sem referência especializada dos achados e com amostra tão pequena, a comparação limita-se a observações qualitativas.
 
 \section{Resultados}
-Os resultados iniciais de segmentação da cápsula e geração de pseudomáscaras já divulgados em~\cite{Anjos2026SBBD} são retomados como linha de base, sem reivindicação de ineditismo. Os experimentos subsequentes de consenso, destilação, estruturas intrarrenais e avaliação da cascata são apresentados separadamente, com seus próprios protocolos de validação.
-
-Os resultados são apresentados por tarefa e pela ordem de dependência da cascata: delimitação externa, triagem de imagens, destilação, estruturas internas e avaliação integrada. Comparações entre protocolos independentes são indicadas como descritivas, não como medições pareadas.
+Os resultados são organizados por tarefa: parte-se da linha de base de segmentação da cápsula e da cobertura de pseudomáscaras externas, seguindo-se os experimentos posteriores de consenso, destilação, estruturas intrarrenais e avaliação integrada. Os protocolos e conjuntos de teste são identificados separadamente, sem inferir comparabilidade direta entre tarefas.
 
 \subsection{Segmentação da cápsula renal}
 
-A Tabela~\ref{tab:capsule} retoma o benchmark de segmentação da cápsula no teste manual deduplicado, comum às quatro arquiteturas comparadas. O desempenho da U-Net nesse conjunto foi publicado no SBBD 2026~\cite{Anjos2026SBBD} e é reproduzido aqui para contextualizar a escolha do segmentador externo da cascata.
+A Tabela~\ref{tab:capsule} reúne o benchmark da cápsula em 70 imagens manuais deduplicadas. Os resultados da U-Net, anteriormente publicados em~\cite{Anjos2026SBBD}, são apresentados como linha de base para os experimentos de destilação e integração da cascata.
 
 As taxas de FPS dessa tabela pertencem ao benchmark original, que inclui
 carregamento dos lotes, transferência para a GPU, pós-processamento e cálculo
@@ -688,7 +682,7 @@ Na imagem apresentada, o contorno previsto acompanha visualmente a região renal
 
 \subsection{Consenso entre modelos e imagens externas}
 
-Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. Para avaliar a implantação da estudante, a Tabela~\ref{tab:pseudomascaras_monai} compara, no mesmo lote de 4.479 imagens externas do MONAI, a cobertura da U-Net inicial reportada no SBBD 2026~\cite{Anjos2026SBBD} com a cobertura obtida posteriormente pelo modelo destilado. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
+Na calibração com referência manual, o consenso U-Net--DeepLabV3 apresentou média de $0{,}9416$, mediana de $0{,}9627$ e correlação documentada de $0{,}840$ com o menor Dice frente à anotação manual. A direção dessa associação sugere utilidade para triagem, mas concordância entre modelos não pode ser tomada como probabilidade de correção. A Tabela~\ref{tab:pseudomascaras_monai} compara, no mesmo lote de 4.479 imagens externas do MONAI, a cobertura da U-Net inicial publicada em~\cite{Anjos2026SBBD} com a cobertura posterior da estudante destilada. Como não há máscaras manuais externas consolidadas para esse lote, esses números expressam a capacidade de produzir uma proposta não vazia, e não a acurácia anatômica.
 
 \begin{table}[!htbp]
 \centering
@@ -705,9 +699,8 @@ Diferença & \textbf{+173 imagens} & \textbf{-173 imagens} \\
 \end{tabular}
 \end{table}
 
-Em relação à U-Net inicial documentada em~\cite{Anjos2026SBBD}, o modelo destilado aumentou a cobertura de propostas não vazias de 78,9\% para
-82,8\%, correspondendo a 173 imagens adicionais processadas com uma máscara
-candidata. Esse resultado demonstra o funcionamento operacional da estudante
+A estudante destilada elevou a cobertura de propostas não vazias de 78,9\% para
+82,8\%, com 173 imagens adicionais contendo uma máscara candidata. Esse resultado demonstra o funcionamento operacional da estudante
 no fluxo de geração de pseudomáscaras e sua integração ao pipeline. Entretanto,
 não demonstra, isoladamente, melhora da qualidade anatômica: essa questão exige
 comparação com referências manuais, análise por imagem e revisão especializada.
@@ -1061,7 +1054,7 @@ A Tabela~\ref{tab:sintese_evidencias} separa resultados em referência supervisi
 \toprule
 \textbf{Componente} & \textbf{Evidência apresentada} & \textbf{Limite ou teste pendente} \\
 \midrule
-Cápsula (SBBD 2026) & Dice $0{,}9290$ em 70 imagens manuais deduplicadas & Incerteza por exame e teste externo anotado \\
+Cápsula (linha de base) & Dice $0{,}9290$ em 70 imagens manuais deduplicadas & Incerteza por exame e teste externo anotado \\
 Destilação da cápsula & Matriz de estudantes, parâmetros e latência; Dice observado $0{,}9078$ & Reavaliar seleção em teste não consultado \\
 Intrarrenal e cascata & Dice $0{,}7594$ (teste original) e $0{,}7210$ com ROI prevista (teste agrupado) & Erros por estrutura, exame e qualidade visual \\
 Pseudomáscaras MONAI & 3.707 propostas não vazias de 4.479 imagens & Correção anatômica por revisão especializada \\
@@ -1076,7 +1069,7 @@ Um checkpoint histórico de DeepLabV3 no \texttt{dataset\_geral} registrou Dice 
 \section{Discussão}
 
 \subsection{O que a cascata demonstra sobre segmentação renal}
-A questão científica deste trabalho não se limita a identificar qual arquitetura produz o maior Dice isolado. A tarefa central é avaliar como uma delimitação externa condiciona a segmentação de córtex, medula e CEC e, subsequentemente, as medidas extraídas da imagem original. O benchmark da cápsula, já publicado no SBBD 2026~\cite{Anjos2026SBBD}, obteve Dice de $0{,}9290$ com U-Net em 70 imagens deduplicadas; o experimento intrarrenal original obteve Dice médio de $0{,}7594$ em outras 50 imagens. Esses valores são resultados de tarefas e amostras diferentes, não uma comparação pareada de dificuldade. Ainda assim, a discriminação das estruturas internas aparece como um problema que exige atenção própria, sobretudo nas interfaces córtico-medulares.
+O desempenho isolado da cápsula não garante a qualidade da segmentação intrarrenal nem a estabilidade dos descritores de ecogenicidade. Além de serem tarefas anatômicas distintas, os experimentos da cápsula e das estruturas internas utilizam amostras diferentes; suas médias de Dice, portanto, não devem ser tratadas como comparação pareada de dificuldade. Essa distinção é especialmente importante nas interfaces córtico-medulares, cujas fronteiras são menos consensuais.
 
 O experimento agrupado da cascata é mais diretamente informativo para o uso pretendido. Mantendo o mesmo teste de 51 imagens e a mesma estudante intrarrenal, substituir a ROI manual por uma ROI prevista reduziu o Dice de primeiro plano de $0{,}7395$ para $0{,}7210$. A diferença absoluta de $0{,}0185$ caracteriza propagação de erro entre estágios; ela não deve ser disfarçada por um bom resultado isolado da cápsula. Uma média modesta pode ainda concentrar falhas relevantes em imagens com sombras, baixo contraste ou recortes incompletos. Na etapa seguinte, é necessário medir o deslocamento das ROIs de córtex e CEC e o efeito correspondente sobre cada razão de ecogenicidade, em vez de supor que o Dice da cápsula seja um substituto da estabilidade dos descritores.
 
@@ -1216,7 +1209,7 @@ institucionais aplicáveis, sem pressupor acesso ou desfechos clínicos já obti
 \fi
 
 \section{Conclusão}
-Este trabalho desenvolveu um pipeline rastreável para ultrassonografia renal que articula delimitação da cápsula, segmentação intrarrenal, consenso, destilação, curadoria humana e mensuração exploratória da ecogenicidade. Na fase inicialmente publicada no SBBD 2026~\cite{Anjos2026SBBD}, a U-Net da cápsula alcançou Dice $0{,}9290$ e IoU $0{,}8722$ em 70 imagens deduplicadas. Como desenvolvimento posterior, a U-Net intrarrenal atingiu Dice médio $0{,}7594$ em outro teste manual de 50 imagens. A revalidação da cascata no teste agrupado quantificou queda de Dice de $0{,}7395$ para $0{,}7210$ ao substituir a ROI de referência pela prevista, demonstrando a importância de avaliar o encadeamento dos modelos.
+Este trabalho ampliou o pipeline inicial de segmentação renal ao integrar consenso, destilação, segmentação intrarrenal, curadoria humana e mensuração exploratória da ecogenicidade. Nos experimentos posteriores, a U-Net intrarrenal atingiu Dice médio de $0{,}7594$ em 50 imagens manuais; na reavaliação agrupada da cascata, o Dice passou de $0{,}7395$, com ROI de referência, para $0{,}7210$, com ROI prevista. Essa diferença evidencia a necessidade de avaliar o encadeamento dos modelos, além de suas métricas isoladas.
 
 A destilação permitiu executar uma estudante compacta com menor custo que as professoras no ensaio de \textit{forward}, embora a escolha da combinação operacional exija revalidação independente. No MONAI, o aumento de 3.534 para 3.707 candidatas não vazias representa maior cobertura, não acurácia externa. A pseudo-expansão da medula não elevou o Dice de teste, reforçando que quantidade de pseudorrótulos e qualidade anatômica são questões distintas.
 
