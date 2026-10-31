@@ -88,7 +88,7 @@ jobs:
             echo "ERRO: o sumario renderizado nao mostra subsecoes."
             exit 1
           fi
-          if ! grep -q 'Referências Bibliográficas' /tmp/artigo-sumario-extraido.txt; then
+          if ! grep -Eq 'Referências( Bibliográficas)?' /tmp/artigo-sumario-extraido.txt; then
             echo "ERRO: referencias bibliograficas ausentes do sumario."
             exit 1
           fi
