@@ -672,6 +672,9 @@ A implantação padrão é local. Embora a interface solicite identificador e pe
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
+\subsubsection{Estatísticas globais na imagem original}
+\label{sec:curadoria_ecogenicidade_global}
+
 As previsões podem utilizar CLAHE, mas as estatísticas de brilho são calculadas na imagem B-mode original preservada pelo fluxo, antes desse realce. Seja $\mu_C$ a intensidade média cortical e $\mu_{CEC}$ a intensidade média do CEC. Para denominadores estritamente positivos, definem-se a razão e o contraste normalizado:
 \begin{equation}
  R_{C/CEC}=100\frac{\mu_C}{\mu_{CEC}},
@@ -680,6 +683,9 @@ As previsões podem utilizar CLAHE, mas as estatísticas de brilho são calculad
  \label{eq:global_echo}
 \end{equation}
 A diferença absoluta de intensidade é $D_{CEC-C}=\mu_{CEC}-\mu_C$. Também são registrados mediana, intervalo interquartil (IQR), tamanho das regiões e indicadores de saturação. Quando uma máscara é inexistente ou uma medida é matematicamente indefinida, o sistema deve registrar indisponibilidade, em vez de criar uma estimativa.
+
+\subsubsection{ROIs pareadas e ajustes do revisor}
+\label{sec:curadoria_rois_pareadas}
 
 Como médias de regiões extensas podem ser sensíveis a bordas, heterogeneidade e profundidade, emprega-se adicionalmente um protocolo de ROIs pareadas. As máscaras de córtex e CEC são erodidas por um elemento estruturante de $5\times5$ pixels; a área é organizada em três estratos verticais e o algoritmo procura até um par de discos válidos por estrato. Os discos têm áreas iguais e profundidades verticais aproximadas. Para cada par $i$, calculam-se
 \begin{equation}
@@ -701,8 +707,22 @@ A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativ
 
 No exemplo, o CEC é selecionado como região A e o córtex como região B; por isso, a razão exibida é $100\,\mu_{CEC}/\mu_C$, inversa à razão global $R_{C/CEC}$ definida na Equação~\ref{eq:global_echo}. Os indicadores não devem ser comparados sem considerar a ordem das regiões, e o exemplo interativo de um par não substitui a mediana do protocolo automático de até três pares.
 
+\subsubsection{Comparador livre de pontos A/B}
+\label{sec:curadoria_comparador_livre}
+
+Além dos pares anatômicos córtex--CEC, a interface permite posicionar até três pares circulares em modo livre. O cálculo apresenta intensidade média, medidas de distribuição, razão A/B, diferença, contraste e distância vertical entre os centros; quando possível, identifica também a estrutura segmentada predominante em cada círculo. Nesse modo, as regiões selecionadas não precisam pertencer às máscaras de córtex e CEC, e a interpretação da razão depende da ordem efetiva dos pontos. Assim, os valores de comparações livres não devem ser agrupados indistintamente aos obtidos no protocolo anatômico de ROIs pareadas. As posições ajustadas são registradas por imagem, revisor e modelo e podem ser restauradas à seleção automática; não constituem marcador diagnóstico.
+
 \subsection{Assistente multimodal: desenho do estudo piloto}
-A integração multimodal é mediada pelo \texttt{AssistantService}: a partir do \texttt{image\_id}, o servidor recupera a imagem, as máscaras efetivas do revisor, os metadados dos modelos e os descritores de ecogenicidade. O usuário pode optar pela imagem completa ou pelo recorte da cápsula. O processamento externo exige consentimento explícito, enquanto a resposta local pode ser produzida sem envio da imagem ao provedor externo. Cada execução recebe um identificador e é persistida com evidências e limitações; uma resposta somente passa a compor a observação após seleção do revisor.
+
+\subsubsection{Recuperação de evidências e consentimento}
+\label{sec:curadoria_assistente_evidencias}
+
+A integração multimodal é mediada pelo \texttt{AssistantService}. A partir do \texttt{image\_id}, o servidor recupera a imagem, as máscaras efetivas do revisor, metadados dos modelos, indicadores operacionais de qualidade e descritores de ecogenicidade. A entrada visual combina imagem e sobreposições anatômicas; o usuário pode selecionar a imagem completa ou o recorte da cápsula renal. As referências de evidência são associadas à requisição, permitindo identificar quais artefatos estavam disponíveis no momento da análise. A consulta local pode ser executada sem envio ao provedor externo; o processamento remoto e a comparação com o assistente externo exigem consentimento explícito na interface.
+
+\subsubsection{Registro das respostas e estudo de viabilidade}
+\label{sec:curadoria_assistente_registros}
+
+As respostas são apresentadas em estrutura que diferencia observação, referências às evidências utilizadas, regiões mencionadas, prioridades e limitações. A tabela \texttt{assistant\_runs} registra pergunta, provedor, modelo declarado, modo visual, resposta, identificação do revisor e da imagem, além de referências contextuais e data. Quando uma resposta é selecionada para compor a observação da curadoria, o vínculo com sua execução pode ser mantido no registro da revisão. Esses campos não garantem, por si sós, o arquivamento de uma cópia integral da imagem transmitida nem a reprodutibilidade de serviços externos, que dependem também da identificação efetiva de versão e parâmetros.
 
 A avaliação realizada é demonstrativa: um caso principal foi submetido ao Qwen2.5-VL-3B-Instruct-AWQ local e a um assistente multimodal externo, com a mesma pergunta e as mesmas evidências declaradas; outro caso ilustra o uso da interface. O objetivo foi inspecionar a referência às regiões e métricas fornecidas e o registro de incerteza, não estabelecer sensibilidade ou especificidade clínica.
 
