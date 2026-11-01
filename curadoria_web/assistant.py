@@ -65,7 +65,7 @@ class AssistantService:
         """
         original = str(question or "").strip()
         normalized = unicodedata.normalize("NFKD", original.casefold()).encode("ascii", "ignore").decode("ascii")
-        if not any(term in normalized for term in ("melhor", "corrig", "refin", "ajust", "limp", "preench", "remov")):
+        if not any(term in normalized for term in ("melhor", "corrig", "refin", "ajust", "limp", "preench", "remov", "suav")):
             return None
         layer_terms = (
             ("central_echo_complex", ("cec", "complexo ecogenico central", "complexo ecogenico")),
