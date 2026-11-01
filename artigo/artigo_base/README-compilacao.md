@@ -28,7 +28,7 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error sbc.tex
 
 A versão SBC gera `sbc.pdf`, enquanto a qualificação gera `main.pdf`. Cada compilação usa seus próprios arquivos auxiliares. Não é preciso alterar um seletor interno. No Windows, `compilar_artigo.ps1` continua compilando `main.tex`, a versão de qualificação.
 
-O [workflow de compilação](https://github.com/0rakul0/kidney/actions/workflows/build-artigo-base.yml) atualiza o `main.pdf` da branch `main` quando o código é alterado e valida se o sumário, as 16 figuras, as 17 tabelas, os elementos pré-textuais e o cronograma foram gerados. Em caso de falha, verifique o log da execução; não trate um PDF anteriormente versionado como recém-compilado.
+O [workflow de compilação](https://github.com/0rakul0/kidney/actions/workflows/build-artigo-base.yml) atualiza o `main.pdf` da branch `main` quando o código é alterado e valida se o sumário, as 16 figuras, as 18 tabelas, os elementos pré-textuais e o cronograma foram gerados. Em caso de falha, verifique o log da execução; não trate um PDF anteriormente versionado como recém-compilado.
 
 ## Pré-textuais e navegação
 
