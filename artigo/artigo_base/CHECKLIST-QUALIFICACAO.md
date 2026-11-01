@@ -18,7 +18,7 @@
 - [x] Lista alfabética de abreviaturas e siglas (17 entradas)
 - [x] Lista de símbolos (16 entradas)
 - [x] Lista de figuras (16 ilustrações, com títulos curtos)
-- [x] Lista de tabelas (16 tabelas, com títulos curtos)
+- [x] Lista de tabelas (18 tabelas, com títulos curtos)
 - [ ] Confirmar a compilação mais recente e conferir visualmente todas as novas listas
 
 As listas de figuras, tabelas, abreviaturas/siglas e símbolos são **opcionais** pela ABNT NBR 14724:2024 e pelo manual institucional do CEFET/RJ (edição disponível de 2016); sua inclusão aqui é uma escolha editorial adequada ao volume do trabalho.
