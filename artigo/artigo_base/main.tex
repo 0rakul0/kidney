@@ -561,7 +561,7 @@ A dependência entre estágios é investigada em um experimento de estabilidade:
 
 DeepLabV3 e MedullaROIUNet produzem candidatos independentes de máscara de medula. A seleção automática combina concordância e restrições geométricas; um experimento acrescentou 342 pseudomáscaras às 236 imagens de treino manual, totalizando 578 exemplos. As 50 imagens de validação e as 50 de teste permaneceram manuais. A comparação resultante examina o efeito desse conjunto específico de pseudorrótulos; não mede o efeito de uma curadoria humana completa nem garante equivalência entre conjuntos de tamanhos diferentes.
 
-\subsection{Curadoria Web: implementação e fluxo de revisão humana}
+\subsection{Curadoria Web: arquitetura e implementação do artefato}
 
 A \textit{Curadoria Web} é o principal artefato computacional desenvolvido nesta pesquisa. Sua implementação, disponível em \texttt{curadoria\_web/}, possui interface HTML/CSS/JavaScript e servidor HTTP em Python. A camada de dados (\texttt{CurationStore}) lê manifestos e mantém registros em SQLite; \texttt{MaskCorrectionService} trata as edições de máscaras; \texttt{InferenceService} executa a cascata; e \texttt{AssistantService} organiza evidências e consultas multimodais. A separação desses módulos permite rastrear o caminho entre imagem, predição, revisão e resultado persistido.
 
@@ -995,11 +995,11 @@ Manual + 342 pseudo & 578 & \textbf{0,7424} & 0,7523 & 0,6030 \\
 A expansão elevou numericamente o Dice de validação de $0{,}7235$ para $0{,}7424$, enquanto o Dice de teste passou de $0{,}7528$ para $0{,}7523$. Essa diferença de $-0{,}0005$ no teste não demonstra benefício de generalização; tampouco permite afirmar equivalência estatística ou inutilidade da pseudo-expansão. O achado sinaliza a necessidade de estudar qualidade do rótulo, composição dos casos e variabilidade entre execuções antes de incorporar automaticamente novas máscaras ao treino.
 
 
-\subsection{Plataforma Web de Curadoria}
+\subsection{Curadoria Web: resultados de implementação do artefato}
 
-A Curadoria Web implementa um fluxo para examinar predições por estrutura anatômica, registrar decisões e conservar separadamente máscaras originais e revisadas. A interface também permite comparar ROIs de ecogenicidade, conforme a Figura~\ref{fig:curadoria_rois_ecogenicidade}, e executar inferência em novas imagens sem acrescentá-las automaticamente ao treinamento.
+Como resultado de engenharia, a Curadoria Web integra os dois percursos documentados na Tabela~\ref{tab:curadoria_ferramentas}: revisão de casos pré-computados e inferência independente de novas imagens. O servidor persiste decisões por imagem e revisor, máscaras corrigidas, versões históricas, ROIs ajustadas e execuções do assistente. O serviço de inferência conserva os checkpoints, as máscaras e os indicadores operacionais associados ao \texttt{image\_id}. A Figura~\ref{fig:curadoria_rois_ecogenicidade} exemplifica o comparador de intensidade integrado à interface.
 
-Essa integração demonstra viabilidade técnica e rastreabilidade das revisões, mas não quantifica, por si só, melhora de Dice, economia de tempo dos anotadores ou utilidade clínica. Esses efeitos permanecem sujeitos à avaliação controlada descrita no plano de continuidade.
+Os testes de componentes disponíveis no repositório verificam a geração de prioridades de revisão, a associação entre evidências e respostas estruturadas e a exigência de confirmação antes de aplicar uma proposta de máscara. Essa evidência sustenta a implementação e o comportamento funcional específico do artefato, mas não demonstra usabilidade superior nem impacto no tempo de anotação. A contribuição do ciclo de revisão para melhorar rótulos ou generalização continua sujeita à avaliação controlada com anotadores e casos independentes.
 
 
 \subsection{Estudo exploratório do assistente multimodal}
@@ -1089,7 +1089,8 @@ Cápsula (linha de base) & Dice $0{,}9290$ em 70 imagens manuais deduplicadas & 
 Destilação da cápsula & Matriz de estudantes, parâmetros e latência; Dice observado $0{,}9078$ & Reavaliar seleção em teste não consultado \\
 Intrarrenal e cascata & Dice $0{,}7594$ (teste original) e $0{,}7210$ com ROI prevista (teste agrupado) & Erros por estrutura, exame e qualidade visual \\
 Pseudomáscaras MONAI & 3.707 propostas não vazias de 4.479 imagens & Correção anatômica por revisão especializada \\
-Curadoria e ecogenicidade & Fluxos de edição e mensuração implementados & Estudo de revisão, repetibilidade e sensibilidade das ROIs \\
+Curadoria Web & Inferência, triagem por incerteza, edições versionadas e propostas com confirmação implementadas & Avaliar tempo de revisão, qualidade das correções e controle de acesso \\
+Ecogenicidade & Comparação automática e ajustável de ROIs na imagem original & Avaliar sensibilidade e repetibilidade das medidas \\
 Assistente multimodal & Demonstração qualitativa em caso isolado & Gabarito dos achados e avaliação de amostra independente \\
 \bottomrule
 \end{tabular}
@@ -1142,7 +1143,7 @@ CEC & 0,8434 & 0,8469 \\
 \end{tabular}
 \end{table}
 
-O resultado publicado da MAT-UNet é numericamente maior na cápsula, enquanto valores deste trabalho são maiores em algumas regiões internas. Essa diferença não define um ranking, pois divisões, anotadores, critérios de inclusão e agregação das métricas podem variar. De modo semelhante, MONAI Label já oferece anotação assistida por IA~\cite{DiazPinto2024MONAILabel}, e MK-Net já investiga destilação no \texttt{kidneyUS}~\cite{Chen2026MKNet}. Portanto, a originalidade reivindicada restringe-se à \emph{integração examinável} de modelos, consenso para triagem, estudantes específicas, revisão versionada e medidas de ecogenicidade, não à invenção isolada desses componentes.
+O resultado publicado da MAT-UNet é numericamente maior na cápsula, enquanto valores deste trabalho são maiores em algumas regiões internas. Essa diferença não define um ranking, pois divisões, anotadores, critérios de inclusão e agregação das métricas podem variar. MONAI Label já oferece anotação assistida por IA~\cite{DiazPinto2024MONAILabel}, e MK-Net já investiga destilação no \texttt{kidneyUS}~\cite{Chen2026MKNet}. A contribuição própria deste trabalho é o \textbf{artefato Curadoria Web e sua integração operacional à cascata renal}: uma imagem pode ser segmentada, inspecionada com indicadores de incerteza, revisada com versionamento, mensurada e vinculada às evidências de uma consulta multimodal. Essa combinação especializada e auditável é demonstrada como engenharia implementada, não como pioneirismo de cada componente nem como benefício clínico validado.
 
 \subsection{Síntese interpretativa}
 Os experimentos demonstram que a cascata pode ser executada e avaliada com referência manual, que a propagação de erro é mensurável e que uma estudante pode reduzir custo computacional. Ainda não demonstram que a revisão humana melhora o desempenho, que as pseudomáscaras externas são anatomicamente corretas ou que as medidas de ecogenicidade antecipam doença. Essa fronteira entre resultados medidos e hipóteses testáveis é central para a validade da contribuição.
@@ -1159,7 +1160,9 @@ Dice e IoU medem sobreposição com máscaras de referência, não adequação p
 Os principais testes supervisionados usam o \texttt{kidneyUS}; as 4.479 imagens MONAI constituem um conjunto externo não anotado adequadamente para aferir Dice. Equipamento, operador, ganho, profundidade, compressão, qualidade de imagem e prevalência de dificuldades anatômicas podem deslocar a distribuição. Uma amostra externa selecionada para anotação especializada, incluindo casos difíceis e uma seleção aleatória dos diferentes estratos de consenso, é necessária para estimar erro anatômico fora do domínio de treino. Casos escolhidos apenas por confiança alta superestimariam a qualidade do fluxo.
 
 \subsection{Validade operacional, clínica e multimodal}
-A Curadoria Web implementa o ciclo de revisão, mas ainda não existem medições controladas de tempo, taxa de correção, concordância ou benefício no retreinamento. As razões de ecogenicidade dependem de máscaras, ROIs e parâmetros de aquisição; faltam estudo de sensibilidade, repetibilidade e associação com dados clínicos pareados. Os exemplos do assistente multimodal têm caráter ilustrativo e não incluem gabarito independente dos achados; a versão exata do serviço externo também precisa de documentação para reprodução. Nenhum desses componentes é avaliado como diagnóstico de fibrose, IFTA ou doença renal crônica.
+A Curadoria Web implementa o ciclo de revisão, mas ainda não dispõe de medições controladas de tempo, taxa de correção, concordância ou impacto no retreinamento. A identidade do revisor é informada na interface, sem autenticação institucional; o armazenamento local em SQLite e a exportação interna não equivalem a uma implantação multiusuário segura. O mapa de incerteza e as prioridades são heurísticos calculados na inferência inicial e não constituem acurácia calibrada; após aplicar uma proposta de máscara, o medidor é atualizado, mas esses indicadores não são automaticamente recalculados para a versão editada. A ampliação \emph{Super-res} é realizada por interpolação, sem rede neural específica.
+
+As razões de ecogenicidade dependem de máscaras, ROIs e parâmetros de aquisição; ainda faltam estudos de sensibilidade, repetibilidade e associação com dados clínicos pareados. Os exemplos multimodais são ilustrativos e não incluem gabarito independente dos achados; a identificação técnica do provedor externo também requer documentação para reprodução. Nenhum componente é avaliado como diagnóstico de fibrose, IFTA ou doença renal crônica.
 
 \section{Continuidade da Dissertação}
 A continuidade deve converter os componentes implementados em hipóteses avaliáveis, priorizando a correção das fontes de viés identificadas na presente qualificação. A Tabela~\ref{tab:plano_validacao} relaciona cada eixo a uma comparação controlada e ao desfecho esperado. Os procedimentos descritos são \textbf{propostas de experimentos}, não resultados adicionais.
