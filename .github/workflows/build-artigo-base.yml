@@ -61,7 +61,7 @@ jobs:
           test "$num_secoes" -ge 8
           test "$num_subsecoes" -ge 40
           test "$num_figuras" -eq 16
-          test "$num_tabelas" -eq 17
+          test "$num_tabelas" -eq 18
 
           if ! command -v pdftotext >/dev/null 2>&1; then
             sudo apt-get update -qq
