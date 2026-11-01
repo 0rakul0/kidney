@@ -145,3 +145,10 @@ def test_mask_proposal_preserves_original_until_apply(tmp_path):
     applied = service.apply_mask_proposal("infer_case", proposal["proposal_id"], "jefferson")
     assert applied["status"] == "aplicada"
     assert service.results["infer_case"]["mask_paths"]["cortex"].parent.name == "approved_masks"
+
+def test_mask_command_recognizes_smoothing_without_extra_verbs():
+    command = AssistantService.parse_mask_command("Suavize as bordas da máscara do córtex.")
+    assert command is not None
+    assert command["layer"] == "cortex"
+    assert command["operation"] == "suavizar_bordas"
+    assert command["requires_confirmation"] is True
