@@ -596,7 +596,19 @@ Auditoria e saída & Revisões por estrutura, histórico das correções, JSON, 
 \endgroup
 \end{table}
 
-O fluxo de correção assistida merece distinção metodológica: a linguagem natural é interpretada por regras de roteamento e produz uma \emph{proposta determinística} de processamento morfológico, não uma nova segmentação gerada pelo modelo multimodal. O sistema registra a operação e os pixels acrescentados ou removidos, preserva a máscara original e requer confirmação para aplicar a proposta à sessão. Para novas inferências, uma camada de incerteza e indicadores por região orientam a inspeção, sem converter confiança do modelo em acurácia anatômica.
+\subsubsection{Triagem de casos e inspeção visual}
+\label{sec:curadoria_triagem}
+
+A fila de curadoria é construída a partir do manifesto de imagens e dos metadados associados às anotações. Cada caso é identificado por \texttt{image\_id} e pode ser localizado por busca textual ou por filtros de origem, estado da revisão e tipo de anotação (manual, pseudomáscara ou ausência de máscara renal). A interface apresenta miniaturas, total de itens, quantidade de revisões e progresso por revisor. Esses indicadores descrevem o andamento do processo e não a correção anatômica das máscaras.
+
+Na inspeção, é possível alternar sobreposições de rim, córtex, medula, CEC e marcador exploratório de anomalia, navegar entre casos, aplicar zoom ou recolher os painéis. Quando disponíveis, são exibidos o checkpoint e as métricas de teste do segmentador, além de índices de concordância entre modelos. Esses valores dizem respeito a protocolos de avaliação ou à concordância de predições e não representam um Dice validado para a imagem selecionada. A visualização pode empregar CLAHE ou ampliação de duas vezes por interpolação Lanczos; esta última não corresponde a super-resolução por rede neural. Os cálculos de ecogenicidade utilizam a imagem original, independentemente do realce escolhido para inspeção.
+
+\subsubsection{Revisão por estrutura, correção manual e histórico}
+\label{sec:curadoria_revisao}
+
+O revisor informa um identificador e seleciona o perfil de especialista ou não especialista. Para cada estrutura, o sistema registra o estado da revisão (pendente, aceita, a corrigir, rejeitada ou indisponível), permitindo decisões independentes para rim, córtex, medula e CEC. O marcador de anomalia constitui uma anotação visual exploratória, não um rótulo clínico de fibrose ou de outra doença.
+
+As ferramentas de polígono, pincel e borracha permitem substituir, acrescentar ou remover pixels. A edição gera um PNG separado e registro de operação, horário, revisor e classe na tabela \texttt{mask\_edits}; cada salvamento preserva também uma cópia datada em \texttt{mask\_edit\_history}. As correções possuem status próprio de aprovação, podendo registrar aprovador e data. Na visualização, a máscara editada pelo revisor tem precedência sobre a predição original, mesmo quando a aprovação permanece pendente; portanto, uma edição visível não é necessariamente uma anotação validada. A predição original não é sobrescrita.
 
 As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} documentam, respectivamente, a fila de revisão, a inspeção ampliada e a preparação de uma edição manual. As capturas registram recursos da interface, não a conclusão de uma correção específica.
 \begin{figure}[!htbp]
