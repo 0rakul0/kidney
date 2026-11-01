@@ -640,7 +640,35 @@ As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara}
 
 
 
-O módulo de inferência executa a estudante da cápsula, recorta a ROI renal, aplica a estudante intrarrenal e reconstrói as máscaras no espaço da imagem. Os checkpoints utilizados são identificados na configuração versionada do projeto\footnote{Cápsula: \path{capsule_from_regions_grouped_student_unet_deeplab.pth}; intrarrenal: \path{intrarenal_grouped_roi_student_unet_deeplab.pth}.}. O mesmo checkpoint da cápsula alimenta a geração de pseudomáscaras externas. As medidas de ecogenicidade são calculadas sobre a imagem original, e as predições são armazenadas separadamente, sem incorporação automática à base de treinamento.
+\subsubsection{Inferência de novas imagens e recuperação dos resultados}
+\label{sec:curadoria_inferencia}
+
+A interface de inferência opera sobre imagens novas, fora da fila de casos previamente catalogados. A página de envio disponibiliza PNG e JPEG, enquanto o validador do servidor também reconhece WebP. A entrada é verificada quanto ao formato, limite de 20~MB, dimensão máxima de 8192 pixels por eixo e até 16 milhões de pixels descomprimidos; arquivos inválidos são rejeitados antes do carregamento dos modelos. A inferência exige ambiente local com PyTorch e checkpoints disponíveis, diferentemente do contêiner utilizado apenas para revisar máscaras pré-computadas.
+
+O serviço aplica a U-Net estudante da cápsula, conserva a maior componente renal e delimita a região de interesse. O recorte alimenta uma U-Net intrarrenal multiclasse com canais derivados da intensidade e da máscara renal, produzindo córtex, medula e CEC. As predições são reconstruídas nas dimensões da imagem de entrada. Os checkpoints utilizados são identificados em metadados\footnote{Cápsula: \path{capsule_from_regions_grouped_student_unet_deeplab.pth}; intrarrenal: \path{intrarenal_grouped_roi_student_unet_deeplab.pth}.}. O checkpoint externo também serve à etapa de geração de pseudomáscaras candidatas descrita anteriormente.
+
+Cada execução recebe um \texttt{image\_id} e salva a imagem original, quatro máscaras anatômicas, a caixa delimitadora renal, medidas de ecogenicidade e metadados em diretório próprio. O arquivo \texttt{metadata.json} registra, entre outros campos, os checkpoints, a avaliação operacional e os caminhos das máscaras ativas. O índice é reconstruído após o reinício do servidor quando esses arquivos continuam disponíveis. Nem a inferência nem uma proposta de máscara são adicionadas automaticamente ao conjunto de treinamento ou à fila original de curadoria.
+
+\subsubsection{Indicadores de qualidade, incerteza e priorização}
+\label{sec:curadoria_qualidade}
+
+O módulo de controle de qualidade calcula, para cada região intrarrenal prevista, a probabilidade média atribuída aos pixels da classe, sua incerteza complementar e a área relativa à máscara renal. Regiões ausentes, pequenas ou com confiança reduzida recebem alertas e prioridade de revisão baixa, média ou alta. A avaliação global considera ainda a confiança da predição renal, sua área relativa à imagem e o tamanho do recorte. O painel apresenta esses valores como apoio à inspeção, não como estimativas de precisão medidas contra referência manual.
+
+O mapa de incerteza é calculado por $U(x,y)=1-\max_k p_k(x,y)$, com $p_k$ representando a probabilidade predita para a classe $k$; sua sobreposição visual é restrita à máscara renal. Assim, os pixels de menor confiança podem ser inspecionados juntamente com as fronteiras anatômicas. Os limiares e prioridades são heurísticas operacionais, não probabilidades calibradas de acerto ou de doença. Após a aplicação de uma proposta morfológica à sessão, as medidas de ecogenicidade podem ser atualizadas, mas o mapa de incerteza e as prioridades calculadas na inferência inicial não são automaticamente reestimados para a máscara modificada.
+
+\subsubsection{Refinamento assistido por comandos em linguagem natural}
+\label{sec:curadoria_comandos}
+
+A interface de inferência oferece comandos como \emph{remova o ruído da máscara do CEC}, \emph{preencha os vazios da medula} ou \emph{suavize as bordas do córtex}. O \texttt{AssistantService} identifica por regras textuais a estrutura e a operação solicitada; essa interpretação não modifica a máscara. As operações disponíveis são refinamento geral, preenchimento de vazios, remoção de ruído e suavização de bordas. O processamento resultante aplica operações morfológicas determinísticas e pode restringir as alterações à região renal, sem produzir uma segmentação inédita por modelo de linguagem.
+
+O revisor aciona \emph{Gerar proposta de máscara}, inspeciona a sobreposição das diferenças e, somente depois, pode selecionar \emph{Aplicar proposta à sessão}. Pixels acrescentados são indicados em verde e removidos em vermelho. A proposta mantém arquivo e manifesto próprios, com operação, dimensão do elemento estruturante, quantidades de pixels alterados e revisor. A confirmação grava uma cópia ativa em diretório separado, conserva a máscara original e registra a data e o responsável. Essa cadeia de confirmação permite examinar a edição sugerida sem equipará-la a uma correção anatômica validada por especialista.
+
+\subsubsection{Persistência, exportação e condições de implantação}
+\label{sec:curadoria_persistencia}
+
+Os registros da aplicação são organizados no SQLite em tabelas de revisões (\texttt{reviews}), correções atuais (\texttt{mask\_edits}), histórico temporal (\texttt{mask\_edit\_history}), seleções de ROIs (\texttt{brightness\_roi\_selections}) e execuções do assistente (\texttt{assistant\_runs}). O vínculo entre imagem, revisor e versão permite recuperar decisões individuais, máscaras editadas, ROIs e registros de assistência. O sistema dispõe de exportação JSON e CSV, além de uma operação para consolidar registros em outra tabela do próprio SQLite (\texttt{curation\_database\_export}); isso não equivale a uma integração já realizada com banco institucional externo.
+
+A implantação padrão é local. Embora a interface solicite identificador e perfil do revisor, não há autenticação institucional nem autorização efetiva por papéis. A utilização compartilhada com dados clínicos requer controles de acesso, infraestrutura e governança aprovados, assim como estudos de concorrência e persistência. A existência de histórico e exportações é evidência de rastreabilidade operacional, mas não demonstra, isoladamente, concordância entre revisores, redução de tempo ou validade clínica.
 
 \subsection{Mensuração quantitativa de ecogenicidade}
 
