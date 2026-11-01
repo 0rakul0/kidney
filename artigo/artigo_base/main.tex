@@ -245,7 +245,9 @@ O objetivo geral é desenvolver e avaliar um \textit{pipeline} de visão computa
 A ecogenicidade cortical e as relações entre regiões anatômicas motivam o último estágio~\cite{Manley2001,Moghazi2005,Beutler2024SRI,Zhao2025Echogenicity}. Entretanto, brilho em B-mode não é um indicador específico de fibrose, e não se dispõe aqui de referência clínica ou histopatológica pareada suficiente para classificá-la. O assistente multimodal integrado à aplicação é tratado como recurso exploratório de apoio à revisão, não como método validado de diagnóstico.
 
 \subsection{Contribuições e organização do texto}
-A contribuição reivindicada é de \textbf{integração metodológica e avaliação operacional}, não a invenção de uma nova arquitetura neural. O trabalho articula segmentadores externos e intrarrenais, professores heterogêneos e estudantes compactas, consenso para triagem, registro de revisões humanas e medidas de intensidade calculadas sobre a imagem original. A distinção entre referência manual, predição, pseudomáscara, máscara revisada e resultado clínico é uma exigência explícita do desenho. A fundamentação apresenta os conceitos e a lacuna; a metodologia descreve os protocolos; os resultados separam evidência experimental de demonstração de software; e a discussão, as ameaças à validade e o plano de continuidade delimitam o que ainda precisa ser testado.
+A contribuição de engenharia mais diretamente materializada nesta pesquisa é a \textbf{Curadoria Web, artefato computacional de integração e revisão rastreável de ultrassonografias renais}. A plataforma conecta, sob identificadores de caso e de revisor, predições da cascata, indicadores operacionais de qualidade, correções de máscaras, versões históricas, medidas de ecogenicidade e assistência multimodal. Essa integração permite inspecionar resultados intermediários e documentar decisões humanas, em vez de tratar a segmentação como uma saída isolada.
+
+A contribuição científica também inclui a avaliação da cascata, do consenso, da destilação e da propagação de erros. Não se reivindica a invenção de novas arquiteturas neurais nem do conceito de anotação assistida: o diferencial proposto é sua composição auditável em um fluxo específico para estruturas renais. A fundamentação delimita as soluções existentes; a metodologia descreve o artefato e os protocolos; os resultados distinguem medidas experimentais de funcionalidades implementadas; e a discussão explicita as validações ainda necessárias.
 
 \section{Fundamentação Teórica e Trabalhos Relacionados}
 
@@ -326,7 +328,7 @@ A destilação é distinta do consenso: o primeiro é um procedimento de treinam
 \subsection{Curadoria humana, proveniência e ferramentas existentes}
 Num fluxo \textit{human-in-the-loop}, a saída do modelo é uma proposta de anotação. O revisor pode aceitar, corrigir, rejeitar ou declarar uma máscara indisponível, mantendo a versão automática e a versão revisada como objetos distintos~\cite{Budd2021HITL}. Para auditoria, devem ser registrados identificador de imagem e exame, origem dos dados, classe anatômica, modelo e checkpoint, decisão do revisor e versão resultante. Esses metadados permitem investigar se uma eventual melhora vem do volume de imagens, do filtro automático ou da intervenção humana.
 
-A Curadoria Web deve ser comparada com soluções existentes, e não apresentada como inovação do conceito de anotação assistida. MONAI Label integra inferência e revisão em aplicações médicas; CVAT oferece edição visual de máscaras; OHIF fornece visualização de imagens; e MedSAM é uma referência de segmentação médica de propósito amplo~\cite{DiazPinto2024MONAILabel,Aljabri2022AnnotationSurvey,CVATDocumentation,OHIFDocumentation,Ma2024MedSAM}. O diferencial operacional pretendido é reunir, num fluxo renal específico, máscaras de cápsula/córtex/medula/CEC, revisões versionadas e medidas de ecogenicidade. A existência da ferramenta não demonstra, por si só, redução de tempo de anotação, ganho de Dice ou concordância entre especialistas; esses são desfechos ainda a medir.
+A proposta deve ser situada frente a ferramentas existentes, e não apresentada como criação do conceito de anotação assistida. MONAI Label integra inferência e revisão médica, CVAT oferece edição visual de máscaras, OHIF oferece visualização de imagens e MedSAM aborda segmentação médica de propósito geral~\cite{DiazPinto2024MONAILabel,Aljabri2022AnnotationSurvey,CVATDocumentation,OHIFDocumentation,Ma2024MedSAM}. A contribuição específica da Curadoria Web é \emph{orquestrar} segmentação hierárquica renal, triagem por incerteza, edições versionadas, medidas de ecogenicidade e registro das evidências apresentadas a assistentes multimodais no mesmo fluxo. Essa integração é um resultado de desenvolvimento de software; redução de tempo, ganho de acurácia e concordância entre revisores são desfechos ainda a medir.
 
 \subsection{Ecogenicidade quantitativa e limites clínicos}
 A ecogenicidade em B-mode depende da resposta do tecido e de fatores de aquisição, incluindo ganho, compensação temporal, profundidade e processamento do aparelho. Por isso, intensidade em tons de cinza não é uma medida absoluta de fibrose. Estudos sobre ecogenicidade cortical e comparações relativas com órgãos ou regiões de referência motivam descritores quantitativos, mas empregam definições e desfechos que não são intercambiáveis~\cite{Manley2001,Moghazi2005,Beutler2024SRI,Zhao2025Echogenicity}.
@@ -561,9 +563,40 @@ DeepLabV3 e MedullaROIUNet produzem candidatos independentes de máscara de medu
 
 \subsection{Curadoria Web: implementação e fluxo de revisão humana}
 
-Como artefato computacional desta pesquisa, foi desenvolvida a plataforma \textit{Curadoria Web}, implementada no diretório \texttt{curadoria\_web/} do repositório. Seu objetivo é integrar a inspeção de imagens ultrassonográficas, a conferência das predições anatômicas e a revisão humana em um mesmo ambiente. A arquitetura separa o servidor de aplicação em Python, responsável pelas operações sobre casos, máscaras e persistência, da interface desenvolvida com HTML, CSS e JavaScript. O sistema utiliza um manifesto de casos para carregar as imagens e suas versões de máscaras e mantém em banco SQLite os registros da curadoria.
+A \textit{Curadoria Web} é o principal artefato computacional desenvolvido nesta pesquisa. Sua implementação, disponível em \texttt{curadoria\_web/}, possui interface HTML/CSS/JavaScript e servidor HTTP em Python. A camada de dados (\texttt{CurationStore}) lê manifestos e mantém registros em SQLite; \texttt{MaskCorrectionService} trata as edições de máscaras; \texttt{InferenceService} executa a cascata; e \texttt{AssistantService} organiza evidências e consultas multimodais. A separação desses módulos permite rastrear o caminho entre imagem, predição, revisão e resultado persistido.
 
-O fluxo de trabalho começa com a identificação do revisor e a seleção de um caso na fila. A tela permite filtrar a origem das anotações e o estado da revisão, consultar as informações do modelo e sobrepor ou ocultar individualmente as camadas de rim, córtex, medula e complexo ecogênico central. O revisor pode classificar cada estrutura como aceita, a corrigir, rejeitada ou indisponível. Quando necessária, a correção pode ser realizada por polígono, pincel ou borracha; as operações permitem substituir, adicionar ou remover áreas da máscara. As edições são registradas sem sobrescrever a predição original, de modo que a máscara revisada possa ser distinguida da máscara proposta pelo modelo.
+A plataforma possui dois percursos complementares. No primeiro, o revisor acessa a fila de casos existentes, filtra sua origem e o tipo de anotação, seleciona o modelo de referência disponível e registra decisões independentes para rim, córtex, medula e CEC. No segundo, uma imagem enviada à interface de inferência é processada pela cascata e recebe um \texttt{image\_id}, com máscaras, metadados e medidas persistidos em diretório específico. As novas inferências não ingressam automaticamente na fila de revisão nem no conjunto de treinamento, preservando a distinção entre candidato automático e referência validada.
+
+\subsubsection{Ferramentas integradas e rastreabilidade da revisão}
+A Tabela~\ref{tab:curadoria_ferramentas} apresenta as ferramentas identificadas no código da plataforma e a natureza de suas saídas. A distinção entre operação implementada e validação científica é mantida: indicadores de confiança e ações de edição apoiam a inspeção, mas não substituem avaliação anatômica independente.
+
+\begin{table}[!htbp]
+\centering
+\small
+\caption[Funcionalidades implementadas na Curadoria Web]{Módulos funcionais da Curadoria Web e respectivos produtos ou limites. A tabela descreve capacidades implementadas, não resultados de eficácia clínica ou de ganho de produtividade.}
+\label{tab:curadoria_ferramentas}
+\begingroup
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{p{0.20\linewidth}p{0.39\linewidth}p{0.32\linewidth}}
+\toprule
+\textbf{Módulo} & \textbf{Ferramentas implementadas} & \textbf{Registro ou limite} \\
+\midrule
+Triagem e inspeção & Fila, busca, filtros por fonte, anotação manual/pseudo e estado; zoom e camadas anatômicas. & Casos vinculados ao manifesto e ao revisor. \\
+Realce visual & CLAHE e ampliação 2$\times$ por interpolação Lanczos para inspeção. & Visualização distinta da imagem original usada nas medidas. \\
+Edição anatômica & Polígono, pincel, borracha e marcador exploratório de anomalia; adição, remoção ou substituição. & PNGs separados, histórico temporal e estado de aprovação. \\
+Inferência independente & Upload validado e cascata de cápsula e estruturas intrarrenais. & \texttt{image\_id}, quatro máscaras e metadados; sem inclusão automática no treino. \\
+Triagem por incerteza & Confiança por região, área relativa, avisos geométricos, prioridades e mapa de incerteza. & Heurísticas operacionais, não probabilidades diagnósticas calibradas. \\
+Correção assistida & Comandos textuais roteados para operações morfológicas; prévia de pixels incluídos/removidos. & Proposta e aplicação somente após confirmação do revisor. \\
+Ecogenicidade & Estatísticas na imagem B-mode original, ROIs pareadas ou ajustadas, mediana, IQR e contraste. & Seleções vinculadas a imagem, revisor e modelo. \\
+Assistência multimodal & Análise local e comparação externa opcional com consentimento; evidências vinculadas ao caso. & Respostas e identificadores de execução persistidos; uso exploratório. \\
+Auditoria e saída & Revisões por estrutura, histórico das correções, JSON, CSV e exportação para tabela SQLite. & Proveniência operacional sem autenticação institucional. \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+
+O fluxo de correção assistida merece distinção metodológica: a linguagem natural é interpretada por regras de roteamento e produz uma \emph{proposta determinística} de processamento morfológico, não uma nova segmentação gerada pelo modelo multimodal. O sistema registra a operação e os pixels acrescentados ou removidos, preserva a máscara original e requer confirmação para aplicar a proposta à sessão. Para novas inferências, uma camada de incerteza e indicadores por região orientam a inspeção, sem converter confiança do modelo em acurácia anatômica.
 
 As Figuras~\ref{fig:curadoria_visao_geral}--\ref{fig:curadoria_correcao_mascara} documentam, respectivamente, a fila de revisão, a inspeção ampliada e a preparação de uma edição manual. As capturas registram recursos da interface, não a conclusão de uma correção específica.
 \begin{figure}[!htbp]
