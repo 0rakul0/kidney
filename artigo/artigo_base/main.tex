@@ -662,7 +662,9 @@ A Figura~\ref{fig:curadoria_rois_ecogenicidade} apresenta o comparador interativ
 No exemplo, o CEC é selecionado como região A e o córtex como região B; por isso, a razão exibida é $100\,\mu_{CEC}/\mu_C$, inversa à razão global $R_{C/CEC}$ definida na Equação~\ref{eq:global_echo}. Os indicadores não devem ser comparados sem considerar a ordem das regiões, e o exemplo interativo de um par não substitui a mediana do protocolo automático de até três pares.
 
 \subsection{Assistente multimodal: desenho do estudo piloto}
-O assistente recebe uma imagem B-mode, sobreposições de máscaras e descritores já produzidos pelo \textit{pipeline}. A avaliação realizada é demonstrativa: um caso principal foi submetido ao Qwen2.5-VL-3B-Instruct-AWQ local e a um assistente multimodal externo, com a mesma pergunta e as mesmas evidências declaradas; outro caso ilustra o uso da interface. O objetivo foi inspecionar se as respostas fazem referência às regiões e aos valores apresentados e se registram corretamente a incerteza, não estabelecer sensibilidade ou especificidade clínica.
+A integração multimodal é mediada pelo \texttt{AssistantService}: a partir do \texttt{image\_id}, o servidor recupera a imagem, as máscaras efetivas do revisor, os metadados dos modelos e os descritores de ecogenicidade. O usuário pode optar pela imagem completa ou pelo recorte da cápsula. O processamento externo exige consentimento explícito, enquanto a resposta local pode ser produzida sem envio da imagem ao provedor externo. Cada execução recebe um identificador e é persistida com evidências e limitações; uma resposta somente passa a compor a observação após seleção do revisor.
+
+A avaliação realizada é demonstrativa: um caso principal foi submetido ao Qwen2.5-VL-3B-Instruct-AWQ local e a um assistente multimodal externo, com a mesma pergunta e as mesmas evidências declaradas; outro caso ilustra o uso da interface. O objetivo foi inspecionar a referência às regiões e métricas fornecidas e o registro de incerteza, não estabelecer sensibilidade ou especificidade clínica.
 
 Os registros precisam conservar o prompt integral, a imagem efetivamente enviada, as versões das máscaras, a identificação técnica verificável do modelo externo, os parâmetros de inferência e a resposta sem edição. A identificação comercial anotada originalmente para o modelo externo não comprova, por si só, o identificador de checkpoint ou versão. Além disso, as máscaras do exemplo principal foram geradas por checkpoints anteriores indicados na legenda correspondente, de modo que esse piloto não serve de validação independente da cascata destilada operacional. Sem referência especializada dos achados e com amostra tão pequena, a comparação limita-se a observações qualitativas.
 
@@ -671,7 +673,7 @@ Os resultados são organizados por tarefa: parte-se da linha de base de segmenta
 
 \subsection{Segmentação da cápsula renal}
 
-A Tabela~\ref{tab:capsule} reúne o benchmark da cápsula em 70 imagens manuais deduplicadas. Os resultados da U-Net, apresentados no trabalho precursor~\cite{Anjos2026SBBD}, são apresentados como linha de base para os experimentos de destilação e integração da cascata.
+A Tabela~\ref{tab:capsule} reúne o benchmark da cápsula em 70 imagens manuais deduplicadas. Os resultados da U-Net, divulgados no trabalho precursor~\cite{Anjos2026SBBD}, constituem a linha de base para os experimentos de destilação e integração da cascata.
 
 As taxas de FPS dessa tabela pertencem ao benchmark original, que inclui
 carregamento dos lotes, transferência para a GPU, pós-processamento e cálculo
